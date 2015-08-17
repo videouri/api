@@ -1,0 +1,39 @@
+.navbar-default .navbar-form .input-group.focus .form-control,
+.navbar-default .navbar-form .input-group.focus .input-group-btn .btn,
+.navbar-default .navbar-form .input-group.focus .select2-search input[type="text"] {
+    border-color: #CECECE;
+}
+
+.navbar-default .navbar-form .form-control:focus,
+.navbar-default .navbar-form .select2-search input[type="text"]:focus {
+    border-color: #CECECE;
+}
+
+.form-control {
+    &::-webkit-input-placeholder {
+        color: @text-color;
+    }
+
+    &:-moz-placeholder {
+        color: @text-color;
+    }
+
+    &::-moz-placeholder {
+        color: @text-color;
+    }
+
+    &:-ms-input-placeholder {  
+        color: @text-color;
+    }
+}
+
+
+.btn-primary {
+    // .button-variant(@btn-default-color, @brand-secondary, @btn-primary-hover-bg, @btn-primary-active-bg);
+    .button-variant(@btn-default-color, @btn-primary-hover-bg, @brand-secondary, @btn-primary-active-bg);
+}
+
+.alert-success {
+    color: #00B16A;
+    background-color: transparent;
+}

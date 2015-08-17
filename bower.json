@@ -1,0 +1,29 @@
+{
+  "name": "Videouri",
+  "version": "0.0.3",
+  "authors": [
+    "Alexandru Budurovici <w0rldart@w0rldart.com>"
+  ],
+  "description": "Videouri assets dependencies",
+  "homepage": "https://videouri.com",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "1.x",
+    "jquery.lazyload": "~1.9.5",
+    "isotope": "~2.2.1",
+    "momentjs": "~2.10.6",
+    "bootstrap": "~3.3.5",
+    "font-awesome": "~4.4.0",
+    "video.js": "~4.12.11",
+    "videojs-youtube": "~1.2.12",
+    "videojs-vimeo": "*",
+    "videojs-dailymotion": "*"
+  }
+}
