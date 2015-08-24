@@ -17664,9 +17664,9 @@ var getText = docElem.textContent ?
 }));
 
 
-/*! Video.js v4.12.12 Copyright 2014 Brightcove, Inc. https://github.com/videojs/video.js/blob/master/LICENSE */ 
+/*! Video.js v4.12.13 Copyright 2014 Brightcove, Inc. https://github.com/videojs/video.js/blob/master/LICENSE */ 
 (function() {var b=void 0,f=!0,j=null,l=!1;function m(){return function(){}}function n(a){return function(){return this[a]}}function p(a){return function(){return a}}var s;document.createElement("video");document.createElement("audio");document.createElement("track");
-function t(a,c,d){if("string"===typeof a){0===a.indexOf("#")&&(a=a.slice(1));if(t.Ca[a])return c&&t.log.warn('Player "'+a+'" is already initialised. Options will not be applied.'),d&&t.Ca[a].I(d),t.Ca[a];a=t.m(a)}if(!a||!a.nodeName)throw new TypeError("The element or ID supplied is not valid. (videojs)");return a.player||new t.Player(a,c,d)}var videojs=window.videojs=t;t.fc="4.12";t.sd="https:"==document.location.protocol?"https://":"http://";t.VERSION="4.12.12";
+function t(a,c,d){if("string"===typeof a){0===a.indexOf("#")&&(a=a.slice(1));if(t.Ca[a])return c&&t.log.warn('Player "'+a+'" is already initialised. Options will not be applied.'),d&&t.Ca[a].I(d),t.Ca[a];a=t.m(a)}if(!a||!a.nodeName)throw new TypeError("The element or ID supplied is not valid. (videojs)");return a.player||new t.Player(a,c,d)}var videojs=window.videojs=t;t.fc="4.12";t.sd="https:"==document.location.protocol?"https://":"http://";t.VERSION="4.12.13";
 t.options={techOrder:["html5","flash"],html5:{},flash:{},width:300,height:150,defaultVolume:0,playbackRates:[],inactivityTimeout:2E3,children:{mediaLoader:{},posterImage:{},loadingSpinner:{},textTrackDisplay:{},bigPlayButton:{},controlBar:{},errorDisplay:{},textTrackSettings:{}},language:document.getElementsByTagName("html")[0].getAttribute("lang")||navigator.languages&&navigator.languages[0]||navigator.Ff||navigator.language||"en",languages:{},notSupportedMessage:"No compatible source was found for this video."};
 "GENERATED_CDN_VSN"!==t.fc&&(videojs.options.flash.swf=t.sd+"vjs.zencdn.net/"+t.fc+"/video-js.swf");t.Gd=function(a,c){t.options.languages[a]=t.options.languages[a]!==b?t.Z.Aa(t.options.languages[a],c):c;return t.options.languages};t.Ca={};"function"===typeof define&&define.amd?define("videojs",[],function(){return videojs}):"object"===typeof exports&&"object"===typeof module&&(module.exports=videojs);t.Ga=t.CoreObject=m();
 t.Ga.extend=function(a){var c,d;a=a||{};c=a.init||a.l||this.prototype.init||this.prototype.l||m();d=function(){c.apply(this,arguments)};d.prototype=t.i.create(this.prototype);d.prototype.constructor=d;d.extend=t.Ga.extend;d.create=t.Ga.create;for(var e in a)a.hasOwnProperty(e)&&(d.prototype[e]=a[e]);return d};t.Ga.create=function(){var a=t.i.create(this.prototype);this.apply(a,arguments);return a};
@@ -18394,91 +18394,77 @@ var VimeoState={UNSTARTED:-1,ENDED:0,PLAYING:1,PAUSED:2,BUFFERING:3};videojs.Vim
   };
 })();
 
-// require([
-//     'jquery', 'jquery.bridget', 'jquery.ui', 'jquery.ui.touch-punch',
-//     'jquery.placeholder', 'jquery.cookie', 'jquery.query',
-//     'bootstrap',
-//     'lazyload', 'isotope',
-//     'videojs'
-//     // 'video-js', 'video-js-youtube', 'video-js-vimeo', 'video-js-dailymotion',
-//     // 'swfobject', 'tagsinput',
-// ], function () {
+$.fn.timeFromSeconds = function () {
+    return this.each(function () {
+        var t = parseInt($(this).text(), 10);
+        $(this).data('original', t);
+        var h = Math.floor(t / 3600);
+        t %= 3600;
+        var m = Math.floor(t / 60);
+        var s = Math.floor(t % 60);
+        $(this).text((h > 0 ? h + ':' : '') +
+                     (m > 0 ? ((m < 10) ? '0'+m : m) + ':' : '00:') +
+                     ((s < 10) ? '0'+s : s) );
+    });
+};
 
-    'use strict';
+$(function () {
 
-    $.fn.timeFromSeconds = function () {
-        return this.each(function () {
-            var t = parseInt($(this).text(), 10);
-            $(this).data('original', t);
-            var h = Math.floor(t / 3600);
-            t %= 3600;
-            var m = Math.floor(t / 60);
-            var s = Math.floor(t % 60);
-            $(this).text((h > 0 ? h + ':' : '') +
-                         (m > 0 ? ((m < 10) ? '0'+m : m) + ':' : '00:') +
-                         ((s < 10) ? '0'+s : s) );
-        });
-    };
-
-    $(function () {
-
-        $('.input-group').on('focus', '.form-control', function () {
-            $(this).closest('.input-group, .form-group').addClass('focus');
-        }).on('blur', '.form-control', function () {
-            $(this).closest('.input-group, .form-group').removeClass('focus');
-        });
-
-        //$('.duration').time_from_seconds();
-
-        $('.family-filter').click(function () {
-            if ($.cookie('ff') === null) {
-                $.cookie('ff', 'off', { expires: 30, path: '/' });
-            }
-            else {
-                $.cookie('ff', null,{ path: '/' });
-            }
-        });
-
-        if ($.cookie('source-list') === null) {
-            $('a.button[data-source=all]').addClass('selected-title');
-        }
-
-        if ($.cookie('period-list') === null) {
-            $('a.button[data-period=ever]').addClass('selected-title');
-        }
-
-        // $('#sources-list li').click(function () {
-        //     var method = $('.tabNavigation').find('.selected2').data('method');
-        //     var source = $(this).find('a').data('source');
-        //     var period = $('#periods-list .selected-title').data('period');
-        //     console.log(method + ' ' + period + ' ' + source);
-        //     //$.post('')
-        // });
-
-        // $('#periods-list li').click(function () {
-        //     var method = $('.tabNavigation').find('.selected2').data('method');
-        //     var source = $('#sources-list .selected-title').data('source');
-        //     var period = $(this).find('a').data('period');
-        //     console.log(method + ' ' + period + ' ' + source);
-        //     //$.post('')
-        // });
-
-        // $('.categories').filter(function () {
-        //     if ($(this).children("li").length > 1) {
-        //         $(this).each(function (){
-        //             $('li:eq(0)', this).addClass('first-category');
-        //             $('li:gt(0)', this).wrapAll('<ul class="submenu" />');
-        //         });
-
-        //         $('.submenu').hide();
-
-        //         $(this).hover(function (){
-        //             $(this).find('.submenu').toggle();
-        //         });
-        //     }
-        // });
-
+    $('.input-group').on('focus', '.form-control', function () {
+        $(this).closest('.input-group, .form-group').addClass('focus');
+    }).on('blur', '.form-control', function () {
+        $(this).closest('.input-group, .form-group').removeClass('focus');
     });
 
-// });
+    //$('.duration').time_from_seconds();
+
+    $('.family-filter').click(function () {
+        if ($.cookie('ff') === null) {
+            $.cookie('ff', 'off', { expires: 30, path: '/' });
+        }
+        else {
+            $.cookie('ff', null,{ path: '/' });
+        }
+    });
+
+    if ($.cookie('source-list') === null) {
+        $('a.button[data-source=all]').addClass('selected-title');
+    }
+
+    if ($.cookie('period-list') === null) {
+        $('a.button[data-period=ever]').addClass('selected-title');
+    }
+
+    // $('#sources-list li').click(function () {
+    //     var method = $('.tabNavigation').find('.selected2').data('method');
+    //     var source = $(this).find('a').data('source');
+    //     var period = $('#periods-list .selected-title').data('period');
+    //     console.log(method + ' ' + period + ' ' + source);
+    //     //$.post('')
+    // });
+
+    // $('#periods-list li').click(function () {
+    //     var method = $('.tabNavigation').find('.selected2').data('method');
+    //     var source = $('#sources-list .selected-title').data('source');
+    //     var period = $(this).find('a').data('period');
+    //     console.log(method + ' ' + period + ' ' + source);
+    //     //$.post('')
+    // });
+
+    // $('.categories').filter(function () {
+    //     if ($(this).children("li").length > 1) {
+    //         $(this).each(function (){
+    //             $('li:eq(0)', this).addClass('first-category');
+    //             $('li:gt(0)', this).wrapAll('<ul class="submenu" />');
+    //         });
+
+    //         $('.submenu').hide();
+
+    //         $(this).hover(function (){
+    //             $(this).find('.submenu').toggle();
+    //         });
+    //     }
+    // });
+
+});
 //# sourceMappingURL=app.js.map

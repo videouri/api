@@ -42,6 +42,10 @@ elixir(
             ], 'public/js/app.js', 'resources/assets/')
 
             .copy([
+                './resources/assets/scripts/modules/**'
+            ], 'public/js/modules/')
+
+            .copy([
                 './resources/assets/bower/font-awesome/fonts/**',
                 './resources/assets/fonts/**'
             ], 'public/fonts')

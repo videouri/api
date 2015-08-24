@@ -1,10 +1,6 @@
 @extends('app')
 
 @section('content')
-<?php
-	$apis = ['YouTube'];
-	$fakeContent = true;
-?>
 <div id="filter-options" class="row">
     <div class="col-xs-5">
         <div class="btn-group">
@@ -132,4 +128,8 @@
 <?php endforeach; //$sort, $videos ?>
 <?php endif; ?>
 </div>
+@endsection
+
+@section('scripts')
+<script type="text/javascript" src="{{ asset('/js/modules/videosListing.js') }}"></script>
 @endsection

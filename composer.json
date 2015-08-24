@@ -25,7 +25,10 @@
 		"psr-4": {
 			"App\\": "app/",
 			"Videouri\\": "app/Videouri"
-		}
+		},
+		"files": [
+			"app/Videouri/helpers.php"
+		]
 	},
 	"autoload-dev": {
 		"classmap": [

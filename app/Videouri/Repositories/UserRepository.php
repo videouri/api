@@ -3,7 +3,9 @@
 namespace Videouri\Repositories;
 
 use Videouri\Entities\User;
-use Videouri\Exceptions\UserRepositoryExceptions;
+use Videouri\Exceptions\CreateUserException;
+use Videouri\Exceptions\SendMailException;
+use Videouri\Exceptions\RegisterValidationException;
 
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Validator;
@@ -11,23 +13,45 @@ use Mail;
 use Redirect;
 use Session;
 
-/**
- * @NOTE
- *     The exceptions are managed at app/Exceptions/Handler.php
- */
 class UserRepository
 {
     use ValidatesRequests;
 
     public function findOrCreateSocial($userData, $provider)
     {
+        if (!isset($userData->email)) {
+            $userData->email = rand(100, 9999) . '-' . time() . '@missingemail.com';
+        }
+
         $user = User::where('provider_id', '=', $userData->getId())->first();
         $emailExists = User::where('email', '=', $userData->getEmail())->first();
+        
+        if ($user) {
+            return $user;
+        }
 
-        // somebody is using that email,
-        // and has no provider_id set
         if (!$user && $emailExists) {
-            throw new UserExistsException("Email is already in use");
+            throw new RegisterValidationException("Email is already in use.");
+        }
+
+
+        $rules = [
+            'username' => 'required|max:255|unique:users',
+            'email'    => 'required|email|max:255|unique:users',
+        ];
+
+        $inputToFilter = [
+            'username'        => $userData->nickname,
+            'email'           => $userData->email,
+            'avatar'          => $userData->avatar,
+            'provider'        => $provider,
+            'provider_id'     => $userData->id
+        ];
+
+        $validator = Validator::make($inputToFilter, $rules);
+
+        if ($validator->fails()) {
+            throw new RegisterValidationException("Username or email already in use.");
         }
 
         $user = new User([
@@ -105,7 +129,7 @@ class UserRepository
             return true;
         }
         else {
-            throw new CannotCreatUserException("Your account couldn\'t be create please try again", 1);
+            throw new CreateUserException("Your account couldn\'t be create please try again", 1);
         }
     }
 
@@ -126,7 +150,7 @@ class UserRepository
         // });
 
         if (count(Mail::failures()) > 0){
-            throw new ActivationMailNotSentException("Failed to send activation email.");
+            throw new SendMailException("Failed to send activation email.");
         }
     }
 }

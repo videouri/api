@@ -69,7 +69,7 @@
                         <li>
                             <a href="//www.iubenda.com/privacy-policy/863528" class="iubenda-nostyle no-brand iubenda-embed" title="Privacy Policy">Privacy Policy</a>
                         </li>
-                        <li class="hidden">
+                        <li>
                             <a href="" class="family-filter">
                                 {{-- @todo --}}
                                 Turn on / Turn off - family filter 
@@ -87,28 +87,12 @@
         </div>
     </footer>
 
-    <?php if (false): // @TODO ?>
-    <!-- .modal -->
-    <div id="videouri-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <p><i class="icon-spinner icon-spin icon-large"></i> Loading...</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn pull-left" data-dismiss="modal">Cerrar</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div>
-    </div>
-    <!-- / .modal -->
-    <?php endif ?>
-
     <script type="text/javascript">
         (function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src = "//cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);
     </script>
 
     <!-- Scripts -->
     <script src="{{ asset('/js/app.js') }}"></script>
+    @yield('scripts')
 </body>
 </html>

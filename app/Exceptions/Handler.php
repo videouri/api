@@ -4,6 +4,8 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Videouri\Exceptions\CreateUserException;
+use Videouri\Exceptions\RegisterValidationException;
 
 class Handler extends ExceptionHandler {
 
@@ -38,15 +40,15 @@ class Handler extends ExceptionHandler {
      */
     public function render($request, Exception $e)
     {
-        if ($e instanceof UserExistsException) {
-            return redirect('join')->with('status', 'Email is already in use');
+        if ($e instanceof RegisterValidationException) {
+            return redirect('join')->withErrors($e->getMessage());
         }
         
-        if ($e instanceof CannotCreatUserException) {
-            return redirect('join')->with('status', 'Your account couldn\'t be create please try again');
+        if ($e instanceof CreateUserException) {
+            return redirect('join')->withErrors('Your account couldn\'t be create please try again');
         }
 
-        if ($e instanceof ActivationMailNotSentException) {
+        if ($e instanceof SendMailException) {
             return redirect('login')->with('status', 'Failed to send activation email.');
         }
 

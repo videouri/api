@@ -36,7 +36,7 @@ class Authentication
 
         try {
             $userData = $this->getSocialUser($provider);
-            $user = $this->users->findOrCreateSocial($userData, $provider);            
+            $user = $this->users->findOrCreateSocial($userData, $provider);
 
             $this->auth->login($user, true);
             return redirect('/');
