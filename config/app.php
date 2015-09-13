@@ -200,7 +200,8 @@ return [
         'Validator' => 'Illuminate\Support\Facades\Validator',
         'View'      => 'Illuminate\Support\Facades\View',
         
-        'Debugbar'  => 'Barryvdh\Debugbar\Facade',
+        // 'Debugbar'  => 'Barryvdh\Debugbar\Facade',
+        'Debugbar' => Barryvdh\Debugbar\Facade::class,
         'Vimeo'     => 'Vinkla\Vimeo\Facades\Vimeo',
 
     ],

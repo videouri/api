@@ -4,8 +4,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Session;
+use Request;
 
-class UserDefaults
+class VideouriDefaults
 {
     /**
      * Handle an incoming request.
@@ -16,6 +17,10 @@ class UserDefaults
      */
     public function handle($request, Closure $next)
     {
+        if (Request::server('SERVER_ADDR') != Request::server('REMOTE_ADDR')) {
+            abort(404);
+        }
+
         // Set user's country value based on his IP
         if (!Session::get('country')) {
             Session::put('country', getUserCountry());

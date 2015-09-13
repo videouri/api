@@ -6,19 +6,20 @@ use Videouri\Services\ApiProcessing;
 
 class HomeController extends Controller
 {
-	/**
-	 * ApiProcessing
-	 */
-	protected $apiprocessing;
+    /**
+     * ApiProcessing
+     */
+    protected $apiprocessing;
 
-	public function __construct(ApiProcessing $apiprocessing)
+    public function __construct(ApiProcessing $apiprocessing)
     {
-    	$this->apiprocessing = $apiprocessing;
+        $this->apiprocessing = $apiprocessing;
+        
         /**
          * Default parameters for homepage
          */
-        // $this->apiprocessing->apis       = ['YouTube', 'Dailymotion'];
-        $this->apiprocessing->apis       = ['Dailymotion'];
+        // $this->apiprocessing->apis       = ['Youtube', 'Dailymotion'];
+        $this->apiprocessing->apis       = ['Dailymotion', 'Youtube'];
         $this->apiprocessing->content    = ['most_viewed'];
         $this->apiprocessing->period     = 'today';
         $this->apiprocessing->maxResults = 8;
@@ -41,7 +42,8 @@ class HomeController extends Controller
         // Choose not to show home page content
         $content['fakeContent'] = false;
         // $this->template->bodyId = 'home';
-        return view('pages.home', $content);
+        
+        return view('videouri.pages.home', $content);
     }
     private function runAPIs()
     {
@@ -73,6 +75,7 @@ class HomeController extends Controller
             // });
     
         } // $api_response as $sortName => $sortData
+
         return $viewData;
     }
 }

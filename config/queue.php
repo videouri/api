@@ -38,14 +38,14 @@ return [
 		'database' => [
 			'driver' => 'database',
 			'table' => 'jobs',
-			'queue' => 'default',
+			'queue' => 'videouri',
 			'expire' => 60,
 		],
 
 		'beanstalkd' => [
 			'driver' => 'beanstalkd',
 			'host'   => 'localhost',
-			'queue'  => 'default',
+			'queue'  => 'videouri',
 			'ttr'    => 60,
 		],
 
@@ -68,7 +68,7 @@ return [
 
 		'redis' => [
 			'driver' => 'redis',
-			'queue'  => 'default',
+			'queue'  => 'videouri',
 			'expire' => 60,
 		],
 

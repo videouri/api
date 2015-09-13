@@ -2,16 +2,16 @@
 
 namespace Videouri\Services;
 
-use Youtube;
+use Alaouy\Youtube\Facades\Youtube;
 use Session;
 
 class YoutubeAgent
 {
     /**
-    * The function that will retrieve YouTube's api response data
+    * The function that will retrieve Youtube's api response data
     *
     * @param array $parameters containing the data to be sent when querying the api
-    * @return the json_decoded or rss response from YouTube.
+    * @return the json_decoded or rss response from Youtube.
     */
     public function data($parameters = array())
     {
@@ -73,51 +73,18 @@ class YoutubeAgent
                 $result= Youtube::getPopularVideos(Session::get('country'));
                 break;
 
-            /* Search and tags content */
+            /* Search based on query/tag */
             case 'search':
-                $result = json_decode(Youtube::getKeywordVideoFeed(
-                    $parameters['searchQuery'],
-                    array(
-                        'max-results' => $parameters['maxResults'],
-                        'start-index' => $this->page,
-                        'orderby'     => $parameters['sort'],
-                        'fields'      => "entry(id,title,author,gd:rating,yt:rating,yt:statistics,media:group(media:category(),media:description(),media:thumbnail(@url),yt:duration(@seconds)))",
-                        'alt'         => 'json',
-                        // 'region'      => $this->session->userdata('country'),
-                        )
-                    )
-                ,TRUE);
-                break;
-
-            case 'tag':
-                $tag = json_decode(Youtube::getKeywordVideoFeed(
-                    $parameters['searchQuery'],
-                    array(
-                        'max-results' => $parameters['maxResults'],
-                        'start-index' => $this->page,
-                        'orderby'     => $parameters['sort'],
-                        'fields'      => "entry(id,title,author,gd:rating,yt:rating,yt:statistics,media:group(media:category(),media:description(),media:thumbnail(@url),yt:duration(@seconds)))",
-                        'alt'         => 'json'
-                        )
-                    )
-                ,TRUE);
+                $result = Youtube::searchVideos($parameters['searchQuery'], $parameters['maxResults'], $parameters['sort'], ['id', 'snippet']);
                 break;
 
             /* Video page with video data and related videos */
             case 'getVideoEntry':
-                $result = Youtube::getVideoEntry($parameters['videoId'], false, array('alt' => 'json'));
+                $result = Youtube::getVideoInfo($parameters['videoId']);
                 break;
 
             case 'getRelatedVideos':
-                $result = json_decode(Youtube::getRelatedVideoFeed(
-                                $parameters['videoId'],
-                                array(
-                                    'max-results' => $parameters['maxResults'],
-                                    'start-index' => $this->page,
-                                    'fields'      => "entry(id,title,media:group(media:thumbnail(@url),yt:duration(@seconds)))",
-                                    'alt'         => 'json'
-                                )
-                            ), TRUE);
+                $result = Youtube::getRelatedVideos($parameters['videoId'], $parameters['maxResults']);
                 break;
 
         }

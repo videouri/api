@@ -3,6 +3,7 @@
 namespace Videouri\Services;
 
 use Cache;
+use Log;
 use Videouri\Services\DailymotionAgent;
 use Videouri\Services\VimeoAgent;
 use Videouri\Services\YoutubeAgent;
@@ -140,7 +141,11 @@ class ApiProcessing
             'page'        => $this->page,
             'sort'        => $this->sort
         ];
+        // Debugbar::info($apiParameters);
+        Log::info('apiParameters', $apiParameters);
         $apiParametersHash = md5(serialize($apiParameters));
+        Log::info('apiParametersHash: ' . $apiParametersHash);
+        // Debugbar::info($apiParametersHash);
 
         if (!$apiResponse = Cache::get($apiParametersHash)) {
             // if (!is_array($this->content) && !in_array($this->content, $this->availableContents)) {
@@ -179,8 +184,8 @@ class ApiProcessing
             // Caching results
             // Cache::put($apiParametersHash, $apiResponse, $this->_periodCachingTime[$this->period]);
             
-            // Set cache to expire in 6 hours
-            Cache::put($apiParametersHash, $apiResponse, 21600); 
+            // Set cache to expire in 24 hours
+            Cache::put($apiParametersHash, $apiResponse, 1440); 
         }
 
         return $apiResponse;
@@ -235,8 +240,8 @@ class ApiProcessing
             $apiResponse = self::getContent($this->content, $api);
             // Cache::put($cacheVariable, $apiResponse, $this->_cacheTimeout);
             
-            // Set cache to 6 hours
-            Cache::put($cacheVariable, $apiResponse, 21600);
+            // Set cache to 24 hours
+            Cache::put($cacheVariable, $apiResponse, 1440);
         }
 
         return $apiResponse;
@@ -282,38 +287,47 @@ class ApiProcessing
         return $this->$apiParser($data);
     }
 
-    private function YoutubeParser($data)
+    private function YoutubeParser($videos)
     {
         $i = 0;
         $results = array();
+        
+        if (empty($videos)) {
+            return $results;
+        }
 
-        foreach ($data['feed']['entry'] as $video) {
-            $origid = substr($video['id']['$t'], strrpos($video['id']['$t'], '/') + 1);
-            $id     = substr($origid,0,1).'y'.substr($origid,1);
+        foreach ($videos as $video) {
+            // echo "<pre>";
+            // var_dump($video);
+            // echo "<hr/>";
+
+            $videoId = is_object($video->id) ? $video->id->videoId : $video->id;
+            $id = substr($videoId, 0, 1).'y'.substr($videoId, 1);
 
             $toMerge = $results[$i] = array(
-                'url'    => site_url('video/'.$id),
-                'title'  => $video['title']['$t'],
-                'author' => $video['author'][0]['name']['$t'],
+                'url'    => url('video/'.$id),
+                'title'  => $video->snippet->title,
+                // 'author' => $video['author'][0]['name']['$t'],
             );
 
             $categories = array();
-            foreach ($video['media$group']['media$category'] as $category) {
-                $categories[] = $category['$t'];
-            }
+            // foreach ($video['media$group']['media$category'] as $category) {
+            //     $categories[] = $category['$t'];
+            // }
 
             // $results['Youtube'][$i] = array_merge($toMerge, array(
             $results[$i] = array_merge($toMerge, array(
-                'category'    => $categories,
-                'description' => self::parseDescription($video['media$group']['media$description']['$t']),
-                'rating'      => isset($video['gd$rating']) ? $video['gd$rating']['average'] : 0,
-                'viewsCount'  => $video['yt$statistics']['viewCount'],
-                // 'img'         => $video['media$group']['media$thumbnail'][0]['url'],
-                'img'         => 'https://i.ytimg.com/vi/'.$origid.'/mqdefault.jpg',
-                'source'      => 'Youtube',
+                'category'     => $categories,
+                'description'  => self::parseDescription($video->snippet->description),
+                'rating'       => isset($video->rating) ? $video->rating : 0,
+                'viewsCount'   => isset($video->viewsCount) ? $video->viewsCount : 0,
+                // 'thumbnail' => $video['media$group']['media$thumbnail'][0]['url'],
+                'thumbnail'    => $video->snippet->thumbnails->default->url,
+                'source'       => 'Youtube',
             ));
 
             $i++;
+            // dd($results);
         }
 
         if ($content = $this->contentForParser) {
@@ -336,8 +350,7 @@ class ApiProcessing
             $url = $match[1].'/'.$match[2];
             $url = url('video/'.substr($url,0,1).'d'.substr($url,1));
 
-
-            $thumbnailUrl = preg_replace("/^http:/i", "https:", $video['thumbnail_medium_url']);
+            $thumbnailUrl = preg_replace("/^http:/i", "https:", $video['thumbnail_360_url']);
 
             $results[$i] = array(
                 'url'         => $url,
@@ -346,7 +359,7 @@ class ApiProcessing
                 'description' => self::parseDescription($video['description']),
                 'rating'      => $video['rating'],
                 'viewsCount'  => $video['views_total'],
-                'img'         => $thumbnailUrl,
+                'thumbnail'   => $thumbnailUrl,
                 'source'      => 'Dailymotion',
             );
 
@@ -374,7 +387,7 @@ class ApiProcessing
             $video = (array) $video;
             preg_match('/http:\/\/[w\.]*metacafe\.com\/watch\/([^?&#"\']*)/is', $video['link'], $match);
             $id  = substr($match[1],0,-1);
-            $url = site_url('video/'.substr($id,0,1).'M'.substr($id,1));
+            $url = url('video/'.substr($id,0,1).'M'.substr($id,1));
             
             $results['Metacafe'][$i] = array(
                 'url'         => $url,
@@ -384,7 +397,7 @@ class ApiProcessing
                 'description' => self::parseDescription($video['title']),
                 'rating'      => isset($video['rank']) ? $video['rank'] : 0,
                 'viewsCount'  => 0,
-                'img'         => "http://www.metacafe.com/thumb/{$video['id']}.jpg",
+                'thumbnail'   => "http://www.metacafe.com/thumb/{$video['id']}.jpg",
                 'source'      => 'Metacafe',
             );
 
@@ -416,14 +429,14 @@ class ApiProcessing
             $id     = substr($origid,0,1).'v'.substr($origid,1);
 
             $results[$i] = array(
-                'url'         => site_url('video/'.$id),
+                'url'         => url('video/'.$id),
                 'title'       => $video['name'],
                 'author'      => $video['user']['name'],
                 'category'    => '',
                 'description' => self::parseDescription($video['description']),
                 'rating'      => $video['metadata']['connections']['likes']['total'],
                 'viewsCount'  => $video['stats']['plays'],
-                'img'         => $video['pictures']['sizes'][2]['link'],
+                'thumbnail'   => $video['pictures']['sizes'][2]['link'],
                 'source'      => 'Vimeo',
             );
 

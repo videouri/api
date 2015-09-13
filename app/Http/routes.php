@@ -13,16 +13,21 @@
 
 Route::get('/', 'HomeController@index');
 
-Route::get('join', 'Auth\AuthController@getRegister');
-Route::post('join', 'Auth\AuthController@postRegister');
-Route::get('login/{provider?}', 'Auth\AuthController@getLogin');
-Route::post('login', 'Auth\AuthController@postLogin');
+Route::get('results', [
+    'as'   => 'results',
+    'uses' => 'SearchController@getVdeos'
+]);
 
-Route::get('logout', function() {
-    Auth::logout();
+Route::get('video/{id}/{videoSlug?}', 'VideoController@show');
+Route::get('info/{view}/{part?}', 'InfoController@show');
 
-    return redirect('/');
-});
+
+// User auth related methods
+// Route::get('join', 'Auth\AuthController@getRegister');
+// Route::post('join', 'Auth\AuthController@postRegister');
+// Route::get('login/{provider?}', 'Auth\AuthController@getLogin');
+// Route::post('login', 'Auth\AuthController@postLogin');
+// Route::get('logout', 'Auth\AuthController@getLogout');
 
 Route::controllers([
     // 'auth'     => 'Auth\AuthController',

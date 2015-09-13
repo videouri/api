@@ -4,8 +4,10 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Videouri\Exceptions\SearchQueryEmpty;
 use Videouri\Exceptions\CreateUserException;
 use Videouri\Exceptions\RegisterValidationException;
+use Videouri\Exceptions\SendMailException;
 
 class Handler extends ExceptionHandler {
 

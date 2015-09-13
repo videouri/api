@@ -7,7 +7,7 @@ use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\Registrar;
 use Validator;
 
-use Session;
+use Redirect;
 use Auth;
 
 use Videouri\Entities\User;

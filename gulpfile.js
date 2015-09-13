@@ -21,7 +21,7 @@ elixir(
             .less('app.less')
 
             .scripts([
-                "bower/jquery/dist/jquery.js",
+                "../../bower_components/jquery/dist/jquery.js",
                 "scripts/vendor/jquery-ui-1.10.3.custom.min.js",
                 "scripts/vendor/jquery.ui.touch-punch.min.js",
 
@@ -29,14 +29,14 @@ elixir(
                 "scripts/vendor/jquery.cookie.js",
                 "scripts/vendor/jquery.query.js",
 
-                "bower/bootstrap/dist/js/bootstrap.js",
-                "bower/jquery.lazyload/jquery.lazyload.js",
-                "bower/isotope/dist/isotope.pkgd.js",
+                "../../bower_components/bootstrap/dist/js/bootstrap.js",
+                "../../bower_components/jquery.lazyload/jquery.lazyload.js",
+                "../../bower_components/isotope/dist/isotope.pkgd.js",
 
-                "bower/video.js/dist/video-js/video.js",
-                "bower/videojs-youtube/dist/vjs.youtube.js",
-                "bower/videojs-vimeo/vjs.vimeo.js",
-                "bower/videojs-dailymotion/src/dailymotion.js",
+                "../../bower_components/video.js/dist/video-js/video.js",
+                "../../bower_components/videojs-youtube/dist/vjs.youtube.js",
+                "../../bower_components/videojs-vimeo/vjs.vimeo.js",
+                "../../bower_components/videojs-dailymotion/src/dailymotion.js",
                 // "scripts/vendor/video.js-dailymotion/vjs.dailymotion.js",
                 "scripts/main.js"
             ], 'public/js/app.js', 'resources/assets/')
@@ -46,12 +46,13 @@ elixir(
             ], 'public/js/modules/')
 
             .copy([
-                './resources/assets/bower/font-awesome/fonts/**',
+                './bower_components/font-awesome/fonts/**',
+                './bower_components/video.js/dist/video-js/font/**',
                 './resources/assets/fonts/**'
             ], 'public/fonts')
         ;
 
         // TESTING!
-        mix.phpUnit();
+        // mix.phpUnit();
     }
 );

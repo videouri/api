@@ -2,6 +2,8 @@
 
 namespace Videouri\Services;
 
+use Vinkla\Vimeo\Facades\Vimeo;
+
 class VimeoAgent
 {
     /**
@@ -46,7 +48,7 @@ class VimeoAgent
                     'per_page' => $parameters['maxResults'],
                     'sort'     => $sort,
                     'query'    => $parameters['searchQuery']
-                ]);
+                ], 'GET');
                 break;
 
             case 'tag':
@@ -65,7 +67,7 @@ class VimeoAgent
 
             case 'getRelatedVideos':
                 $result = Vimeo::request("/videos/{$parameters['videoId']}/videos", [
-                    'page'     => $parameters['page'],
+                    // 'page'     => $parameters['page'],
                     'per_page' => $parameters['maxResults'],
                     'filter'   => 'related',
                 ]);

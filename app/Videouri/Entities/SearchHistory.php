@@ -7,31 +7,26 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * 
  */
-class Video extends Model
+class SearchHistory extends Model
 {
-
     /**
-     * The database table used by the model.
+     * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'videos';
-    
+    protected $table = 'search_history';
+
     /**
      * Indicates if the model should be timestamped.
      *
      * @var bool
      */
-    public $timestamps = true;
+    public $timestamps = false;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = [
-        'provider', 'original_id', 'title',
-        'description', 'thumbnail', 'views',
-        'categories', 'tags'
-    ];
+    protected $fillable = ['term', 'user_id'];
 }

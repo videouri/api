@@ -1,8 +1,9 @@
 .idea
+.phpintel
 
 composer.lock
 /vendor
 /node_modules
-/resources/assets/bower
+/bower_components
 /resources/assets/vendor
 .env
