@@ -162,7 +162,7 @@ class VideoController extends Controller
             $video['views']       = humanizeNumber($response->statistics->viewCount);
             $video['duration']    = humanizeSeconds($totalSeconds);
             
-            $video['tags']        = $response->snippet->tags;
+            $video['tags']        = isset($response->snippet->tags) ? $response->snippet->tags : [];
             $video['related']     = $this->_relatedVideos($api, $origId);
         }
 

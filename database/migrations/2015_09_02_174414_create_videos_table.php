@@ -22,7 +22,7 @@ class CreateVideosTable extends Migration
             $table->string('author')->nullable();
 
             $table->string('title');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->string('thumbnail');
             $table->integer('views')->default(0);
             $table->integer('duration')->default(0); // Value will be in seconds

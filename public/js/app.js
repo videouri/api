@@ -17953,7 +17953,7 @@ var VimeoState={UNSTARTED:-1,ENDED:0,PLAYING:1,PAUSED:2,BUFFERING:3};videojs.Vim
             // Doesn't exist right away because the DOM hasn't created it
             setTimeout(function () {
               var posterEl = self.playerEl_.querySelectorAll('.vjs-poster')[0];
-              posterEl.style.backgroundImage = 'url(https://api.dailymotion.com/video/' + self.videoId + '?fields=url&ads=false)';
+              posterEl.style.backgroundImage = 'url(//api.dailymotion.com/video/' + self.videoId + '?fields=url&ads=false)';
               posterEl.style.display = '';
               posterEl.style.backgroundSize = 'cover';
             }, 100);
@@ -18015,7 +18015,7 @@ var VimeoState={UNSTARTED:-1,ENDED:0,PLAYING:1,PAUSED:2,BUFFERING:3};videojs.Vim
       }
 
 
-      this.el_.src = 'http://www.dailymotion.com/services/oembed?' + videojs.Dailymotion.makeQueryString(this.params);
+      this.el_.src = '//www.dailymotion.com/services/oembed?' + videojs.Dailymotion.makeQueryString(this.params);
 
       if (videojs.Dailymotion.apiReady) {
         this.loadApi();
@@ -18029,7 +18029,7 @@ var VimeoState={UNSTARTED:-1,ENDED:0,PLAYING:1,PAUSED:2,BUFFERING:3};videojs.Vim
           tag.onerror = function (e) {
             self.onError(e);
           };
-          tag.src = 'http://api.dmcdn.net/all.js';
+          tag.src = '//api.dmcdn.net/all.js';
           var firstScriptTag = document.getElementsByTagName('script')[0];
           firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
           videojs.Dailymotion.apiLoading = true;

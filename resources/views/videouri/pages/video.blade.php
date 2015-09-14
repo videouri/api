@@ -123,5 +123,5 @@
 @endsection
 
 @section('scripts')
-<script type="text/javascript" src="{{ asset('/js/modules/video.js') }}"></script>
+<script type="text/javascript" src="{{ secure_asset('/js/modules/video.js') }}"></script>
 @endsection
