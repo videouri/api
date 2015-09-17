@@ -54,7 +54,8 @@ class VideoController extends Controller
                 break;
 
             default:
-                show_error(lang('video_id',$customId));
+		abort(404);
+                #show_error(lang('video_id',$customId));
                 break;
         }
 
@@ -68,11 +69,14 @@ class VideoController extends Controller
         #if ($response = Video::where('original_id', '=', $origId)->first()) {
         #    $response = $response->toArray();
         #} else {
-            $response = $this->apiprocessing->individualCall($api);
-        #}
 
-        if (!$response) {
-            abort(404);
+    	try {
+	        if ( ! $response = $this->apiprocessing->individualCall($api))
+		        abort(404);
+    	} catch (Exception $e) {
+            #if (!$response) {
+                abort(404);
+	        #}
         }
 
         $video = [];
@@ -151,7 +155,8 @@ class VideoController extends Controller
         }
 
         elseif ($api == "Youtube") {
-            $totalSeconds = ISO8601ToSeconds($response->contentDetails->duration);
+	    $seconds = $response->contentDetails->duration;
+            $totalSeconds = ISO8601ToSeconds($seconds);
 
             $video['url']         = "https://www.youtube.com/watch?v=".$origId;
             $video['title']       = $response->snippet->title;

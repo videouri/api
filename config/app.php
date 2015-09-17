@@ -145,7 +145,7 @@ return [
         'App\Providers\EventServiceProvider',
         'App\Providers\RouteServiceProvider',
 
-        'Barryvdh\Debugbar\ServiceProvider',
+        // 'Barryvdh\Debugbar\ServiceProvider',
 
         'Alaouy\Youtube\YoutubeServiceProvider',
         'Vinkla\Vimeo\VimeoServiceProvider',
@@ -201,7 +201,7 @@ return [
         'View'      => 'Illuminate\Support\Facades\View',
         
         // 'Debugbar'  => 'Barryvdh\Debugbar\Facade',
-        'Debugbar' => Barryvdh\Debugbar\Facade::class,
+        // 'Debugbar' => Barryvdh\Debugbar\Facade::class,
         'Vimeo'     => 'Vinkla\Vimeo\Facades\Vimeo',
 
     ],
