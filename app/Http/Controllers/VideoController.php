@@ -155,7 +155,7 @@ class VideoController extends Controller
         }
 
         elseif ($api == "Youtube") {
-	    $seconds = $response->contentDetails->duration;
+            $seconds = $response->contentDetails->duration;
             $totalSeconds = ISO8601ToSeconds($seconds);
 
             $video['url']         = "https://www.youtube.com/watch?v=".$origId;
