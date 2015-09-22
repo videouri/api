@@ -2,7 +2,9 @@
 .phpintel
 /stats
 
-composer.lock
+# Don't ignore composer.lock, to make sure live version has no compatibility issue
+##composer.lock
+
 /vendor
 /node_modules
 /bower_components
