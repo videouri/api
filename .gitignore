@@ -7,3 +7,9 @@ composer.lock
 /node_modules
 /bower_components
 .env
+
+###
+## Custom Videouri stuff
+###
+/storage/app/videoDump.json
+/public/sitemaps/*.xml
