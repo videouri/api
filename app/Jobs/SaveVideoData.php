@@ -34,26 +34,35 @@ class SaveVideoData extends Job implements SelfHandling, ShouldQueue
      */
     public function handle()
     {
-        if (Video::where('original_id', '=', $this->videoData['origId'])->first())
-            return;
+        $video = Video::where('original_id', '=', $this->videoData['origId'])
+                            ->where('duration', '=', 0)
+                            ->first();
+        
+        if (!$video) {
+            $video = new Video();
+        }
 
-	$video = new Video();
+        $video->provider     = $this->provider;
+        $video->original_id  = $this->videoData['origId'];
+        $video->videouri_url = url('/video/' . $this->videoData['customId']);
+        $video->title        = $this->videoData['title'];
 
-	$video->provider = $this->provider;
-	$video->original_id = $this->videoData['origId'];
-	$video->title = $this->videoData['title'];
+        if (!empty($this->videoData['description']))
+            $video->description = $this->videoData['description'];
 
-	if (!empty($this->videoData['description']))
-	    $video->description = $this->videoData['description'];
+        $video->thumbnail = $this->videoData['thumbnail'];
 
-	$video->thumbnail = $this->videoData['thumbnail'];
+        if ($this->videoData['views'] > 0)
+            $video->views = $this->videoData['views'];
 
-	if ($this->videoData['views'] > 0)
-	    $video->views = $this->videoData['views'];
+        if ($this->videoData['duration'] > 0)
+            $video->duration = $this->videoData['duration'];
 
-	$video->categories = null;
-	$video->tags = json_encode($this->videoData['tags']);
+        $video->categories = null;
+        $video->tags = json_encode($this->videoData['tags']);
 
         $video->save();
+
+        return $video;
     }
 }

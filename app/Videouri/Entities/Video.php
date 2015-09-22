@@ -30,8 +30,9 @@ class Video extends Model
      * @var array
      */
     protected $fillable = [
-        'provider', 'original_id', 'title',
-        'description', 'thumbnail', 'views',
+        'provider', 'original_id', 'videouri_url',
+        'author', 'title', 'description',
+        'thumbnail', 'views',
         'categories', 'tags'
     ];
 }

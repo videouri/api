@@ -17,7 +17,7 @@
                         <li class="video-vuration">
                             <i class="fa fa-clock-o fa-2x"></i>
                             <span>
-                                <?= $video['duration'] ?>
+                                <?= humanizeSeconds($video['duration']) ?>
                             </span>
                         </li>
                         <li>
@@ -28,7 +28,7 @@
                         <li class="video-v-iews">
                             <i class="fa fa-eye fa-2x"></i>
                             <span>
-                                <?= $video['views'] ?>
+                                <?= humanizeNumber($video['views']) ?>
                             </span>
                         </li>
                     </ul>

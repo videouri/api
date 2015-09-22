@@ -18,9 +18,9 @@ class CreateVideosTable extends Migration
 
             $table->string('provider');
             $table->string('original_id')->unique();
-            // $table->string('custom_id');
-            $table->string('author')->nullable();
+            $table->string('videouri_url');
 
+            $table->string('author')->nullable();
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('thumbnail');

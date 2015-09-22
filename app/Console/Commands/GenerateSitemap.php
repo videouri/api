@@ -91,17 +91,13 @@ EOF;
         
         $sitemaps = Sitemap::all();
         foreach ($sitemaps as $sitemap) {
-            $updated_at = $sitemap->updated_at;
-            $filename = $sitemap->filename;
-            
-            if (env('APP_ENV') === 'local')
-                $sitemapUrl = 'https://local.videouri.com/sitemaps/' . $filename;
-            else
-                $sitemapUrl = 'https://videouri.com/sitemaps/' . $filename;
+            $updated_at = explode(' ', $sitemap->updated_at);
+            $updated_at = $updated_at[0];
 
+            $filename = $sitemap->filename;
 
             $sitemap = $xml->addChild('sitemap');
-            $sitemap->addChild('loc', $sitemapUrl);
+            $sitemap->addChild('loc', url('/sitemaps/' . $filename));
             $sitemap->addChild('lastmod', $updated_at);
         }
 
@@ -178,15 +174,16 @@ EOF;
             elseif ($video['provider'] == 'Youtube')
                 $key = 'y';
 
-            $customId = substr($video['original_id'], 0, 1) . $key . substr($video['original_id'], 1);
-
-
-            if (env('APP_ENV') === 'local')
-                $videoUrl = 'https://local.videouri.com/video/' . $customId;
-            else
-                $videoUrl = 'https://videouri.com/video/' . $customId;
-
+            $customId    = substr($video['original_id'], 0, 1) . $key . substr($video['original_id'], 1);
+            
+            $videoUrl    = url('/video/' . $customId);
             $description = htmlspecialchars(str_limit($video['description'], 2040));
+            
+            $created_at  = explode(' ', $video['created_at']);
+            $created_at  = $created_at[0];
+            
+            $updated_at  = explode(' ', $video['updated_at']);
+            $updated_at  = $updated_at[0];
 
             $xmlUrl->addChild('loc', $videoUrl);
             $xmlUrl->addChild('lastmod', $video['updated_at']);
@@ -199,7 +196,7 @@ EOF;
             $videoGroup->addChild('video:description', $description);
             $videoGroup->addChild('video:player_loc', $videoUrl);
             $videoGroup->addChild('video:duration', $video['duration']);
-            $videoGroup->addChild('video:publication_date', $video['created_at']);
+            $videoGroup->addChild('video:publication_date', $created_at);
             // $videoGroup->addChild('video:tag', $video['tags']);
         }
 

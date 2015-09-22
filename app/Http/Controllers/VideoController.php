@@ -91,8 +91,8 @@ class VideoController extends Controller
             $video['thumbnail']   = $thumbnailUrl;
             
             // $video['ratings']  = $response['ratings'];
-            $video['views']       = humanizeNumber($response['views_total']);
-            $video['duration']    = humanizeSeconds($response['duration']);
+            $video['views']       = $response['views_total'];
+            $video['duration']    = $response['duration'];
             
             $video['tags']        = $response['tags'];
             $video['related']     = $this->_relatedVideos($api, $origId);
@@ -140,8 +140,8 @@ class VideoController extends Controller
             $video['thumbnail']   = $video['pictures']['sizes'][2]['link'];
             
             // $video['ratings']  = $response['ratings'];
-            $video['views']       = humanizeNumber($video['stats']['plays']);
-            $video['duration']    = humanizeSeconds($video['duration']);
+            $video['views']       = $video['stats']['plays'];
+            $video['duration']    = $video['duration'];
 
             $tags = array();
             if (!empty($video['tags'])) {
@@ -164,15 +164,15 @@ class VideoController extends Controller
             $video['thumbnail']   = $response->snippet->thumbnails->medium->url;
             
             // $video['ratings']     = $response['gd$rating']['average'];
-            $video['views']       = humanizeNumber($response->statistics->viewCount);
-            $video['duration']    = humanizeSeconds($totalSeconds);
+            $video['views']       = $response->statistics->viewCount;
+            $video['duration']    = $totalSeconds;
             
             $video['tags']        = isset($response->snippet->tags) ? $response->snippet->tags : [];
             $video['related']     = $this->_relatedVideos($api, $origId);
         }
-
-        // $video['customId'] = $customId;
-        $video['origId']      = $origId;
+        
+        $video['customId'] = $customId;
+        $video['origId']   = $origId;
 
 
         // Queue to save video data
