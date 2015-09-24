@@ -23,6 +23,8 @@ class HomeController extends Controller
         $this->apiprocessing->content    = ['most_viewed'];
         $this->apiprocessing->period     = 'today';
         $this->apiprocessing->maxResults = 8;
+        
+        $this->apiprocessing->timestamp  = date('Y-m-d');
     }
     /**
      * [index description]

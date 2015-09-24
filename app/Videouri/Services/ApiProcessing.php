@@ -96,6 +96,22 @@ class ApiProcessing
 
 
     /**
+     * Can be used to force a content to be re-cached
+     * by using the function date.
+     *
+     *  For example:
+     *      date('Y-m')   -> Expires in a month
+     *      date('Y-m-d') -> Expires in a day
+     *
+     *  Used in HomeController, to ensure the retrieval of
+     *  daily most_viewed videos
+     *
+     * @var integer
+     */
+    public $timestamp = null;
+
+
+    /**
      * Variable to hold the sort parameter, for apiParser,
      * if set.
      * @var boolean
@@ -142,9 +158,14 @@ class ApiProcessing
             'sort'        => $this->sort
         ];
         // Debugbar::info($apiParameters);
-        Log::info('apiParameters', $apiParameters);
+        // Log::info('apiParameters', $apiParameters);
+        
+        if ($this->timestamp)
+            $apiParameters['timestamp'] = $this->timestamp;
+
         $apiParametersHash = md5(serialize($apiParameters));
-        Log::info('apiParametersHash: ' . $apiParametersHash);
+        
+        // Log::info('apiParametersHash: ' . $apiParametersHash);
         // Debugbar::info($apiParametersHash);
 
         if (!$apiResponse = Cache::get($apiParametersHash)) {
