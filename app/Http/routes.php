@@ -23,11 +23,13 @@ Route::get('info/{view}/{part?}', 'InfoController@show');
 
 
 // User auth related methods
-// Route::get('join', 'Auth\AuthController@getRegister');
-// Route::post('join', 'Auth\AuthController@postRegister');
-// Route::get('login/{provider?}', 'Auth\AuthController@getLogin');
-// Route::post('login', 'Auth\AuthController@postLogin');
-// Route::get('logout', 'Auth\AuthController@getLogout');
+Route::get('join', 'Auth\AuthController@getRegister');
+Route::post('join', 'Auth\AuthController@postRegister');
+Route::get('login/{provider?}', 'Auth\AuthController@getLogin');
+Route::post('login', 'Auth\AuthController@postLogin');
+Route::get('logout', 'Auth\AuthController@getLogout');
+
+// Route::get('channel', '')
 
 Route::controllers([
     // 'auth'     => 'Auth\AuthController',

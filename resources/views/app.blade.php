@@ -94,7 +94,6 @@
                         </div>
                     </form>
                 </div>
-                <?php if (false): // @TODO ?>
                 <div class="col-md-3">
                     <ul class="nav navbar-nav navbar-right">
                         @if (Auth::guest())
@@ -105,7 +104,7 @@
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ Auth::user()->username }} <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li>
-                                        <a href="{{ url('/profile') }}">Profile</a>
+                                        <a href="{{ url('/channel') }}">My Channel</a>
                                     </li>
                                     <li>
                                         <a href="{{ url('/settings') }}">Settings</a>
@@ -119,7 +118,6 @@
                         @endif
                     </ul>
                 </div>
-                <?php endif ?>
             </div>
         </div>
     </nav>
