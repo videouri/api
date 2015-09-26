@@ -96,6 +96,22 @@ class ApiProcessing
 
 
     /**
+     * Can be used to force a content to be re-cached
+     * by using the function date.
+     *
+     *  For example:
+     *      date('Y-m')   -> Expires in a month
+     *      date('Y-m-d') -> Expires in a day
+     *
+     *  Used in HomeController, to ensure the retrieval of
+     *  daily most_viewed videos
+     *
+     * @var integer
+     */
+    public $timestamp = null;
+
+
+    /**
      * Variable to hold the sort parameter, for apiParser,
      * if set.
      * @var boolean
@@ -142,9 +158,14 @@ class ApiProcessing
             'sort'        => $this->sort
         ];
         // Debugbar::info($apiParameters);
-        Log::info('apiParameters', $apiParameters);
+        // Log::info('apiParameters', $apiParameters);
+        
+        if ($this->timestamp)
+            $apiParameters['timestamp'] = $this->timestamp;
+
         $apiParametersHash = md5(serialize($apiParameters));
-        Log::info('apiParametersHash: ' . $apiParametersHash);
+        
+        // Log::info('apiParametersHash: ' . $apiParametersHash);
         // Debugbar::info($apiParametersHash);
 
         if (!$apiResponse = Cache::get($apiParametersHash)) {
@@ -302,29 +323,31 @@ class ApiProcessing
             // echo "<hr/>";
 
             $videoId = is_object($video->id) ? $video->id->videoId : $video->id;
-            $id = substr($videoId, 0, 1).'y'.substr($videoId, 1);
+            $id = substr($videoId, 0, 1) . 'y' . substr($videoId, 1);
 
-            $toMerge = $results[$i] = array(
-                'url'    => url('video/'.$id),
-                'title'  => $video->snippet->title,
-                // 'author' => $video['author'][0]['name']['$t'],
+            $duration = $views = 0;
+            if (isset($video->statistics) && isset($video->statistics->viewCount))
+                $views = $video->statistics->viewCount;
+
+            if (isset($video->contentDetails) && isset($video->contentDetails->duration)) {
+                $seconds = $video->contentDetails->duration;
+                $duration = ISO8601ToSeconds($seconds);
+            }
+
+            $results[$i] = array(
+                'url'         => url('video/'.$id),
+                'title'       => $video->snippet->title,
+                'description' => self::parseDescription($video->snippet->description),
+                // 'author'   => $video['author'][0]['name']['$t'],
+                // 'category'    => [],
+                'thumbnail'   => $video->snippet->thumbnails->medium->url,
+                
+                'rating'      => isset($video->rating) ? $video->rating : 0,
+                'views'       => $views,
+                'duration'    => $duration,
+                
+                'source'      => 'Youtube',
             );
-
-            $categories = array();
-            // foreach ($video['media$group']['media$category'] as $category) {
-            //     $categories[] = $category['$t'];
-            // }
-
-            // $results['Youtube'][$i] = array_merge($toMerge, array(
-            $results[$i] = array_merge($toMerge, array(
-                'category'     => $categories,
-                'description'  => self::parseDescription($video->snippet->description),
-                'rating'       => isset($video->rating) ? $video->rating : 0,
-                'viewsCount'   => isset($video->viewsCount) ? $video->viewsCount : 0,
-                // 'thumbnail' => $video['media$group']['media$thumbnail'][0]['url'],
-                'thumbnail'    => $video->snippet->thumbnails->default->url,
-                'source'       => 'Youtube',
-            ));
 
             $i++;
             // dd($results);
@@ -355,11 +378,15 @@ class ApiProcessing
             $results[$i] = array(
                 'url'         => $url,
                 'title'       => $video['title'],
-                'author'      => '',
                 'description' => self::parseDescription($video['description']),
-                'rating'      => $video['rating'],
-                'viewsCount'  => $video['views_total'],
+                // 'author'      => '',
+                // 'category'      => '',
                 'thumbnail'   => $thumbnailUrl,
+
+                'rating'      => $video['rating'],
+                'duration'    => $video['duration'],
+                'views'       => $video['views_total'],
+
                 'source'      => 'Dailymotion',
             );
 
@@ -392,12 +419,14 @@ class ApiProcessing
             $results['Metacafe'][$i] = array(
                 'url'         => $url,
                 'title'       => $video['title'],
-                'author'      => $video['author'],
-                'category'    => $video['category'],
                 'description' => self::parseDescription($video['title']),
-                'rating'      => isset($video['rank']) ? $video['rank'] : 0,
-                'viewsCount'  => 0,
+                // 'author'      => $video['author'],
+                // 'category'    => $video['category'],
                 'thumbnail'   => "http://www.metacafe.com/thumb/{$video['id']}.jpg",
+
+                'rating'      => isset($video['rank']) ? $video['rank'] : 0,
+                'views'       => 0,
+
                 'source'      => 'Metacafe',
             );
 
@@ -425,18 +454,21 @@ class ApiProcessing
         }
 
         foreach ($data['body']['data'] as $video) {
-            $origid = explode('/', $video['uri'])[2];
-            $id     = substr($origid,0,1).'v'.substr($origid,1);
+            $origId = explode('/', $video['uri'])[2];
+            $id     = substr($origId, 0, 1) . 'v' . substr($origId, 1);
 
             $results[$i] = array(
                 'url'         => url('video/'.$id),
                 'title'       => $video['name'],
-                'author'      => $video['user']['name'],
-                'category'    => '',
                 'description' => self::parseDescription($video['description']),
-                'rating'      => $video['metadata']['connections']['likes']['total'],
-                'viewsCount'  => $video['stats']['plays'],
+                // 'author'      => $video['user']['name'],
+                // 'category'    => '',
                 'thumbnail'   => $video['pictures']['sizes'][2]['link'],
+
+                'rating'      => $video['metadata']['connections']['likes']['total'],
+                'duration'    => $video['duration'],
+                'views'       => $video['stats']['plays'],
+
                 'source'      => 'Vimeo',
             );
 
@@ -454,6 +486,114 @@ class ApiProcessing
         return $results;
     }
 
+
+    /**
+     * [parseIndividualResult description]
+     * @param  [type] $data [description]
+     * @return [type]       [description]
+     */
+    public function parseIndividualResult($api, $data)
+    {
+        $video = [];
+
+        if ($api === "Dailymotion") {
+            $httpsUrl     = preg_replace("/^http:/i", "https:", $data['url']);
+            $thumbnailUrl = preg_replace("/^http:/i", "https:", $data['thumbnail_360_url']);
+
+            $video['url']         = $httpsUrl;
+            $video['title']       = $data['title'];
+            $video['description'] = $data['description'];
+            $video['thumbnail']   = $thumbnailUrl;
+            
+            // $video['ratings']  = $data['ratings'];
+            $video['views']       = $data['views_total'];
+            $video['duration']    = $data['duration'];
+            
+            $video['tags']        = $data['tags'];
+        }
+
+        // elseif ($api === "Metacafe") {
+        //     // if (preg_match('/http:\/\/[w\.]*metacafe\.com\/fplayer\/(.*).swf/is', $data['embed'], $match)) {
+        //     //     $video['swf']['url'] = $data['embed'];
+        //     //     $video['swf']['api'] = 'mcapiplayer';
+        //     // }
+
+        //     // else {
+        //     //     $video['embed_html'] = $data['embed'];
+        //     // }
+
+        //     $video['title'] = $data->title;
+        //     $video['thumbnail'] = 'http://www.metacafe.com/thumb/'.$origId.'.jpg';
+
+        //     $dom = new DOMDocument();
+        //     $dom->loadHTML($data->description);
+
+        //     $xml = simplexml_import_dom($dom);
+        //     $p   = (string)$xml->body->p;
+            
+        //     $video['description'] = strstr($p, 'Ranked', true);
+
+        //     $tags  = array();
+        //     $count = count((object)$xml->body->p[1]->a) - 2;
+        //     for ($i = 2; $i <= $count; $i++) {
+        //         $tag = (object)$xml->body->p[1]->a[$i];
+        //         $tag = str_replace(array('News & Events'), '', $tag);
+        //         $tags[] = $tag;
+        //     }
+
+        //     $video['tags']        = $tags;
+        //     // $video['related']     = $this->_relatedVideos(array('api'=>$api,'id'=>$origId));
+        // }
+
+        elseif ($api == "Vimeo") {
+            $data = $data['body'];
+
+            $origId = explode('/', $data['uri'])[2];
+
+            $video['url']         = "https://vimeo.com/".$origId;
+            $video['title']       = $data['name'];
+            $video['description'] = $data['description'];
+            $video['thumbnail']   = $data['pictures']['sizes'][2]['link'];
+            
+            // $video['ratings']  = $data['ratings'];
+            $video['views']       = $data['stats']['plays'];
+            $video['duration']    = $data['duration'];
+
+            $tags = array();
+            if (!empty($data['tags'])) {
+                foreach($data['tags'] as $tag) {
+                    $tags[] = $tag['name'];
+                }
+            }
+            
+            $video['tags']       = $tags;
+        }
+
+        elseif ($api == "Youtube") {
+            $seconds = $data->contentDetails->duration;
+            $totalSeconds = ISO8601ToSeconds($seconds);
+
+            $video['url']         = "https://www.youtube.com/watch?v=" . $data->id;
+            $video['title']       = $data->snippet->title;
+            $video['description'] = $data->snippet->description;
+            $video['thumbnail']   = $data->snippet->thumbnails->medium->url;
+            
+            // $video['ratings']     = $data['gd$rating']['average'];
+            $video['views']       = $data->statistics->viewCount;
+            $video['duration']    = $totalSeconds;
+            
+            $video['tags']        = isset($data->snippet->tags) ? $data->snippet->tags : [];
+        }
+
+        return $video;
+    }
+
+
+    /**
+     * [parseDescription description]
+     * @param  [type] $text [description]
+     * @return [type]       [description]
+     */
     private function parseDescription($text)
     {
         if ($this->content === 'getVideoEntry') {

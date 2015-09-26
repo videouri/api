@@ -23,6 +23,8 @@ class HomeController extends Controller
         $this->apiprocessing->content    = ['most_viewed'];
         $this->apiprocessing->period     = 'today';
         $this->apiprocessing->maxResults = 8;
+        
+        $this->apiprocessing->timestamp  = date('Y-m-d');
     }
     /**
      * [index description]
@@ -62,7 +64,7 @@ class HomeController extends Controller
                 $viewsCount = [];
                 // $ratings = [];
                 foreach ($viewData['data'][$content] as $k => $v) {
-                    $viewsCount[$k] = $v['viewsCount'];
+                    $viewsCount[$k] = $v['views'];
                     // $ratings[$k] = $v['rating'];
                 }
                 array_multisort($viewsCount, SORT_DESC, $viewData['data'][$content]);

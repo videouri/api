@@ -71,7 +71,7 @@ class GenerateSitemap extends Command
         $this->info('Initialized sitemap generating tool');
         ///
         
-        $mainSitemapPath = $this->sitemapsDirectory . '/main.xml';
+        $mainSitemapPath = $this->sitemapsDirectory . '/index.xml';
 
         $xmlHeading = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -118,7 +118,7 @@ EOF;
 
         
         // Initialize base Video eloquent query
-        $videos = $this->videos->whereNotNull('title');
+        $videos = $this->videos->whereNotNull('title')->where('duration', '>', 0);
 
         // Default limit value
         $limit = 5000;
@@ -186,11 +186,11 @@ EOF;
             $updated_at  = $updated_at[0];
 
             $xmlUrl->addChild('loc', $videoUrl);
-            $xmlUrl->addChild('lastmod', $video['updated_at']);
-            $xmlUrl->addChild('changefreq', 'monthly');
+            $xmlUrl->addChild('lastmod', $updated_at);
+            // $xmlUrl->addChild('changefreq', 'monthly');
             // $xmlUrl->addChild('priority', '1.0');
 
-            $videoGroup = $xmlUrl->addChild('video:video', null);
+            $videoGroup = $xmlUrl->addChild('video:video', null, 'http://www.google.com/schemas/sitemap-video/1.1');
             $videoGroup->addChild('video:thumbnail_loc', $video['thumbnail']);
             $videoGroup->addChild('video:title', htmlspecialchars($video['title']));
             $videoGroup->addChild('video:description', $description);
@@ -224,7 +224,7 @@ EOF;
         ///
 
 
-        $videoSitemapName = 'video-sitemap-' . $sitemapId . '.xml';
+        $videoSitemapName = 'videos-' . $sitemapId . '.xml';
         $videoSitemapPath = $this->sitemapsDirectory . '/' . $videoSitemapName;
 
         $videoDumpPath = File::put($this->videoDumpPath, serialize($lastVideo));
