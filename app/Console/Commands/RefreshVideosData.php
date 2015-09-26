@@ -98,7 +98,7 @@ class RefreshVideosData extends Command
 
         if ($options['durationCondition']) {
             $conditions = explode(',', $options['durationCondition']);
-            $videos = $videos->where('views', $conditions[0], $conditions[1]);
+            $videos = $videos->where('duration', $conditions[0], $conditions[1]);
         }
 
         $this->info('Query executed: ' . $videos->getQuery()->toSql());
