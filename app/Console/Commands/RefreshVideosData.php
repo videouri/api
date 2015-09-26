@@ -78,7 +78,7 @@ class RefreshVideosData extends Command
             die;
         }
 
-        if (!($options['viewsCondition'] || $options['durationCondition'])) {
+        if (!($options['videoId'] || $options['viewsCondition'] || $options['durationCondition'])) {
             $this->error('viewsCondition or durationCondition, if not both, must be specified');
             die;
         }

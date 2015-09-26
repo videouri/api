@@ -494,6 +494,11 @@ class ApiProcessing
      */
     public function parseIndividualResult($api, $data)
     {
+        if (!$data)
+            throw new \Exception("Error parsing result from $api. Video might've been deleted");
+        if ($api === 'Vimeo' && isset($data['body']['error']))
+            throw new \Exception("$api: " . $data['body']['error']);
+            
         $video = [];
 
         if ($api === "Dailymotion") {
@@ -577,6 +582,7 @@ class ApiProcessing
             $video['title']       = $data->snippet->title;
             $video['description'] = $data->snippet->description;
             $video['thumbnail']   = $data->snippet->thumbnails->medium->url;
+
             
             // $video['ratings']     = $data['gd$rating']['average'];
             $video['views']       = $data->statistics->viewCount;
