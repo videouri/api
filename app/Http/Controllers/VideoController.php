@@ -18,7 +18,6 @@ class VideoController extends Controller
      */
     protected $apiprocessing;
 
-    // public function __construct(ApiProcessing $apiprocessing)
     public function __construct(ApiProcessing $apiprocessing)
     {
         $this->apiprocessing = $apiprocessing;
@@ -54,7 +53,7 @@ class VideoController extends Controller
                 break;
 
             default:
-		abort(404);
+                abort(404);
                 #show_error(lang('video_id',$customId));
                 break;
         }
@@ -70,106 +69,16 @@ class VideoController extends Controller
         #    $response = $response->toArray();
         #} else {
 
-    	try {
-	        if ( ! $response = $this->apiprocessing->individualCall($api))
-		        abort(404);
-    	} catch (Exception $e) {
-            #if (!$response) {
+        try {
+            if ( ! $response = $this->apiprocessing->individualCall($api))
                 abort(404);
-	        #}
+        } catch (\Exception $e) {
+            abort(404);
         }
 
-        $video = [];
+        $video = $this->apiprocessing->parseIndividualResult($api, $response);
 
-        if ($api === "Dailymotion") {
-            $httpsUrl     = preg_replace("/^http:/i", "https:", $response['url']);
-            $thumbnailUrl = preg_replace("/^http:/i", "https:", $response['thumbnail_360_url']);
-
-            $video['url']         = $httpsUrl;
-            $video['title']       = $response['title'];
-            $video['description'] = $response['description'];
-            $video['thumbnail']   = $thumbnailUrl;
-            
-            // $video['ratings']  = $response['ratings'];
-            $video['views']       = $response['views_total'];
-            $video['duration']    = $response['duration'];
-            
-            $video['tags']        = $response['tags'];
-            $video['related']     = $this->_relatedVideos($api, $origId);
-        }
-
-        // elseif ($api === "Metacafe") {
-        //     // if (preg_match('/http:\/\/[w\.]*metacafe\.com\/fplayer\/(.*).swf/is', $response['embed'], $match)) {
-        //     //     $video['swf']['url'] = $response['embed'];
-        //     //     $video['swf']['api'] = 'mcapiplayer';
-        //     // }
-
-        //     // else {
-        //     //     $video['embed_html'] = $response['embed'];
-        //     // }
-
-        //     $video['title'] = $response->title;
-        //     $video['thumbnail'] = 'http://www.metacafe.com/thumb/'.$origId.'.jpg';
-
-        //     $dom = new DOMDocument();
-        //     $dom->loadHTML($response->description);
-
-        //     $xml = simplexml_import_dom($dom);
-        //     $p   = (string)$xml->body->p;
-            
-        //     $video['description'] = strstr($p, 'Ranked', true);
-
-        //     $tags  = array();
-        //     $count = count((object)$xml->body->p[1]->a) - 2;
-        //     for ($i = 2; $i <= $count; $i++) {
-        //         $tag = (object)$xml->body->p[1]->a[$i];
-        //         $tag = str_replace(array('News & Events'), '', $tag);
-        //         $tags[] = $tag;
-        //     }
-
-        //     $video['tags']        = $tags;
-        //     // $video['related']     = $this->_relatedVideos(array('api'=>$api,'id'=>$origId));
-        // }
-
-        elseif ($api == "Vimeo") {
-            $video = $response['body'];
-
-            $video['url']         = "https://vimeo.com/".$origId;
-            $video['title']       = $video['name'];
-            $video['description'] = $video['description'];
-            $video['thumbnail']   = $video['pictures']['sizes'][2]['link'];
-            
-            // $video['ratings']  = $response['ratings'];
-            $video['views']       = $video['stats']['plays'];
-            $video['duration']    = $video['duration'];
-
-            $tags = array();
-            if (!empty($video['tags'])) {
-                foreach($video['tags'] as $tag) {
-                    $tags[] = $tag['name'];
-                }
-            }
-            
-            $video['tags']       = $tags;
-            $video['related']    = $this->_relatedVideos($api, $origId);
-        }
-
-        elseif ($api == "Youtube") {
-            $seconds = $response->contentDetails->duration;
-            $totalSeconds = ISO8601ToSeconds($seconds);
-
-            $video['url']         = "https://www.youtube.com/watch?v=".$origId;
-            $video['title']       = $response->snippet->title;
-            $video['description'] = $response->snippet->description;
-            $video['thumbnail']   = $response->snippet->thumbnails->medium->url;
-            
-            // $video['ratings']     = $response['gd$rating']['average'];
-            $video['views']       = $response->statistics->viewCount;
-            $video['duration']    = $totalSeconds;
-            
-            $video['tags']        = isset($response->snippet->tags) ? $response->snippet->tags : [];
-            $video['related']     = $this->_relatedVideos($api, $origId);
-        }
+        $video['related']     = $this->_relatedVideos($api, $origId);
         
         $video['customId'] = $customId;
         $video['origId']   = $origId;

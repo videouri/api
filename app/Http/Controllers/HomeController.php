@@ -64,7 +64,7 @@ class HomeController extends Controller
                 $viewsCount = [];
                 // $ratings = [];
                 foreach ($viewData['data'][$content] as $k => $v) {
-                    $viewsCount[$k] = $v['viewsCount'];
+                    $viewsCount[$k] = $v['views'];
                     // $ratings[$k] = $v['rating'];
                 }
                 array_multisort($viewsCount, SORT_DESC, $viewData['data'][$content]);
