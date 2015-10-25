@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUserVideoFavoritesTable extends Migration
+class CreateUserFavoriteVideosTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,7 +12,7 @@ class CreateUserVideoFavoritesTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_video_favorites', function($table)
+        Schema::create('user_favorite_videos', function($table)
         {
             $table->integer('video_id')->unsigned();
             $table->foreign('video_id')->references('id')->on('videos');
@@ -21,7 +21,6 @@ class CreateUserVideoFavoritesTable extends Migration
             $table->foreign('user_id')->references('id')->on('users');
 
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
-        
         });
     }
 
@@ -32,6 +31,6 @@ class CreateUserVideoFavoritesTable extends Migration
      */
     public function down()
     {
-        //
+        Schema::drop('user_favorite_videos');
     }
 }

@@ -79,7 +79,7 @@ class VideoController extends Controller
         $video = $this->apiprocessing->parseIndividualResult($api, $response);
 
         $video['related']     = $this->_relatedVideos($api, $origId);
-        
+
         $video['customId'] = $customId;
         $video['origId']   = $origId;
 
@@ -90,15 +90,15 @@ class VideoController extends Controller
         $data['video']       = $video;
         $data['thumbnail']   = $video['thumbnail'];
         $data['source']      = $api;
-        
+
         // Metadata
         $data['title']       = $video['title'] . ' - Videouri';
         $data['description'] = str_limit($video['description'], 100);
         $data['canonical']   = "video/$customId";
-        
+
         $data['bodyId']      = 'videoPage';
 
-        return view('videouri.pages.video', $data);
+        return view('videouri.public.video', $data);
     }
 
     /**
@@ -113,7 +113,7 @@ class VideoController extends Controller
         $this->apiprocessing->maxResults = 8;
         // $this->apiprocessing->api = $api;
         // $this->apiprocessing->videoId = $origId;
-         
+
         $response = $this->apiprocessing->individualCall($api);
         $response = $this->apiprocessing->parseApiResult($api, $response);
 
@@ -130,10 +130,10 @@ class VideoController extends Controller
 
         //             $httpsUrl                 = preg_replace("/^http:/i", "https:", $url);
         //             $related[$i]['url']       = $url;
-                    
+
         //             $thumbnailUrl             = preg_replace("/^http:/i", "https:", $video['thumbnail_240_url']);
         //             $related[$i]['thumbnail'] = $thumbnailUrl;
-                    
+
         //             $related[$i]['title']     = $video['title'];
         //             $related[$i]['source']    = 'Dailymotion';
         //             $i++;

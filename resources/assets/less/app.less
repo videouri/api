@@ -9,17 +9,10 @@
 /**
  * Custom shit
  */
+@import 'fonts.less';
 @import 'helpers.less';
 @import 'variables.less';
-@import 'bootstrap-overwrites';
-
-// 383838
-
-@font-face {
-    font-family: 'Sacramento';
-    src: url('/fonts/Sacramento-Regular.ttf') format('truetype');
-    font-style: cursive;
-}
+// @import 'bootstrap-overwrites';
 
 html {
     position: relative;
@@ -27,14 +20,17 @@ html {
 }
 
 body {
-    background-color: #E74C3C;
-    font: 12px/20px 'Cabin', Helvetica, Arial, sans-serif;
+    background-color: #fff;
     text-rendering: optimizeLegibility;
-    
-    margin-bottom: 90px;
+    padding-top: 53px;
 
-    & > .container {
-        padding-top: 60px;
+    #content a {
+        font-weight: 300;
+        color: #494949;
+    }
+
+    a:hover {
+        border-radius: 5px;
     }
 
     &#videoPage {
@@ -45,29 +41,9 @@ body {
 
 @import 'module/branding';
 @import 'module/navbar';
-@import 'module/home';
-@import 'module/tiles';
-
-div.or-container {
-    text-align: center;
-    margin-top: 20px;
-    color: #808080;
-    font-variant: small-caps;
-
-    hr.or-hr {
-        margin-bottom: -20px;
-        height: 0;
-        border: 0;
-        border-top: 1px solid #e6e6e6;
-    }
-
-    div#or {
-        display: inline-block;
-        position: relative;
-        padding: 10px;
-        background-color: #fff;
-    }
-}
+// @import 'module/home';
+@import 'module/sidebar';
+@import 'module/videos';
 
   /* Vide Page */
 #video_data .info strong{ font-weight:bold; }
@@ -99,9 +75,20 @@ div.or-container {
 .footer {
     position: absolute;
     bottom: 0;
+    z-index: 50;
+
     width: 100%;
     height: 60px;
-    background-color: #3D3837;
+
+    margin-top: 60px;
+    background-color: #3c708d;
+
+    a:hover {
+        font-weight: bold;
+        color: #bec6cd;
+        text-decoration: none;
+        text-shadow: 5px 1px 1px #296281;
+    }
 
     & > .container {
         margin-top: 20px;

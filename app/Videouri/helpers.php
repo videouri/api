@@ -1,5 +1,14 @@
 <?php
 
+function videouri_asset($path)
+{
+    if (env('SECURE') === true) {
+        return secure_asset($path);
+    } else {
+        return asset($path);
+    }
+}
+
 /**
  * Recursive in_array function
  *

@@ -14,7 +14,7 @@ class HomeController extends Controller
     public function __construct(ApiProcessing $apiprocessing)
     {
         $this->apiprocessing = $apiprocessing;
-        
+
         /**
          * Default parameters for homepage
          */
@@ -23,7 +23,7 @@ class HomeController extends Controller
         $this->apiprocessing->content    = ['most_viewed'];
         $this->apiprocessing->period     = 'today';
         $this->apiprocessing->maxResults = 8;
-        
+
         $this->apiprocessing->timestamp  = date('Y-m-d');
     }
     /**
@@ -32,7 +32,12 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $content = self::runAPIs();
+        $fakeContent = false;
+
+        if (!$fakeContent) {
+            $content = self::runAPIs();
+        }
+
         $content['apis']      = $this->apiprocessing->apis;
         $content['canonical'] = '';
         $content['time']      = array(
@@ -41,11 +46,12 @@ class HomeController extends Controller
                                 'this month' => 'month',
                                 'ever'       => 'ever'
                             );
+
         // Choose not to show home page content
-        $content['fakeContent'] = false;
+        $content['fakeContent'] = $fakeContent;
         // $this->template->bodyId = 'home';
-        
-        return view('videouri.pages.home', $content);
+
+        return view('videouri.public.home', $content);
     }
     private function runAPIs()
     {
@@ -75,7 +81,7 @@ class HomeController extends Controller
             //     var_dump($k['viewsCount']);
             //     // return strpos($k, 'theme');
             // });
-    
+
         } // $api_response as $sortName => $sortData
 
         return $viewData;

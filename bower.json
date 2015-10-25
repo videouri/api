@@ -15,15 +15,15 @@
     "tests"
   ],
   "dependencies": {
-    "jquery": "1.x",
-    "jquery.lazyload": "~1.9.5",
-    "isotope": "~2.2.1",
+    "jquery": "2.x",
+    "isotope": "~2.2.2",
     "momentjs": "~2.10.6",
     "bootstrap": "~3.3.5",
     "font-awesome": "~4.4.0",
-    "video.js": "~4.12.11",
+    "video.js": "~4.12.15",
     "videojs-youtube": "~1.2.12",
     "videojs-vimeo": "*",
-    "videojs-dailymotion": "*"
+    "videojs-dailymotion": "*",
+    "imagesloaded": "~3.1.8"
   }
 }

@@ -25,27 +25,26 @@
         </div>
     </div>
 
-    <div id="video-list" class="row">
+    <div id="videos" class="row">
         <?php foreach ($data as $video): ?>
-        <div class="col-md-3 col-sm-6 col-xs-12 <?= $video['source'] ?>">
-            <div class="tile">
-                <div class="tile-image">
+        <div class="col-md-4 <?= $video['source'] ?>">
+            <div class="video">
+                <div class="image">
                     <a href="<?= $video['url'] ?>">
-                        <img data-original="<?= $video['thumbnail'] ?>" alt="<?= $video['title'] ?>" class="lazy-image"/>
+                        <img src="<?= $video['thumbnail'] ?>" alt="<?= $video['title'] ?>" class="img-responsive"/>
                     </a>
                     <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="<?= $video['url'] ?>"></span>
                 </div>
-                <div class="tile-bottom">
-                    <span class="source <?= $video['source'] ?>">
-                        <?= $video['source'] ?>
-                    </span>
 
-                    <h2 class="tile-title">
-                        <a href="<?= $video['url'] ?>" title="<?= $video['title'] ?>">
-                            <?= $video['title'] ?>
-                        </a>
-                    </h2>
-                </div>
+                <span class="source <?= $video['source'] ?>">
+                    <?= $video['source'] ?>
+                </span>
+
+                <h1 class="title">
+                    <a href="<?= $video['url'] ?>" title="<?= $video['title'] ?>">
+                        <?= $video['title'] ?>
+                    </a>
+                </h1>
             </div>
         </div>
         <?php endforeach ?>
@@ -76,5 +75,5 @@
 @endsection
 
 @section('scripts')
-<script type="text/javascript" src="{{ secure_asset('/js/modules/videosListing.js') }}"></script>
+<script type="text/javascript" src="{{ videouri_asset('/js/modules/videosListing.js') }}"></script>
 @endsection

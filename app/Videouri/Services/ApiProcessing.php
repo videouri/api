@@ -3,7 +3,6 @@
 namespace Videouri\Services;
 
 use Cache;
-use Log;
 use Videouri\Services\DailymotionAgent;
 use Videouri\Services\VimeoAgent;
 use Videouri\Services\YoutubeAgent;
@@ -30,27 +29,26 @@ class ApiProcessing
         'Youtube',
         // 'Metacafe',
         'Dailymotion',
-        'Vimeo'
+        'Vimeo',
     );
-
 
     /**
      * Available contents
-     * 
+     *
      * @var array
      */
-    private $mixedContents =  array(
-                'most_viewed',
-                'newest',
-                'top_rated',
-                'search',
-            ),
-            $individualContents = array(
-                'getVideoEntry',
-                'getRelatedVideos',
-                'tag'
-            );
-
+    private $mixedContents = array(
+        'most_viewed',
+        'newest',
+        'top_rated',
+        'search',
+    );
+    
+    private $individualContents = array(
+        'getVideoEntry',
+        'getRelatedVideos',
+        'tag',
+    );
 
     /**
      * Variable to be used, to mention what action will be executed
@@ -59,14 +57,12 @@ class ApiProcessing
      */
     public $content = null;
 
-
     /**
      * Array containing available time periods.
      *
      * @var array
      */
     private $validPeriods = array('ever', 'today', 'week', 'month');
-
 
     /**
      * Default variable referring to video sorting period
@@ -75,17 +71,15 @@ class ApiProcessing
      */
     public $period = 'ever';
 
-
     /**
      * Variables to be populated by specific uses
      *
      * @var string
      */
     public $videoId = null,
-           $searchQuery = null,
-           $page = '',
-           $sort = null;
-
+    $searchQuery = null,
+    $page = '',
+    $sort = null;
 
     /**
      * Maximum results from response
@@ -93,7 +87,6 @@ class ApiProcessing
      * @var integer
      */
     public $maxResults = 5;
-
 
     /**
      * Can be used to force a content to be re-cached
@@ -110,7 +103,6 @@ class ApiProcessing
      */
     public $timestamp = null;
 
-
     /**
      * Variable to hold the sort parameter, for apiParser,
      * if set.
@@ -118,31 +110,27 @@ class ApiProcessing
      */
     private $contentForParser = null;
 
-
     /**
      * Caching time span and timeout
      * @var array
      */
     private $_periodCachingTime = [
-                'ever'  => 86400,  // 1 Day
-                'today' => 86400,  // 1 Day
-                'week'  => 172800, // 2 Days
-                'month' => 259200  // 3 Days
-            ],
-            $_cacheTimeout = 10800;
-
+        'ever' => 86400, // 1 Day
+        'today' => 86400, // 1 Day
+        'week' => 172800, // 2 Days
+        'month' => 259200, // 3 Days
+    ],
+    $_cacheTimeout = 10800;
 
     private $dailymotion, $vimeo, $youtube;
-
 
     public function __construct(DailymotionAgent $dailymotion, VimeoAgent $vimeo, YoutubeAgent $youtube)
     {
         $this->dailymotion = new DailymotionAgent;
-        $this->vimeo       = new VimeoAgent;
-        $this->youtube     = new YoutubeAgent;
+        $this->vimeo = new VimeoAgent;
+        $this->youtube = new YoutubeAgent;
 
-
-        if ( ! in_array($this->period, $this->validPeriods)) {
+        if (!in_array($this->period, $this->validPeriods)) {
             $this->period = 'today';
         }
     }
@@ -150,21 +138,22 @@ class ApiProcessing
     public function mixedCalls()
     {
         $apiParameters = [
-            'apis'        => $this->apis,
-            'content'     => $this->content,
-            'period'      => $this->period,
+            'apis' => $this->apis,
+            'content' => $this->content,
+            'period' => $this->period,
             'searchQuery' => $this->searchQuery,
-            'page'        => $this->page,
-            'sort'        => $this->sort
+            'page' => $this->page,
+            'sort' => $this->sort,
         ];
         // Debugbar::info($apiParameters);
         // Log::info('apiParameters', $apiParameters);
-        
-        if ($this->timestamp)
+
+        if ($this->timestamp) {
             $apiParameters['timestamp'] = $this->timestamp;
+        }
 
         $apiParametersHash = md5(serialize($apiParameters));
-        
+
         // Log::info('apiParametersHash: ' . $apiParametersHash);
         // Debugbar::info($apiParametersHash);
 
@@ -181,20 +170,16 @@ class ApiProcessing
                 try {
                     if (is_array($this->content)) {
                         foreach ($this->content as $content) {
-                           $apiResponse[$content][$api] = self::getContent($content, $api);
+                            $apiResponse[$content][$api] = self::getContent($content, $api);
                         }
                     } else {
                         $apiResponse[$this->content][$api] = self::getContent($this->content, $api);
                         // $apiResponse = self::getContent($this->content, $api);
                     }
-                }
-
-                catch (ParameterException $e) {
+                } catch (ParameterException $e) {
                     // var_dump($e);
                     # echo "Encountered an API error -- code {$e->getCode()} - {$e->getMessage()}";
-                }
-
-                catch (Exception $e) {
+                } catch (Exception $e) {
                     // var_dump($e);
                     #echo "Some other Exception was thrown -- code {$e->getCode()} - {$e->getMessage()}";
                 }
@@ -204,14 +189,13 @@ class ApiProcessing
 
             // Caching results
             // Cache::put($apiParametersHash, $apiResponse, $this->_periodCachingTime[$this->period]);
-            
+
             // Set cache to expire in 24 hours
-            Cache::put($apiParametersHash, $apiResponse, 1440); 
+            Cache::put($apiParametersHash, $apiResponse, 1440);
         }
 
         return $apiResponse;
     }
-
 
     public function individualCall($api)
     {
@@ -231,11 +215,9 @@ class ApiProcessing
             }
 
             $cacheVariable = "{$api}_{$dynamicVariable}";
-        }
-
-        else {
+        } else {
             if (isset($this->searchQuery)) {
-                $characters  = array("-", "@");
+                $characters = array("-", "@");
                 $searchQuery = str_replace($characters, '', $this->searchQuery);
 
                 $dynamicVariable = "searchQuery_{$searchQuery}";
@@ -251,7 +233,7 @@ class ApiProcessing
             else {
                 $dynamicVariable = "{$this->content}";
             }
-            
+
             $cacheVariable = "{$api}_{$dynamicVariable}_{$this->period}";
         }
 
@@ -260,7 +242,7 @@ class ApiProcessing
         if (!$apiResponse) {
             $apiResponse = self::getContent($this->content, $api);
             // Cache::put($cacheVariable, $apiResponse, $this->_cacheTimeout);
-            
+
             // Set cache to 24 hours
             Cache::put($cacheVariable, $apiResponse, 1440);
         }
@@ -268,21 +250,19 @@ class ApiProcessing
         return $apiResponse;
     }
 
-
     private function getContent($content, $api)
     {
         $parameters = array(
-                            'content'    => $content,
-                            'period'     => $this->period,
-                            'maxResults' => $this->maxResults,
-                        );
+            'content' => $content,
+            'period' => $this->period,
+            'maxResults' => $this->maxResults,
+        );
 
         if (isset($this->videoId)) {
             $parameters['videoId'] = $this->videoId;
-        }
-        elseif (isset($this->searchQuery)) {
-            $parameters['page']        = $this->page;
-            $parameters['sort']        = $this->sort;
+        } elseif (isset($this->searchQuery)) {
+            $parameters['page'] = $this->page;
+            $parameters['sort'] = $this->sort;
             $parameters['searchQuery'] = $this->searchQuery;
         }
 
@@ -291,8 +271,6 @@ class ApiProcessing
         // $youtube = new YoutubeAgent;
         return $apiToRun->data($parameters);
     }
-
-
 
     ////     ////
     // PARSERS //
@@ -312,7 +290,7 @@ class ApiProcessing
     {
         $i = 0;
         $results = array();
-        
+
         if (empty($videos)) {
             return $results;
         }
@@ -326,8 +304,9 @@ class ApiProcessing
             $id = substr($videoId, 0, 1) . 'y' . substr($videoId, 1);
 
             $duration = $views = 0;
-            if (isset($video->statistics) && isset($video->statistics->viewCount))
+            if (isset($video->statistics) && isset($video->statistics->viewCount)) {
                 $views = $video->statistics->viewCount;
+            }
 
             if (isset($video->contentDetails) && isset($video->contentDetails->duration)) {
                 $seconds = $video->contentDetails->duration;
@@ -335,18 +314,18 @@ class ApiProcessing
             }
 
             $results[$i] = array(
-                'url'         => url('video/'.$id),
-                'title'       => $video->snippet->title,
+                'url' => url('video/' . $id),
+                'title' => $video->snippet->title,
                 'description' => self::parseDescription($video->snippet->description),
                 // 'author'   => $video['author'][0]['name']['$t'],
                 // 'category'    => [],
-                'thumbnail'   => $video->snippet->thumbnails->medium->url,
-                
-                'rating'      => isset($video->rating) ? $video->rating : 0,
-                'views'       => $views,
-                'duration'    => $duration,
-                
-                'source'      => 'Youtube',
+                'thumbnail' => $video->snippet->thumbnails->medium->url,
+
+                'rating' => isset($video->rating) ? $video->rating : 0,
+                'views' => $views,
+                'duration' => $duration,
+
+                'source' => 'Youtube',
             );
 
             $i++;
@@ -356,7 +335,7 @@ class ApiProcessing
         if ($content = $this->contentForParser) {
             // $results[$content]['Youtube'] = $results['Youtube'];
             // unset($results['Youtube']);
-            
+
             return array($content => $results);
         }
 
@@ -370,24 +349,24 @@ class ApiProcessing
 
         foreach ($data['list'] as $video) {
             preg_match('@video/([^_]+)_([^/]+)@', $video['url'], $match);
-            $url = $match[1].'/'.$match[2];
-            $url = url('video/'.substr($url,0,1).'d'.substr($url,1));
+            $url = $match[1] . '/' . $match[2];
+            $url = url('video/' . substr($url, 0, 1) . 'd' . substr($url, 1));
 
             $thumbnailUrl = preg_replace("/^http:/i", "https:", $video['thumbnail_360_url']);
 
             $results[$i] = array(
-                'url'         => $url,
-                'title'       => $video['title'],
+                'url' => $url,
+                'title' => $video['title'],
                 'description' => self::parseDescription($video['description']),
                 // 'author'      => '',
                 // 'category'      => '',
-                'thumbnail'   => $thumbnailUrl,
+                'thumbnail' => $thumbnailUrl,
 
-                'rating'      => $video['rating'],
-                'duration'    => $video['duration'],
-                'views'       => $video['views_total'],
+                'rating' => $video['rating'],
+                'duration' => $video['duration'],
+                'views' => $video['views_total'],
 
-                'source'      => 'Dailymotion',
+                'source' => 'Dailymotion',
             );
 
             $i++;
@@ -408,30 +387,34 @@ class ApiProcessing
         $i = 1;
         $results = array();
 
-        if (!$data) return false;
+        if (!$data) {
+            return false;
+        }
 
         foreach ($data->channel->item as $video) {
             $video = (array) $video;
             preg_match('/http:\/\/[w\.]*metacafe\.com\/watch\/([^?&#"\']*)/is', $video['link'], $match);
-            $id  = substr($match[1],0,-1);
-            $url = url('video/'.substr($id,0,1).'M'.substr($id,1));
-            
+            $id = substr($match[1], 0, -1);
+            $url = url('video/' . substr($id, 0, 1) . 'M' . substr($id, 1));
+
             $results['Metacafe'][$i] = array(
-                'url'         => $url,
-                'title'       => $video['title'],
+                'url' => $url,
+                'title' => $video['title'],
                 'description' => self::parseDescription($video['title']),
                 // 'author'      => $video['author'],
                 // 'category'    => $video['category'],
-                'thumbnail'   => "http://www.metacafe.com/thumb/{$video['id']}.jpg",
+                'thumbnail' => "http://www.metacafe.com/thumb/{$video['id']}.jpg",
 
-                'rating'      => isset($video['rank']) ? $video['rank'] : 0,
-                'views'       => 0,
+                'rating' => isset($video['rank']) ? $video['rank'] : 0,
+                'views' => 0,
 
-                'source'      => 'Metacafe',
+                'source' => 'Metacafe',
             );
 
-            if ($i === $this->maxResults) break;
-            
+            if ($i === $this->maxResults) {
+                break;
+            }
+
             $i++;
 
         }
@@ -455,25 +438,27 @@ class ApiProcessing
 
         foreach ($data['body']['data'] as $video) {
             $origId = explode('/', $video['uri'])[2];
-            $id     = substr($origId, 0, 1) . 'v' . substr($origId, 1);
+            $id = substr($origId, 0, 1) . 'v' . substr($origId, 1);
 
             $results[$i] = array(
-                'url'         => url('video/'.$id),
-                'title'       => $video['name'],
+                'url' => url('video/' . $id),
+                'title' => $video['name'],
                 'description' => self::parseDescription($video['description']),
                 // 'author'      => $video['user']['name'],
                 // 'category'    => '',
-                'thumbnail'   => $video['pictures']['sizes'][2]['link'],
+                'thumbnail' => $video['pictures']['sizes'][2]['link'],
 
-                'rating'      => $video['metadata']['connections']['likes']['total'],
-                'duration'    => $video['duration'],
-                'views'       => $video['stats']['plays'],
+                'rating' => $video['metadata']['connections']['likes']['total'],
+                'duration' => $video['duration'],
+                'views' => $video['stats']['plays'],
 
-                'source'      => 'Vimeo',
+                'source' => 'Vimeo',
             );
 
-            if ($i === $this->maxResults) break;
-            
+            if ($i === $this->maxResults) {
+                break;
+            }
+
             $i++;
 
         }
@@ -486,7 +471,6 @@ class ApiProcessing
         return $results;
     }
 
-
     /**
      * [parseIndividualResult description]
      * @param  [type] $data [description]
@@ -494,27 +478,30 @@ class ApiProcessing
      */
     public function parseIndividualResult($api, $data)
     {
-        if (!$data)
+        if (!$data) {
             throw new \Exception("Error parsing result from $api. Video might've been deleted");
-        if ($api === 'Vimeo' && isset($data['body']['error']))
+        }
+
+        if ($api === 'Vimeo' && isset($data['body']['error'])) {
             throw new \Exception("$api: " . $data['body']['error']);
-            
+        }
+
         $video = [];
 
         if ($api === "Dailymotion") {
-            $httpsUrl     = preg_replace("/^http:/i", "https:", $data['url']);
+            $httpsUrl = preg_replace("/^http:/i", "https:", $data['url']);
             $thumbnailUrl = preg_replace("/^http:/i", "https:", $data['thumbnail_360_url']);
 
-            $video['url']         = $httpsUrl;
-            $video['title']       = $data['title'];
+            $video['url'] = $httpsUrl;
+            $video['title'] = $data['title'];
             $video['description'] = $data['description'];
-            $video['thumbnail']   = $thumbnailUrl;
-            
+            $video['thumbnail'] = $thumbnailUrl;
+
             // $video['ratings']  = $data['ratings'];
-            $video['views']       = $data['views_total'];
-            $video['duration']    = $data['duration'];
-            
-            $video['tags']        = $data['tags'];
+            $video['views'] = $data['views_total'];
+            $video['duration'] = $data['duration'];
+
+            $video['tags'] = $data['tags'];
         }
 
         // elseif ($api === "Metacafe") {
@@ -535,7 +522,7 @@ class ApiProcessing
 
         //     $xml = simplexml_import_dom($dom);
         //     $p   = (string)$xml->body->p;
-            
+
         //     $video['description'] = strstr($p, 'Ranked', true);
 
         //     $tags  = array();
@@ -555,45 +542,41 @@ class ApiProcessing
 
             $origId = explode('/', $data['uri'])[2];
 
-            $video['url']         = "https://vimeo.com/".$origId;
-            $video['title']       = $data['name'];
+            $video['url'] = "https://vimeo.com/" . $origId;
+            $video['title'] = $data['name'];
             $video['description'] = $data['description'];
-            $video['thumbnail']   = $data['pictures']['sizes'][2]['link'];
-            
+            $video['thumbnail'] = $data['pictures']['sizes'][2]['link'];
+
             // $video['ratings']  = $data['ratings'];
-            $video['views']       = $data['stats']['plays'];
-            $video['duration']    = $data['duration'];
+            $video['views'] = $data['stats']['plays'];
+            $video['duration'] = $data['duration'];
 
             $tags = array();
             if (!empty($data['tags'])) {
-                foreach($data['tags'] as $tag) {
+                foreach ($data['tags'] as $tag) {
                     $tags[] = $tag['name'];
                 }
             }
-            
-            $video['tags']       = $tags;
-        }
 
-        elseif ($api == "Youtube") {
+            $video['tags'] = $tags;
+        } elseif ($api == "Youtube") {
             $seconds = $data->contentDetails->duration;
             $totalSeconds = ISO8601ToSeconds($seconds);
 
-            $video['url']         = "https://www.youtube.com/watch?v=" . $data->id;
-            $video['title']       = $data->snippet->title;
+            $video['url'] = "https://www.youtube.com/watch?v=" . $data->id;
+            $video['title'] = $data->snippet->title;
             $video['description'] = $data->snippet->description;
-            $video['thumbnail']   = $data->snippet->thumbnails->medium->url;
+            $video['thumbnail'] = $data->snippet->thumbnails->medium->url;
 
-            
             // $video['ratings']     = $data['gd$rating']['average'];
-            $video['views']       = $data->statistics->viewCount;
-            $video['duration']    = $totalSeconds;
-            
-            $video['tags']        = isset($data->snippet->tags) ? $data->snippet->tags : [];
+            $video['views'] = $data->statistics->viewCount;
+            $video['duration'] = $totalSeconds;
+
+            $video['tags'] = isset($data->snippet->tags) ? $data->snippet->tags : [];
         }
 
         return $video;
     }
-
 
     /**
      * [parseDescription description]

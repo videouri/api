@@ -25,16 +25,16 @@ class SearchController extends Controller
     * This function is ment for getting search or tag results for the query specified
     *
     * @return the php response from parsing the data.
-    */    
+    */
     public function getVdeos()
     {
         $this->apiprocessing->apis = ['Dailymotion', 'Vimeo', 'Youtube'];
         // $this->apiprocessing->apis = ['Youtube'];
-        
+
         $this->apiprocessing->page = Request::get('page', 1);
         $this->apiprocessing->sort = Request::get('sort', 'relevance');
         $this->apiprocessing->maxResults = 12;
-        
+
         $searchQuery = Request::get('search_query');
 
         // Not empty nor just white spaces
@@ -47,7 +47,7 @@ class SearchController extends Controller
 
         // Queue to save search term
         $this->dispatch(new SaveSearchTerm($searchQuery, Auth::user()));
-    
+
         try {
             $searchResultsRaw = $this->apiprocessing->mixedCalls()['search'];
             $searchResults    = array();
@@ -69,9 +69,9 @@ class SearchController extends Controller
             dd($e);
             #echo "Some other Exception was thrown -- code {$e->getCode()} - {$e->getMessage()}";
         }
-        
+
         // dd($searchResults);
-        
+
 
         // App data
         $data['searchQuery'] = $searchQuery;
@@ -84,6 +84,6 @@ class SearchController extends Controller
         $data['description'] = 'Searching for ' . $searchQuery . ' on ' . implode(', ', $data['apis']);
         $data['canonical']   = '';
 
-        return view('videouri.pages.results', $data);
+        return view('videouri.public.results', $data);
     }
 }
