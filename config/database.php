@@ -26,7 +26,7 @@ return [
     |
     */
 
-    'default' => 'mysql',
+    'default' => env('DB_CONNECTION', 'mysql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -48,8 +48,8 @@ return [
 
         'sqlite' => [
             'driver'   => 'sqlite',
-            'database' => storage_path().'/database.sqlite',
-            'prefix'   => '',
+            'database' => database_path('database.sqlite'),
+            'prefix'   => ''
         ],
 
         'mysql' => [
@@ -61,7 +61,7 @@ return [
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix'    => '',
-            'strict'    => false,
+            'strict'    => false
         ],
 
         'pgsql' => [
@@ -72,7 +72,7 @@ return [
             'password' => env('DB_PASSWORD', ''),
             'charset'  => 'utf8',
             'prefix'   => '',
-            'schema'   => 'public',
+            'schema'   => 'public'
         ],
 
         'sqlsrv' => [
@@ -81,8 +81,9 @@ return [
             'database' => env('DB_DATABASE', 'forge'),
             'username' => env('DB_USERNAME', 'forge'),
             'password' => env('DB_PASSWORD', ''),
-            'prefix'   => '',
-        ],
+            'charset'  => 'utf8',
+            'prefix'   => ''
+        ]
 
     ],
 
@@ -117,9 +118,9 @@ return [
         'default' => [
             'host'     => '127.0.0.1',
             'port'     => 6379,
-            'database' => 0,
-        ],
+            'database' => 0
+        ]
 
-    ],
+    ]
 
 ];

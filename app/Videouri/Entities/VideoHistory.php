@@ -5,17 +5,17 @@ namespace Videouri\Entities;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * 
+ *
  */
-class UserVideoHistory extends Model
+class VideoWatchHistory extends Model
 {
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'user_video_history';
-    
+    protected $table = 'video_history';
+
     /**
      * Indicates if the model should be timestamped.
      *
