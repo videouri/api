@@ -156,7 +156,6 @@ return [
         /**
          * Custom Providers
          */
-        App\Providers\ConfigServiceProvider::class,
 
     ],
 
