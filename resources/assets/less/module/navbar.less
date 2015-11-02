@@ -30,15 +30,25 @@
 
 
 .navbar-right {
-    li a {
-        font-weight: normal;
-    
-        &.join {
-            background-color: #3C708D;
+    li {
+        a {
+            font-weight: normal;
 
             &:hover {
+                border-radius: 0;
                 // background-color: #e74c3c;
-                color: white;
+                // color: white;
+            }
+        }
+    }
+
+    li.join {
+        a {
+            background-color: #16a085;
+            color: #006A55;
+
+            &:hover {
+                color: #ffffff;
             }
         }
     }

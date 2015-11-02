@@ -99,7 +99,7 @@
             <div class="col-md-2 col-xs-3 pull-right">
                 <ul class="nav navbar-nav navbar-right text-right">
                     @if (Auth::guest())
-                        <li><a href="{{ url('/join') }}" class="join">Join</a></li>
+                        <li class="join"><a href="{{ url('/join') }}">Join</a></li>
                         <li><a href="{{ url('/login') }}">Login</a></li>
                     @else
                         <li class="dropdown">

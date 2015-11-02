@@ -156,6 +156,7 @@ return [
         /**
          * Custom Providers
          */
+        Videouri\Providers\CommonViewVariablesProvider::class,
 
     ],
 

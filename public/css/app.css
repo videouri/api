@@ -15444,11 +15444,15 @@ body#videoPage {
 .navbar-right li a {
   font-weight: normal;
 }
-.navbar-right li a.join {
-  background-color: #3C708D;
+.navbar-right li a:hover {
+  border-radius: 0;
 }
-.navbar-right li a.join:hover {
-  color: white;
+.navbar-right li.join a {
+  background-color: #16a085;
+  color: #006A55;
+}
+.navbar-right li.join a:hover {
+  color: #ffffff;
 }
 /*
  * Sidebar

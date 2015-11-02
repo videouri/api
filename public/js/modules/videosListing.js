@@ -2,6 +2,12 @@ var $isotopeContainer,
     page, curPage, nextPage;
 
 $(document).ready(function() {
+
+    /**
+     * Lazy loading for images
+     */
+    $('img.lazy-image').lazyload();
+
     /**
      * Isotope plugin
      */
