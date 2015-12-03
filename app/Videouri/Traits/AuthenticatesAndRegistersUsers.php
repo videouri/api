@@ -2,14 +2,12 @@
 
 namespace Videouri\Traits;
 
-use Illuminate\Http\Request;
+use Auth;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\Registrar;
-use Validator;
-
+use Illuminate\Http\Request;
 use Redirect;
-use Auth;
-
+use Validator;
 use Videouri\Entities\User;
 use Videouri\Repositories\UserRepository;
 
@@ -73,8 +71,11 @@ trait AuthenticatesAndRegistersUsers
      */
     public function postLogin(Request $request)
     {
-        $this->validate($request, [
-            'email' => 'required', 'password' => 'required',
+        $credentials = $request->only('email', 'password');
+
+        Validator::make($credentials, [
+            'email'    => 'required',
+            'password' => 'required'
         ]);
 
         // @TODO: Implement throttle login
@@ -90,15 +91,13 @@ trait AuthenticatesAndRegistersUsers
         //     }
         // }
 
-        $credentials = $request->only('email', 'password');
-
         if (Auth::attempt($credentials, $request->has('remember'))) {
             return redirect()->intended($this->redirectPath());
         }
 
         // Redirect to previous page with error message
         return Redirect::back()->withErrors([
-            'email' => 'These credentials do not match our records.',
+            'email' => 'These credentials do not match our records.'
         ]);
     }
 

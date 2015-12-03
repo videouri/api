@@ -1,0 +1,47 @@
+<div class="col s4 video {{ video.source }}">
+    <div class="card hoverable">
+        <div class="card-image">
+            <a href="{{ video.url }}">
+                <img :src="video.thumbnail" alt="{{ video.title }}" />
+            </a>
+            <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.url }}"></span>
+
+            <a href="{{ video.url }}" title="{{ video.title }}">
+                <h1 class="card-title">
+                    {{ video.title }}
+                </h1>
+            </a>
+
+            <span class="video-source {{ video.source }}">
+                {{ video.source }}
+            </span>
+        </div>
+
+
+        <!-- <div class="tile-sidebar hidden">
+            <ul class="list-unstyled" style="position: relative;">
+                <li>
+                    <button class="close">
+                        <span class="fui-time text-muted"
+                              data-toggle="tooltip" title="5:30"></span>
+                    </button>
+                </li>
+                <?php if (isset($video['category'])): ?>
+                <li>
+                    <button class="dropdown-toggle" data-toggle="dropdown">
+                        <span class="fui-list text-muted"></span>
+                    </button>
+                    <span class="dropdown-arrow dropdown-arrow-inverse"></span>
+                    <ul class="dropdown-menu dropdown-inverse">
+                        <?php foreach($video['category'] as $category): ?>
+                        <li>
+                            <a href="/category/<?= $category ?>"> <?= $category ?> </a>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </div> -->
+    </div>
+</div>

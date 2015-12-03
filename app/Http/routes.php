@@ -25,9 +25,16 @@ Route::get('video/{id}/{videoSlug?}', 'VideoController@show');
 Route::get('info/{view}/{part?}', 'InfoController@show');
 
 // User auth related methods
-Route::get('join', 'Auth\AuthController@getRegister');
+Route::get('register', [
+    'as'   => 'register',
+    'uses' => 'Auth\AuthController@getRegister'
+]);
+Route::get('login/{provider?}', [
+    'as' => 'login',
+    'uses' => 'Auth\AuthController@getLogin'
+]);
+
 Route::post('join', 'Auth\AuthController@postRegister');
-Route::get('login/{provider?}', 'Auth\AuthController@getLogin');
 Route::post('login', 'Auth\AuthController@postLogin');
 Route::get('logout', 'Auth\AuthController@getLogout');
 
@@ -40,35 +47,24 @@ Route::group([
     Route::resource('profile', 'ProfileController');
     Route::resource('history', 'HistoryController');
     Route::resource('favorites', 'FavoritesController');
-
-    // Route::get('favorites', [
-    //     'as' => 'user-favorites',
-    //     'uses' => 'User\FavoritesController'
-    // ]);
-
-    // Route::get('history/{type}', [
-    //     'as' => 'user-favorites',
-    //     'uses' => 'User\HistoryController'
-    // ]);
 });
-
-// Route::group(['before' => 'auth', 'prefix' => 'history'], function() {
-//     Route::get('/', function() {
-//         return redirect()->route('videos-history');
-//     });
-
-//     // Route::get('videos', [
-//     //     'as' => 'videos-history',
-//     //     'uses' => 'Auth\UserController@history'
-//     // ]);
-
-//     // Route::get('search', [
-//     //     'as' => 'search-history',
-//     //     'uses' => 'Auth\UserController@history'
-//     // ]);
-// });
 
 Route::controllers([
     // 'auth'     => 'Auth\AuthController',
     'password' => 'Auth\PasswordController'
 ]);
+
+$api = app('Dingo\Api\Routing\Router');
+
+$api->version('v1', function ($api) {
+    /*
+     * used for Json Web Token Authentication - https://scotch.io/tutorials/token-based-authentication-for-angularjs-and-laravel-apps
+     * Make sure to re-enable CSRF middleware if you're disabling JWT
+     */
+    $api->controller('authenticate', 'App\Http\Controllers\AuthenticateController');
+    $api->controller('videos', 'App\Http\Controllers\Api\VideosController');
+});
+
+//protected with JWT
+// $api->version('v1', ['middleware' => 'api.auth'], function ($api) {
+// });

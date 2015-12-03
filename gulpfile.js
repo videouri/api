@@ -22,15 +22,15 @@ elixir(
 
         mix
             .scripts([
+                // '../../bower_components/vue/dist/vue.js',
+                // '../../bower_components/vue-resource/dist/vue-resource.js',
                 '../../bower_components/jquery/dist/jquery.js',
-                'js/vendor/jquery-ui-1.10.3.custom.min.js',
-                'js/vendor/jquery.ui.touch-punch.min.js',
+                '../../bower_components/Materialize/dist/js/materialize.js',
 
                 'js/vendor/jquery.placeholder.js',
                 'js/vendor/jquery.cookie.js',
                 'js/vendor/jquery.query.js',
 
-                '../../bower_components/bootstrap/dist/js/bootstrap.js',
                 '../../bower_components/imagesloaded/imagesloaded.pkgd.js',
                 '../../bower_components/isotope/dist/isotope.pkgd.js',
 
@@ -39,22 +39,20 @@ elixir(
                 '../../bower_components/videojs-vimeo/vjs.vimeo.js',
                 '../../bower_components/videojs-dailymotion/src/dailymotion.js',
                 // 'js/vendor/video.js-dailymotion/vjs.dailymotion.js',
-                'js/main.js'
-            ], 'public/js/app.js', 'resources/assets/')
+            ], 'public/js/vendor.js', 'resources/assets/')
 
-            .copy([
-                './resources/assets/js/modules/**'
-            ], 'public/js/modules/')
+            .browserify('app.js')
         ;
 
         mix.livereload();
 
         mix
             .copy([
-                './bower_components/font-awesome/fonts/**',
+                // './bower_components/font-awesome/fonts/**',
+                './bower_components/Materialize/dist/font/**',
                 './bower_components/video.js/dist/video-js/font/**',
-                './resources/assets/fonts/**'
-            ], 'public/fonts')
+                './resources/assets/font/**'
+            ], 'public/font')
         ;
 
         // TESTING!

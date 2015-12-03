@@ -28,7 +28,7 @@ return [
     |
     */
 
-    'model' => 'Videouri\Entities\User',
+    'model' => Videouri\Entities\User::class,
 
     /*
     |--------------------------------------------------------------------------

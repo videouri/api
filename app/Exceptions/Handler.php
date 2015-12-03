@@ -3,21 +3,25 @@
 namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Videouri\Exceptions\SearchQueryEmpty;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Videouri\Exceptions\CreateUserException;
 use Videouri\Exceptions\RegisterValidationException;
+use Videouri\Exceptions\SearchQueryEmpty;
 use Videouri\Exceptions\SendMailException;
 
-class Handler extends ExceptionHandler {
-
+class Handler extends ExceptionHandler
+{
     /**
      * A list of the exception types that should not be reported.
      *
      * @var array
      */
     protected $dontReport = [
-        'Symfony\Component\HttpKernel\Exception\HttpException'
+        HttpException::class,
+        ModelNotFoundException::class,
     ];
 
     /**
@@ -42,10 +46,14 @@ class Handler extends ExceptionHandler {
      */
     public function render($request, Exception $e)
     {
+        if ($e instanceof ModelNotFoundException) {
+            $e = new NotFoundHttpException($e->getMessage(), $e);
+        }
+
         if ($e instanceof RegisterValidationException) {
             return redirect('join')->withErrors($e->getMessage());
         }
-        
+
         if ($e instanceof CreateUserException) {
             return redirect('join')->withErrors('Your account couldn\'t be create please try again');
         }

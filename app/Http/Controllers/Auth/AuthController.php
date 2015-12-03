@@ -29,7 +29,7 @@ class AuthController extends Controller
 
     use AuthenticatesAndRegistersUsers, ThrottlesLogins;
 
-    
+
     // protected $redirectTo  = 'path';
 
     /**
@@ -40,7 +40,7 @@ class AuthController extends Controller
     public function __construct(Authentication $authentication)
     {
         $this->middleware('guest', ['except' => 'getLogout']);
-        
+
         $this->authentication = $authentication;
     }
 
@@ -73,7 +73,7 @@ class AuthController extends Controller
     //         'password' => bcrypt($data['password']),
     //     ]);
     // }
-    
+
 
     /**
      * [accountIsActive description]
@@ -85,10 +85,10 @@ class AuthController extends Controller
         $user = User::where('email', '=', $email)
                     ->where('activation_code', '=', $code)
                     ->first();
-                    
+
         $user->active = 1;
         $user->activation_code = '';
-    
+
         if ($user->save()) {
             Auth::login($user);
         }

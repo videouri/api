@@ -32,7 +32,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $fakeContent = false;
+        $fakeContent = true;
 
         if (!$fakeContent) {
             $content = self::runAPIs();
@@ -53,6 +53,7 @@ class HomeController extends Controller
 
         return view('videouri.public.home', $content);
     }
+
     private function runAPIs()
     {
         $apiResults = $this->apiprocessing->mixedCalls();

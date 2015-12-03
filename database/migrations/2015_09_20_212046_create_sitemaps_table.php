@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 
 class CreateSitemapsTable extends Migration
 {
@@ -12,15 +12,13 @@ class CreateSitemapsTable extends Migration
      */
     public function up()
     {
-        Schema::create('sitemaps', function($table)
-        {
+        Schema::create('sitemaps', function ($table) {
             $table->increments('id');
             $table->string('path');
             $table->string('filename');
             $table->string('items_count');
 
             $table->timestamps();
-        
         });
     }
 

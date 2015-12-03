@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 
 class CreateUserWatchLaterTable extends Migration
 {
@@ -12,8 +12,7 @@ class CreateUserWatchLaterTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_watch_later', function($table)
-        {
+        Schema::create('user_watch_later', function ($table) {
             $table->integer('video_id')->unsigned();
             $table->foreign('video_id')->references('id')->on('videos');
 

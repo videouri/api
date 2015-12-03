@@ -95,7 +95,7 @@ return [
     |
     */
 
-    'log' => 'single',
+    'log' => env('APP_LOG', 'single'),
 
     /*
     |--------------------------------------------------------------------------
@@ -152,10 +152,14 @@ return [
         Alaouy\Youtube\YoutubeServiceProvider::class,
         Vinkla\Vimeo\VimeoServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
+        Dingo\Api\Provider\LaravelServiceProvider::class,
+        Barryvdh\Cors\ServiceProvider::class,
+        Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
 
         /**
          * Custom Providers
          */
+        Videouri\Providers\ResponseMacroServiceProvider::class,
         Videouri\Providers\CommonViewVariablesProvider::class,
 
     ],
@@ -212,7 +216,9 @@ return [
          */
         // 'Debugbar'  => 'Barryvdh\Debugbar\Facade::class,
         // 'Debugbar' => Barryvdh\Debugbar\Facade::class,
-        'Vimeo' => Vinkla\Vimeo\Facades\Vimeo::class
+        'Vimeo' => Vinkla\Vimeo\Facades\Vimeo::class,
+        'JWTAuth'    => Tymon\JWTAuth\Facades\JWTAuth::class,
+        'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
 
     ]
 

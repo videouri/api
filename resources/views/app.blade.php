@@ -58,82 +58,31 @@
     </script>
     @endif
 </head>
-<body id="{{ isset($bodyId) ? $bodyId : '' }}">
-    <nav class="navbar navbar-fixed-top">
-        <div class="row">
-            <div class="col-md-2 col-xs-3">
-                <a class="navbar-brand" href="<?= url('/'); ?>"> Videouri </a>
-            </div>
-            <div class="col-md-6 col-xs-6 hidden-xs">
-                <form action="/results" class="navbar-form" role="search" method="get" autocomplete="off">
-                    <div class="form-group">
-                        <div class="input-group">
-                            <input class="form-control" type="text" name="search_query" placeholder="Search"
-                                    value="<?= isset($searchQuery) ? $searchQuery : '' ?>"  style="border: none">
-                            <span class="input-group-btn" style="border: none">
-                                <?php if (false): // @TODO ?>
-                                <!-- <button class="btn" data-toggle="dropdown">
-                                    <i class="fa fa-filter"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-inverse" role="menu">
-                                    <li><a href="#">Action</a></li>
-                                    <li><a href="#">Another action</a></li>
-                                    <li><a href="#">Something else here</a></li>
-                                    <li class="divider"></li>
-                                    <li><a href="#">Separated link</a></li>
-                                </ul> -->
-                                <?php endif ?>
-                                <button type="submit" class="btn">
-                                    <i class="fa fa-search"></i>
-                                </button>
-                            </span>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="col-xs-6 visible-xs text-center">
-                <button type="submit" class="btn">
-                    <i class="fa fa-search"></i>
-                </button>
-            </div>
-            <div class="col-md-2 col-xs-3 pull-right">
-                <ul class="nav navbar-nav navbar-right text-right">
-                    @if (Auth::guest())
-                        <li class="join"><a href="{{ url('/join') }}">Join</a></li>
-                        <li><a href="{{ url('/login') }}">Login</a></li>
-                    @else
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ Auth::user()->username }} <span class="caret"></span></a>
-                            <ul class="dropdown-menu" role="menu">
-                                <li>
-                                    <a href="{{ url('/profile') }}">Profile</a>
-                                </li>
-                                <li>
-                                    <a href="{{ url('/settings') }}">Settings</a>
-                                </li>
-                                <li class="divider"></li>
-                                <li>
-                                    <a href="{{ url('/logout') }}">Logout</a>
-                                </li>
-                            </ul>
-                        </li>
-                    @endif
-                </ul>
-            </div>
-        </div>
-    </nav>
+<body id="app" class="{{ isset($bodyId) ? $bodyId : '' }}">
+    @include('videouri.partials.header')
 
-    <div class="container-fluid" id="content">
+    <!-- <div id="wrapper">
         <div class="row">
-            <div class="col-sm-3 col-md-2 sidebar" id="sidebar">
+            <div class="col s2 side-nav fixed" id="sidebar">
                 @include('videouri.partials.sidebar')
             </div>
 
-            <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="col s10" id="content">
                 @yield('content')
             </div>
         </div>
-    </div>
+    </div> -->
+
+    <main>
+        <div class="container">
+            {{-- <div class="row"> --}}
+                <!-- <div class="col s12 m9 l10"> -->
+                {{-- <div class="col l12"> --}}
+                    @yield('content')
+                {{-- </div> --}}
+            {{-- </div> --}}
+        </div>
+    </main>
 
     <!-- <footer class="footer">
         <div class="container">
@@ -170,6 +119,7 @@
     </script>
 
     <!-- Scripts -->
+    <script src="{{ videouri_asset('/js/vendor.js') }}"></script>
     <script src="{{ videouri_asset('/js/app.js') }}"></script>
     @yield('scripts')
 
