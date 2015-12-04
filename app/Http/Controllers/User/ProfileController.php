@@ -12,6 +12,6 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        return view('videouri.private.profile');
+        return view('videouri.user.profile');
     }
 }

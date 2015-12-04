@@ -30,6 +30,8 @@
     <meta property="og:image" content="<?= $thumbnail ?>">
     @endif
 
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
     <link href="{{ videouri_asset('/css/app.css') }}" rel="stylesheet">
 
     <meta name="msvalidate.01" content="48B0A933360DDEC6CF1775D7C7E28FD3" />
@@ -60,18 +62,6 @@
 </head>
 <body id="app" class="{{ isset($bodyId) ? $bodyId : '' }}">
     @include('videouri.partials.header')
-
-    <!-- <div id="wrapper">
-        <div class="row">
-            <div class="col s2 side-nav fixed" id="sidebar">
-                @include('videouri.partials.sidebar')
-            </div>
-
-            <div class="col s10" id="content">
-                @yield('content')
-            </div>
-        </div>
-    </div> -->
 
     <main>
         <div class="container">

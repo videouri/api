@@ -12,17 +12,17 @@ use Videouri\Entities\UserVideoHistory;
 
 class HistoryController extends Controller
 {
-    /**
-     * Show user search history
-     * @param  [type] $type [description]
-     * @return [type]       [description]
-     */
-    public function index($type)
+    public function index()
     {
-        if (!in_array($type, ['videos', 'search'])) {
-            return redirect('/');
-        }
+        return redirect('/');
+    }
 
-        return view('videouri.private.history');
+    public function show($type)
+    {
+        // if (!in_array($type, ['videos', 'search'])) {
+        //     return redirect('/');
+        // }
+
+        return view('videouri.user.history');
     }
 }

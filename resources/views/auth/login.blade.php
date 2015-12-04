@@ -78,7 +78,7 @@
                         </div>
 
                         <button class="btn waves-effect waves-light" type="submit" name="action">
-                            Register
+                            Login
                         </button>
 
                         <div class="row">

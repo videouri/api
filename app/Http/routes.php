@@ -30,7 +30,7 @@ Route::get('register', [
     'uses' => 'Auth\AuthController@getRegister'
 ]);
 Route::get('login/{provider?}', [
-    'as' => 'login',
+    'as'   => 'login',
     'uses' => 'Auth\AuthController@getLogin'
 ]);
 
@@ -45,6 +45,7 @@ Route::group([
     'namespace'  => 'User'
 ], function () {
     Route::resource('profile', 'ProfileController');
+    Route::resource('settings', 'SettingsController');
     Route::resource('history', 'HistoryController');
     Route::resource('favorites', 'FavoritesController');
 });
@@ -58,7 +59,8 @@ $api = app('Dingo\Api\Routing\Router');
 
 $api->version('v1', function ($api) {
     /*
-     * used for Json Web Token Authentication - https://scotch.io/tutorials/token-based-authentication-for-angularjs-and-laravel-apps
+     * used for Json Web Token Authentication
+     *     https://scotch.io/tutorials/token-based-authentication-for-angularjs-and-laravel-apps
      * Make sure to re-enable CSRF middleware if you're disabling JWT
      */
     $api->controller('authenticate', 'App\Http\Controllers\AuthenticateController');

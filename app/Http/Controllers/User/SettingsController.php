@@ -6,12 +6,12 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-use Videouri\Entities\Favorite;
+use Videouri\Entities\User;
 
-class FavoritesController extends Controller
+class SettingsController extends Controller
 {
     public function index()
     {
-        return view('videouri.user.favorites');
+        return view('videouri.user.settings');
     }
 }
