@@ -37,25 +37,21 @@
                             @if (Auth::guest())
                                 <div class="row">
                                     <div class="col s6 right-align">
-                                        <a href="{{ route('login') }}" class="waves-effect waves-light btn-flat login" id="signup-navbar">
+                                        <a href="{{ url('login') }}" class="waves-effect waves-light btn-flat login" id="signup-navbar">
                                             login
                                         </a>
                                     </div>
                                     <div class="col s6">
-                                        <a href="{{ route('register') }}" class="waves-effect waves-light btn white-text">
+                                        <a href="{{ url('register') }}" class="waves-effect waves-light btn white-text">
                                             sign up
                                         </a>
                                     </div>
                                 </div>
                             @else
-                                {{-- <a href="{{ route('register') }}" class="waves-effect waves-light btn white-text">
-                                    sign up
-                                </a> --}}
                                 <a href="#!" class="dropdown-button" data-activates="user-menu">
                                     {{ Auth::user()->username }}
                                     <i class="material-icons right">arrow_drop_down</i>
                                 </a>
-
                             @endif
                         </div>
                     </div>

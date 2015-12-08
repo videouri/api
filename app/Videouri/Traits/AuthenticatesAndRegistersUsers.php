@@ -125,5 +125,4 @@ trait AuthenticatesAndRegistersUsers
 
         return property_exists($this, 'redirectTo') ? $this->redirectTo : '/';
     }
-
 }

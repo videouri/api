@@ -30,14 +30,19 @@
         <div class="z-depth-1 card-panel">
             <div class="row">
                 <div class="col s12">
-                    <a href="/login/twitter" class="btn btn-block btn-flat facebook-bg text-center">Register with Twitter</a>
+                    <a href="/login/facebook" class="btn btn-block btn-flat facebook-bg text-center">
+                        Register with Facebook
+                    </a>
                 </div>
             </div>
             <div class="row">
                 <div class="col s12">
-                    <a href="/login/facebook" class="btn btn-block btn-flat twitter-bg text-center">Register with Facebook</a>
+                    <a href="/login/twitter" class="btn btn-block btn-flat twitter-bg text-center">
+                        Register with Twitter
+                    </a>
                 </div>
             </div>
+
 
             <div class="or-container">
                 <hr class="or-hr">
@@ -49,7 +54,7 @@
 
             <div class="row">
                 <div class="col s12">
-                    <form class="register-form" method="POST" action="{{ url('/join') }}">
+                    <form class="register-form" method="POST" action="{{ url('/register') }}">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
                         <div class="row margin">

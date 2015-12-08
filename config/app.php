@@ -216,7 +216,8 @@ return [
          */
         // 'Debugbar'  => 'Barryvdh\Debugbar\Facade::class,
         // 'Debugbar' => Barryvdh\Debugbar\Facade::class,
-        'Vimeo' => Vinkla\Vimeo\Facades\Vimeo::class,
+        'Socialite'  => Laravel\Socialite\Facades\Socialite::class,
+        'Vimeo'      => Vinkla\Vimeo\Facades\Vimeo::class,
         'JWTAuth'    => Tymon\JWTAuth\Facades\JWTAuth::class,
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
 

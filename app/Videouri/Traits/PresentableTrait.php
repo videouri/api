@@ -14,11 +14,11 @@ trait PresentableTrait
      */
     public function present()
     {
-        if ( ! $this->presenter or ! class_exists($this->property)) {
+        if (!$this->presenter or !class_exists($this->property)) {
             throw new PresenterException("Please set the $protected property to your presenter path");
         }
 
-        if ( ! isset(static::$presenterInstance)) {
+        if (!isset(static::$presenterInstance)) {
             static::$presenterInstance = new $this->presenter($this);
         }
 

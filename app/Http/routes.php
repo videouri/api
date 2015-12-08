@@ -25,19 +25,24 @@ Route::get('info/{view}/{part?}', 'PagesController@ifno');
 
 Route::get('video/{id}/{videoSlug?}', 'VideoController@show');
 
-// User auth related methods
-Route::get('register', [
-    'as'   => 'register',
-    'uses' => 'Auth\AuthController@getRegister'
-]);
-Route::get('login/{provider?}', [
-    'as'   => 'login',
-    'uses' => 'Auth\AuthController@getLogin'
-]);
-
-Route::post('join', 'Auth\AuthController@postRegister');
+// Authentication routes...
+Route::get('login', 'Auth\AuthController@getLogin');
+Route::get('login/{provider}', 'Auth\AuthController@redirectToProvider');
+Route::get('login/{provider}/callback', 'Auth\AuthController@handleProviderCallback');
 Route::post('login', 'Auth\AuthController@postLogin');
 Route::get('logout', 'Auth\AuthController@getLogout');
+
+// Registration routes...
+Route::get('register', 'Auth\AuthController@getRegister');
+Route::post('register', 'Auth\AuthController@postRegister');
+
+// Password reset link request routes...
+Route::get('password/email', 'Auth\PasswordController@getEmail');
+Route::post('password/email', 'Auth\PasswordController@postEmail');
+
+// Password reset routes...
+Route::get('password/reset/{token}', 'Auth\PasswordController@getReset');
+Route::post('password/reset', 'Auth\PasswordController@postReset');
 
 // User panel
 Route::group([
@@ -50,11 +55,6 @@ Route::group([
     Route::resource('history', 'HistoryController');
     Route::resource('favorites', 'FavoritesController');
 });
-
-Route::controllers([
-    // 'auth'     => 'Auth\AuthController',
-    'password' => 'Auth\PasswordController'
-]);
 
 $api = app('Dingo\Api\Routing\Router');
 

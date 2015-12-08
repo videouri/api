@@ -30,15 +30,15 @@
         <div class="z-depth-1 card-panel padded-panel">
             <div class="row">
                 <div class="col s12">
-                    <a href="/login/twitter" class="btn btn-block btn-flat facebook-bg text-center">
-                        &nbsp; Login with Twitter
+                    <a href="/login/facebook" class="btn btn-block btn-flat facebook-bg text-center">
+                        &nbsp; Login with Facebook
                     </a>
                 </div>
             </div>
             <div class="row">
                 <div class="col s12">
-                    <a href="/login/facebook" class="btn btn-block btn-flat twitter-bg text-center">
-                        &nbsp; Login with Facebook
+                    <a href="/login/twitter" class="btn btn-block btn-flat twitter-bg text-center">
+                        &nbsp; Login with Twitter
                     </a>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                         <div class="row">
                             <div class="input-field col s6 m6 l6">
                                 <p class="margin medium-small">
-                                    <a href="{{ route('register') }}">Register Now!</a>
+                                    <a href="{{ url('register') }}">Register Now!</a>
                                 </p>
                             </div>
                             <div class="input-field col s6 m6 l6">
