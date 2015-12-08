@@ -12927,11 +12927,6 @@ ul.side-nav.fixed:hover {
   background-color: #00adef;
 }
 
-#video-info {
-  padding: 15px 0;
-  background: #222222;
-}
-
 #video-info .video-duration i.fa,
 #video-info .video-views i.fa {
   vertical-align: middle;

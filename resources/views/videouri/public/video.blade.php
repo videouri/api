@@ -69,19 +69,16 @@
             </div>
             <div class="col-md-3">
                 <h6>Tags</h6>
-                <ul class="tags list-inline">
-                    @foreach($video['tags'] as $tag):
-                    <?php
-                        $url = url('search?query='.$tag);
-                    ?>
-                    <li>
-                        <a title="<?= $tag ?>" href="<?= $url ?>">
-                            <?= $tag ?>
-                        </a>
-                    </li>
-                    @endforeach
-                </ul>
-                <br/>
+                @foreach ($video['tags'] as $tag)
+                <?php
+                    $url = url('search?query='.$tag);
+                ?>
+                <div class="chip" style="margin-bottom: 5px;">
+                    <a title="{{ $tag }}" href="{{ $url }}">
+                        {{ $tag }}
+                    </a>
+                </div>
+                @endforeach
             </div>
         </div>
     </div>
@@ -91,28 +88,36 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12 text-center">
-        <h4 style="margin-bottom: 0">
-            Recommended
-        </h4>
+            <h4 style="margin-bottom: 0">
+                Recommended
+            </h4>
         </div>
     </div>
     <hr style="border-color: #c0392b" />
     <div id="related-videos" class="row">
         @foreach ($video['related'] as $relatedVideo)
-        <div class="col-md-3 col-sm-6 col-xs-12 <?= $relatedVideo['source'] ?>">
-            <div class="tile">
-                <div class="tile-image">
+        <div class="col s4 video <?= $relatedVideo['source'] ?>">
+            <div class="card hoverable">
+                <div class="card-image">
                     <a href="<?= $relatedVideo['url'] ?>" title="<?= $relatedVideo['title'] ?>">
                         <img src="<?= $relatedVideo['thumbnail'] ?>" alt="<?= $relatedVideo['title'] ?>">
-                        <!-- <p><?= $relatedVideo['title'] ?></p> -->
                     </a>
+                    <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ $relatedVideo['url'] }}"></span>
+
+                    <span class="video-source {{ $relatedVideo['source'] }}">
+                        {{ $relatedVideo['source'] }}
+                    </span>
                 </div>
-                <div class="tile-bottom">
-                    <h2 class="tile-title">
-                        <a href="<?= $relatedVideo['url'] ?>" title="<?= $relatedVideo['title'] ?>">
-                            <?= $relatedVideo['title'] ?>
-                        </a>
+                <div class="card-content">
+                    <p>
+                        <?= $relatedVideo['title'] ?>
+                    </p>
                     </h2>
+                </div>
+                <div class="card-action">
+                    <a href="<?= $relatedVideo['url'] ?>" title="<?= $relatedVideo['title'] ?>">
+                        Watch video
+                    </a>
                 </div>
             </div>
         </div>
