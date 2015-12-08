@@ -7,13 +7,17 @@ use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Videouri\Entities\Video;
 
-class SaveVideoData extends Job implements SelfHandling, ShouldQueue
+use Videouri\Entities\Video;
+use Videouri\Entities\User;
+
+class SaveVideo extends Job implements SelfHandling, ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
 
-    private $videoData, $provider;
+    private $videoData;
+
+    private $provider;
 
     /**
      * Create a new job instance.

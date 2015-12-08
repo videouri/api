@@ -1,17 +1,13 @@
-@extends('app')
-
-@section('content')
-<br/>
 <div class="row">
     <div class="col-md-12">
-        <ul class="nav nav-pills">
+        <ul class="tabs">
             {{-- URL is /history/videos => active --}}
-            <li>
+            <li class="tab">
                 <a href="{{ route('user.{name}.history.show', ['name' => $currentUser, 'type' => 'videos']) }}">
                     Watched videos
                 </a>
             </li>
-            <li>
+            <li class="tab">
                 <a href="{{ route('user.{name}.history.show', ['name' => $currentUser, 'type' => 'search']) }}">
                     Search terms
                 </a>
@@ -19,4 +15,3 @@
         </ul>
     </div>
 </div>
-@endsection

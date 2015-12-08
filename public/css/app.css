@@ -11600,8 +11600,8 @@ The control icons are from a custom font. Each icon corresponds to a character
 
 @font-face {
   font-family: 'VideoJS';
-  src: url('/fonts/vjs.eot');
-  src: url('/fonts/vjs.eot?#iefix') format('embedded-opentype'), url('/fonts/vjs.woff') format('woff'), url('/fonts/vjs.ttf') format('truetype'), url('/fonts/vjs.svg#icomoon') format('svg');
+  src: url('/font/vjs.eot');
+  src: url('/font/vjs.eot?#iefix') format('embedded-opentype'), url('/font/vjs.woff') format('woff'), url('/font/vjs.ttf') format('truetype'), url('/font/vjs.svg#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -12789,10 +12789,6 @@ nav#top-nav form#navbar-search {
   /* icon prefix focus color */
 }
 
-nav#top-nav form#navbar-search .input-field .material-icons {
-  color: #000;
-}
-
 nav#top-nav form#navbar-search .input-field input[type=text]:focus + label {
   color: #000;
 }
@@ -12803,12 +12799,16 @@ nav#top-nav form#navbar-search button#submit-search {
   box-shadow: none;
   background: #F7F8FA;
   border-radius: 5px;
+  color: #888;
 }
 
 nav#top-nav form#navbar-search button#submit-search {
   margin-left: 10px;
   margin-top: -5px;
   height: 41px;
+}
+
+nav#top-nav form#navbar-search button#submit-search i.mdi-action-search {
   line-height: 41px;
 }
 
@@ -12821,7 +12821,6 @@ nav#top-nav form#navbar-search .input-field input[type=text] {
 nav#top-nav form#navbar-search .input-field input[type=text].valid {
   border-bottom: 1px solid #EFEFEF;
   box-shadow: 0 1px 0 0 #EFEFEF;
-  color: #888;
 }
 
 nav#top-nav form#navbar-search .input-field input[type=text].invalid {
@@ -12910,6 +12909,10 @@ ul.side-nav.fixed:hover {
   color: white;
   border-radius: 3px;
   opacity: 0.3;
+}
+
+.card .card-image .video-source:hover {
+  opacity: 1;
 }
 
 .card .card-image .video-source.Youtube {

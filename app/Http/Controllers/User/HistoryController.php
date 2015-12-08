@@ -7,8 +7,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use Videouri\Entities\Video;
-use Videouri\Entities\SearchHistory;
-use Videouri\Entities\UserVideoHistory;
+use Videouri\Entities\Search;
 
 class HistoryController extends Controller
 {
@@ -17,12 +16,20 @@ class HistoryController extends Controller
         return redirect('/');
     }
 
-    public function show($type)
+    /**
+     * $user comes from
+     *     'prefix'     => 'user/{name}',
+     *
+     * @param  string $user
+     * @param  string $type
+     * @return view
+     */
+    public function show($user, $type)
     {
-        // if (!in_array($type, ['videos', 'search'])) {
-        //     return redirect('/');
-        // }
+        if (!in_array($type, ['videos', 'search'])) {
+            return redirect('/');
+        }
 
-        return view('videouri.user.history');
+        return view('videouri.user.history.' . $type);
     }
 }

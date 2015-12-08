@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 
-class CreateSearchHistoryTable extends Migration
+class CreateSearchesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,7 +12,7 @@ class CreateSearchHistoryTable extends Migration
      */
     public function up()
     {
-        Schema::create('search_history', function ($table) {
+        Schema::create('searches', function ($table) {
             $table->increments('id');
             $table->string('term');
             // $table->string('providers')->nullable();
@@ -31,6 +31,6 @@ class CreateSearchHistoryTable extends Migration
      */
     public function down()
     {
-        Schema::drop('search_history');
+        Schema::drop('searches');
     }
 }

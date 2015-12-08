@@ -29,19 +29,19 @@ class ApiProcessing
      *
      * @var array
      */
-    public $apis = array(
+    public $apis = [
         'Youtube',
         // 'Metacafe',
         'Dailymotion',
         'Vimeo'
-    );
+    ];
 
     /**
      * Available contents
      *
      * @var array
      */
-    private $mixedContents = array(
+    private $availableContents = array(
         'most_viewed',
         'newest',
         'top_rated',
@@ -55,40 +55,51 @@ class ApiProcessing
     );
 
     /**
-     * Variable to be used, to mention what action will be executed
-     *
-     * @var boolean
-     */
-    public $content = null;
-
-    /**
      * Array containing available time periods.
      *
      * @var array
      */
-    private $validPeriods = array('ever', 'today', 'week', 'month');
+    private $validPeriods = ['ever', 'today', 'week', 'month'];
+
+    //////////////////////////////
+    // Parameters for Api calls //
+    //////////////////////////////
+    /**
+     * @var int
+     */
+    public $videoId = null;
 
     /**
-     * Default variable referring to video sorting period
+     * @var string
+     */
+    public $searchQuery = null;
+
+    /**
+     * @var int
+     */
+    public $page = 1;
+
+    /**
+     * @var string
+     */
+    public $sort = null;
+
+    /**
+     * Sort period
      *
      * @var string
      */
     public $period = 'ever';
 
     /**
-     * Variables to be populated by specific uses
-     *
-     * @var string
+     * @uses $availableContents
+     * @uses $individualContents
+     * @var boolean
      */
-    public $videoId = null;
-    public $searchQuery = null;
-    public $page = '';
-    public $sort = null;
+    public $content = null;
 
     /**
-     * Maximum results from response
-     *
-     * @var integer
+     * @var int
      */
     public $maxResults = 5;
 
@@ -103,22 +114,30 @@ class ApiProcessing
      *  Used in HomeController, to ensure the retrieval of
      *  daily most_viewed videos
      *
-     * @var integer
+     * @var int
      */
     public $timestamp = null;
 
+    //////////////////////////
+    // Behavioural settings //
+    //////////////////////////
     /**
-     * Variable to hold the sort parameter, for apiParser,
-     * if set.
-     * @var boolean
+     * @uses $avialableContents
+     * @var string
      */
-    private $contentForParser = null;
+    private $videoContent = null;
 
     /**
      * Don't execute a real call to the APIs if set to true
      * @var boolean
      */
     public $fakeContent = false;
+
+    /**
+     * To cache or not to cache
+     * @var boolean
+     */
+    public $cacheDeactivated = false;
 
     /**
      * Caching time span and timeout
@@ -132,6 +151,9 @@ class ApiProcessing
     // ],
     // $_cacheTimeout = 10800;
 
+    /////////////////
+    // API Globals //
+    /////////////////
     private $dailymotion;
     private $vimeo;
     private $youtube;
@@ -157,8 +179,6 @@ class ApiProcessing
             'page'        => $this->page,
             'sort'        => $this->sort
         ];
-        // Debugbar::info($apiParameters);
-        // Log::info('apiParameters', $apiParameters);
 
         if ($this->timestamp) {
             $apiParameters['timestamp'] = $this->timestamp;
@@ -166,26 +186,23 @@ class ApiProcessing
 
         $apiParametersHash = md5(serialize($apiParameters));
 
-        // Log::info('apiParametersHash: ' . $apiParametersHash);
-        // Debugbar::info($apiParametersHash);
-
         if (!$apiResponse = Cache::get($apiParametersHash)) {
-            if (!in_array_r($this->content, $this->mixedContents)) {
+            if (!in_array_r($this->content, $this->availableContents)) {
                 throw new Exception("Error Processing Request.", 1);
             }
 
             $this->maxResults = (int) $this->maxResults;
 
-            $apiResponse = array();
+            $apiResponse = [];
             foreach ($this->apis as $api) {
                 try {
                     if (is_array($this->content)) {
                         foreach ($this->content as $content) {
-                            $apiResponse[$content][$api] = $this->getContent($content, $api);
+                            $apiResponse[$content][$api] = $this->getVideos($content, $api);
                         }
                     } else {
-                        $apiResponse[$this->content][$api] = $this->getContent($this->content, $api);
-                        // $apiResponse = $this->getContent($this->content, $api);
+                        $apiResponse[$this->content][$api] = $this->getVideos($this->content, $api);
+                        // $apiResponse = $this->getVideos($this->content, $api);
                     }
                 } catch (Exception $e) {
                 }
@@ -194,8 +211,10 @@ class ApiProcessing
             // Caching results
             // Cache::put($apiParametersHash, $apiResponse, $this->_periodCachingTime[$this->period]);
 
-            // Set cache to expire in 24 hours
-            Cache::put($apiParametersHash, $apiResponse, 1440);
+            if (!$this->cacheDeactivated) {
+                // Set cache to expire in 24 hours
+                Cache::put($apiParametersHash, $apiResponse, 1440);
+            }
         }
 
         return $apiResponse;
@@ -244,7 +263,7 @@ class ApiProcessing
         $apiResponse = Cache::get($cacheVariable);
 
         if (!$apiResponse) {
-            $apiResponse = $this->getContent($this->content, $api);
+            $apiResponse = $this->getVideos($this->content, $api);
             // Cache::put($cacheVariable, $apiResponse, $this->_cacheTimeout);
 
             // Set cache to 24 hours
@@ -254,13 +273,13 @@ class ApiProcessing
         return $apiResponse;
     }
 
-    private function getContent($content, $api)
+    private function getVideos($content, $api)
     {
-        $parameters = array(
+        $parameters = [
             'content'    => $content,
             'period'     => $this->period,
             'maxResults' => $this->maxResults
-        );
+        ];
 
         if (isset($this->videoId)) {
             $parameters['videoId'] = $this->videoId;

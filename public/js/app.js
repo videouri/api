@@ -10273,33 +10273,44 @@ module.exports = Vue;
 },{"_process":1}],11:[function(require,module,exports){
 'use strict';
 
-var Vue = require('vue');
+var app,
+    Vue = require('vue'),
+    Resource = require('vue-resource');
+
 Vue.config.debug = true;
 
-Vue.use(require('vue-resource'));
+// Import vue-resource and configure to use the csrf token in all requests,
+// in which I put him in a meta tag in home.blade.php
+Vue.use(Resource);
+// Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('#token').getAttribute('value');
 
-new Vue({
+/**
+ * Main APP
+ * @return {Vue}
+ */
+app = new Vue({
     el: '#app',
 
     components: {
         'videos-list': require('./components/VideosList')
     },
 
+    // 'video-page': require('./components/VideoPage')
     ready: function ready() {
         // Floating-Fixed table of contents
-        if (jQuery('nav').length) {
-            jQuery('.toc-wrapper').pushpin({
-                top: jQuery('nav').height()
-            });
-        } else if (jQuery('#index-banner').length) {
-            jQuery('.toc-wrapper').pushpin({
-                top: jQuery('#index-banner').height()
-            });
-        } else {
-            jQuery('.toc-wrapper').pushpin({
-                top: 0
-            });
-        }
+        // if (jQuery('nav').length) {
+        //     jQuery('.toc-wrapper').pushpin({
+        //         top: jQuery('nav').height()
+        //     });
+        // } else if (jQuery('#index-banner').length) {
+        //     jQuery('.toc-wrapper').pushpin({
+        //         top: jQuery('#index-banner').height()
+        //     });
+        // } else {
+        //     jQuery('.toc-wrapper').pushpin({
+        //         top: 0
+        //     });
+        // }
 
         // Detect touch screen and enable scrollbar if necessary
         function is_touch_device() {
@@ -10323,61 +10334,45 @@ new Vue({
     }
 });
 
-// (function($) {
+// /**
+//  * ROUTER
+//  * @type {Router}
+//  */
+// var router = new VueRouter();
 
-//     'use strict';
-
-//     $('.dropdown-button').dropdown();
-
-//     $('.family-filter').click(function () {
-//         if ($.cookie('ff') === null) {
-//             $.cookie('ff', 'off', { expires: 30, path: '/' });
-//         }
-//         else {
-//             $.cookie('ff', null,{ path: '/' });
-//         }
-//     });
-
-//     if ($.cookie('source-list') === null) {
-//         $('a.button[data-source=all]').addClass('selected-title');
+// // Define some routes.
+// // Each route should map to a component. The "component" can
+// // either be an actual component constructor created via
+// // Vue.extend(), or just a component options object.
+// // We'll talk about nested routes later.
+// router.map({
+//     '/foo': {
+//         component: Foo
+//     },
+//     '/bar': {
+//         component: Bar
 //     }
+// })
 
-//     if ($.cookie('period-list') === null) {
-//         $('a.button[data-period=ever]').addClass('selected-title');
-//     }
+// // Now we can start the app!
+// // The router will create an instance of App and mount to
+// // the element matching the selector #app.
+// router.start(App, '#app')
 
-//     // $('#sources-list li').click(function () {
-//     //     var method = $('.tabNavigation').find('.selected2').data('method');
-//     //     var source = $(this).find('a').data('source');
-//     //     var period = $('#periods-list .selected-title').data('period');
-//     //     console.log(method + ' ' + period + ' ' + source);
-//     //     //$.post('')
-//     // });
+// // ['all', 'active', 'completed'].forEach(function (visibility) {
+// //     router.on(visibility, function () {
+// //         app.visibility = visibility;
+// //     });
+// // });
 
-//     // $('#periods-list li').click(function () {
-//     //     var method = $('.tabNavigation').find('.selected2').data('method');
-//     //     var source = $('#sources-list .selected-title').data('source');
-//     //     var period = $(this).find('a').data('period');
-//     //     console.log(method + ' ' + period + ' ' + source);
-//     //     //$.post('')
-//     // });
+// // router.configure({
+// //     notfound: function () {
+// //         window.location.hash = '';
+// //         app.visibility = 'all';
+// //     }
+// // });
 
-//     // $('.categories').filter(function () {
-//     //     if ($(this).children("li").length > 1) {
-//     //         $(this).each(function (){
-//     //             $('li:eq(0)', this).addClass('first-category');
-//     //             $('li:gt(0)', this).wrapAll('<ul class="submenu" />');
-//     //         });
-
-//     //         $('.submenu').hide();
-
-//     //         $(this).hover(function (){
-//     //             $(this).find('.submenu').toggle();
-//     //         });
-//     //     }
-//     // });
-
-// }(jQuery));
+// // router.init();
 
 },{"./components/VideosList":14,"vue":10,"vue-resource":3}],12:[function(require,module,exports){
 'use strict';
@@ -10401,14 +10396,14 @@ module.exports = {
 };
 
 },{"./VideoCard.template.html":13}],13:[function(require,module,exports){
-module.exports = '<div class="col s4 video {{ video.source }}">\n    <div class="card hoverable">\n        <div class="card-image">\n            <a href="{{ video.url }}">\n                <img :src="video.thumbnail" alt="{{ video.title }}" />\n            </a>\n            <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.url }}"></span>\n\n            <a href="{{ video.url }}" title="{{ video.title }}">\n                <h1 class="card-title">\n                    {{ video.title }}\n                </h1>\n            </a>\n\n            <span class="video-source {{ video.source }}">\n                {{ video.source }}\n            </span>\n        </div>\n\n\n        <!-- <div class="tile-sidebar hidden">\n            <ul class="list-unstyled" style="position: relative;">\n                <li>\n                    <button class="close">\n                        <span class="fui-time text-muted"\n                              data-toggle="tooltip" title="5:30"></span>\n                    </button>\n                </li>\n                <?php if (isset($video[\'category\'])): ?>\n                <li>\n                    <button class="dropdown-toggle" data-toggle="dropdown">\n                        <span class="fui-list text-muted"></span>\n                    </button>\n                    <span class="dropdown-arrow dropdown-arrow-inverse"></span>\n                    <ul class="dropdown-menu dropdown-inverse">\n                        <?php foreach($video[\'category\'] as $category): ?>\n                        <li>\n                            <a href="/category/<?= $category ?>"> <?= $category ?> </a>\n                        </li>\n                        <?php endforeach; ?>\n                    </ul>\n                </li>\n                <?php endif; ?>\n            </ul>\n        </div> -->\n    </div>\n</div>\n';
+module.exports = '<div class="col s4 video {{ video.source }}">\n    <div class="card hoverable">\n        <div class="card-image">\n            <a href="{{ video.url }}">\n                <img :src="video.thumbnail" alt="{{ video.title }}" />\n            </a>\n            <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.url }}"></span>\n\n            <span class="video-source {{ video.source }}">\n                {{ video.source }}\n            </span>\n        </div>\n        <div class="card-content">\n            <!-- <h1 class="card-title"> -->\n            <!-- <p class="flow-text"> -->\n            <p>\n                {{ video.title }}\n            </p>\n            <!-- </h1> -->\n        </div>\n        <div class="card-action">\n            <a href="{{ video.url }}" title="{{ video.title }}">\n                View video\n            </a>\n            <a href="#!">\n                Watch later\n            </a>\n        </div>\n\n\n        <!-- <div class="tile-sidebar hidden">\n            <ul class="list-unstyled" style="position: relative;">\n                <li>\n                    <button class="close">\n                        <span class="fui-time text-muted"\n                              data-toggle="tooltip" title="5:30"></span>\n                    </button>\n                </li>\n                <?php if (isset($video[\'category\'])): ?>\n                <li>\n                    <button class="dropdown-toggle" data-toggle="dropdown">\n                        <span class="fui-list text-muted"></span>\n                    </button>\n                    <span class="dropdown-arrow dropdown-arrow-inverse"></span>\n                    <ul class="dropdown-menu dropdown-inverse">\n                        <?php foreach($video[\'category\'] as $category): ?>\n                        <li>\n                            <a href="/category/<?= $category ?>"> <?= $category ?> </a>\n                        </li>\n                        <?php endforeach; ?>\n                    </ul>\n                </li>\n                <?php endif; ?>\n            </ul>\n        </div> -->\n    </div>\n</div>\n';
 },{}],14:[function(require,module,exports){
 'use strict';
 
 module.exports = {
     template: require('./VideosList.template.html'),
 
-    props: ['content'],
+    props: ['content', 'query'],
 
     data: function data() {
         return {
@@ -10432,7 +10427,7 @@ module.exports = {
         //         });
         //         break;
         // }
-        // console.log('created', this)
+        // console.log('created,' this)
         // this.$set('videos', 'plm');
     },
 
@@ -10441,6 +10436,16 @@ module.exports = {
             case 'homeVideos':
                 this.$http.get('/api/videos/home', function (homeVideos) {
                     this.$set('videos', homeVideos);
+                });
+
+                break;
+            case 'search':
+                var parameters = {
+                    'query': this.query
+                };
+
+                this.$http.get('/api/search/videos', parameters, function (searchResults) {
+                    this.$set('videos', searchResults.data);
                 });
 
                 break;
@@ -10455,18 +10460,39 @@ module.exports = {
     // },
 
     ready: function ready(e) {
-        var $isotopeContainer;
+        // this.$nextTick(function () {
+        //     // DOM is now updated
+        //     // `this` is bound to the current instance
+        //     // this.doSomethingElse()
+        //     console.log('nextTick');
+        // });
 
-        $isotopeContainer = jQuery('#videos').isotope({
-            columnWidth: '.video',
+        var $grid = jQuery('#videos').isotope({
+            // columnWidth: '.video',
             itemSelector: '.video',
-            layoutMode: 'masonry',
-            gutter: 20
+            layoutMode: 'fitRows',
+            // layoutMode: 'masonry',
+            // disable initial layout
+            isInitLayout: false,
+            gutter: 200
         });
 
-        jQuery(window).on('resize', function () {
-            jQuery('#videos').isotope('layout');
+        // bind event
+        $grid.isotope('on', 'arrangeComplete', function () {
+            console.log('arrange is complete');
         });
+
+        $grid.isotope();
+
+        $grid.on('layoutComplete', function (event, laidOutItems) {
+            console.log('Isotope layout completed on ' + laidOutItems.length + ' items');
+        });
+
+        console.log($grid);
+
+        // jQuery(window).on('resize', function(){
+        //     jQuery('#videos').isotope('layout');
+        // });
     }
 
 };

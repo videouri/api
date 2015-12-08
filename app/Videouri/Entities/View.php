@@ -3,16 +3,15 @@
 namespace Videouri\Entities;
 
 use Illuminate\Database\Eloquent\Model;
-use Videouri\Entities\User;
 
-class Favorite extends Model
+class View extends Model
 {
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'user_favorite_videos';
+    protected $table = 'views';
 
     /**
      * Indicates if the model should be timestamped.
@@ -23,6 +22,11 @@ class Favorite extends Model
 
     public function user()
     {
-        return $this->belongsTo('User', 'favorites');
+        return $this->belongsTo('Videouri\Entities\User', 'views', 'video_id', 'user_id');
+    }
+
+    public function video()
+    {
+        return $this->belongsTo('Videouri\Entities\Video', 'views', 'video_id', 'user_id');
     }
 }

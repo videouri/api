@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
 
             $table->string('avatar')->nullable();
             $table->string('provider')->nullable();
-            $table->string('provider_id')->unique();
+            $table->string('provider_id')->unique()->nullable();
             $table->string('activation_code')->nullable();
 
             $table->rememberToken();

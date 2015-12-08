@@ -13,16 +13,17 @@
 
 Route::get('/', [
     'as'   => 'home',
-    'uses' => 'HomeController@index'
+    'uses' => 'PagesController@home'
 ]);
 
-Route::get('results', [
-    'as'   => 'results',
-    'uses' => 'SearchController@getVdeos'
+Route::get('search', [
+    'as'   => 'search',
+    'uses' => 'PagesController@search'
 ]);
+
+Route::get('info/{view}/{part?}', 'PagesController@ifno');
 
 Route::get('video/{id}/{videoSlug?}', 'VideoController@show');
-Route::get('info/{view}/{part?}', 'InfoController@show');
 
 // User auth related methods
 Route::get('register', [
@@ -65,6 +66,7 @@ $api->version('v1', function ($api) {
      */
     $api->controller('authenticate', 'App\Http\Controllers\AuthenticateController');
     $api->controller('videos', 'App\Http\Controllers\Api\VideosController');
+    $api->controller('search', 'App\Http\Controllers\Api\SearchController');
 });
 
 //protected with JWT

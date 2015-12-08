@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Jobs\Job;
-use Videouri\Entities\SearchHistory;
+use Videouri\Entities\Search;
 use Videouri\Entities\User;
 
 use Illuminate\Queue\SerializesModels;
@@ -11,12 +11,14 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SaveSearchTerm extends Job implements SelfHandling, ShouldQueue
+class RegisterSearch extends Job implements SelfHandling, ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
 
     // Variables to insert
-    private $searchTerm, $user;
+    private $searchTerm;
+
+    private $user;
 
     /**
      * Create a new job instance.
@@ -40,8 +42,8 @@ class SaveSearchTerm extends Job implements SelfHandling, ShouldQueue
         // if (env('APP_ENV') === 'local')
         //     return;
 
-        $searchHistory = new SearchHistory;
-        
+        $searchHistory = new Search;
+
         $searchHistory->term    = $this->searchTerm;
         $searchHistory->user_id = isset($this->user->id) ? $this->user->id : null;
 

@@ -45,7 +45,7 @@ function getUserIPAdress()
     elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
     }
-    
+
     else {
         $ip = $_SERVER['REMOTE_ADDR'];
     }
@@ -76,7 +76,7 @@ function getUserCountry($ip = null)
 /**
  * Convert ISO 8601 values like PT15M33S
  * to a total value of seconds.
- * 
+ *
  * @param string $ISO8601
  */
 function ISO8601ToSeconds($ISO8601)
@@ -84,7 +84,7 @@ function ISO8601ToSeconds($ISO8601)
     preg_match('/\d{1,2}[H]/', $ISO8601, $hours);
     preg_match('/\d{1,2}[M]/', $ISO8601, $minutes);
     preg_match('/\d{1,2}[S]/', $ISO8601, $seconds);
-    
+
     $duration = [
         'hours'   => $hours ? $hours[0] : 0,
         'minutes' => $minutes ? $minutes[0] : 0,
@@ -104,11 +104,11 @@ function ISO8601ToSeconds($ISO8601)
 /**
  * Humanize numbers.
  * For example: 5000 would become 5K
- * 
+ *
  * @param  int $number
  * @return return string
  */
-function humanizeNumber($number) 
+function humanizeNumber($number)
 {
     $abbrevs = array(12 => "T", 9 => "B", 6 => "M", 3 => "K", 0 => "");
 
@@ -133,7 +133,7 @@ function humanizeSeconds($seconds)
 
 /**
  * Generate url containing a new page query value
- * 
+ *
  * @param  Int $page
  * @param  String $direction
  * @return String
@@ -144,7 +144,7 @@ function urlToPage($page, $direction)
         case 'next':
             $page = $page + 1;
             break;
-        
+
         case 'previous':
             $page = $page - 1;
             break;
@@ -159,5 +159,5 @@ function urlToPage($page, $direction)
     // dd(URL::route('results', $query));
 
     // Redirect to our route with the new query string
-    return URL::route('results', $query);
+    return URL::route('search', $query);
 }

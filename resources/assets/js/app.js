@@ -1,32 +1,45 @@
 'use strict';
 
-var Vue = require('vue');
+var
+    app,
+    Vue = require('vue'),
+    Resource = require('vue-resource')
+;
+
 Vue.config.debug = true;
 
-Vue.use(require('vue-resource'));
+// Import vue-resource and configure to use the csrf token in all requests,
+// in which I put him in a meta tag in home.blade.php
+Vue.use(Resource);
+// Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('#token').getAttribute('value');
 
-new Vue({
+/**
+ * Main APP
+ * @return {Vue}
+ */
+app = new Vue({
     el: '#app',
 
     components: {
-        'videos-list': require('./components/VideosList')
+        'videos-list': require('./components/VideosList'),
+        // 'video-page': require('./components/VideoPage')
     },
 
     ready: function() {
         // Floating-Fixed table of contents
-        if (jQuery('nav').length) {
-            jQuery('.toc-wrapper').pushpin({
-                top: jQuery('nav').height()
-            });
-        } else if (jQuery('#index-banner').length) {
-            jQuery('.toc-wrapper').pushpin({
-                top: jQuery('#index-banner').height()
-            });
-        } else {
-            jQuery('.toc-wrapper').pushpin({
-                top: 0
-            });
-        }
+        // if (jQuery('nav').length) {
+        //     jQuery('.toc-wrapper').pushpin({
+        //         top: jQuery('nav').height()
+        //     });
+        // } else if (jQuery('#index-banner').length) {
+        //     jQuery('.toc-wrapper').pushpin({
+        //         top: jQuery('#index-banner').height()
+        //     });
+        // } else {
+        //     jQuery('.toc-wrapper').pushpin({
+        //         top: 0
+        //     });
+        // }
 
         // Detect touch screen and enable scrollbar if necessary
         function is_touch_device() {
@@ -50,58 +63,42 @@ new Vue({
     }
 });
 
-// (function($) {
+// /**
+//  * ROUTER
+//  * @type {Router}
+//  */
+// var router = new VueRouter();
 
-//     'use strict';
-
-//     $('.dropdown-button').dropdown();
-
-//     $('.family-filter').click(function () {
-//         if ($.cookie('ff') === null) {
-//             $.cookie('ff', 'off', { expires: 30, path: '/' });
-//         }
-//         else {
-//             $.cookie('ff', null,{ path: '/' });
-//         }
-//     });
-
-//     if ($.cookie('source-list') === null) {
-//         $('a.button[data-source=all]').addClass('selected-title');
+// // Define some routes.
+// // Each route should map to a component. The "component" can
+// // either be an actual component constructor created via
+// // Vue.extend(), or just a component options object.
+// // We'll talk about nested routes later.
+// router.map({
+//     '/foo': {
+//         component: Foo
+//     },
+//     '/bar': {
+//         component: Bar
 //     }
+// })
 
-//     if ($.cookie('period-list') === null) {
-//         $('a.button[data-period=ever]').addClass('selected-title');
-//     }
+// // Now we can start the app!
+// // The router will create an instance of App and mount to
+// // the element matching the selector #app.
+// router.start(App, '#app')
 
-//     // $('#sources-list li').click(function () {
-//     //     var method = $('.tabNavigation').find('.selected2').data('method');
-//     //     var source = $(this).find('a').data('source');
-//     //     var period = $('#periods-list .selected-title').data('period');
-//     //     console.log(method + ' ' + period + ' ' + source);
-//     //     //$.post('')
-//     // });
+// // ['all', 'active', 'completed'].forEach(function (visibility) {
+// //     router.on(visibility, function () {
+// //         app.visibility = visibility;
+// //     });
+// // });
 
-//     // $('#periods-list li').click(function () {
-//     //     var method = $('.tabNavigation').find('.selected2').data('method');
-//     //     var source = $('#sources-list .selected-title').data('source');
-//     //     var period = $(this).find('a').data('period');
-//     //     console.log(method + ' ' + period + ' ' + source);
-//     //     //$.post('')
-//     // });
+// // router.configure({
+// //     notfound: function () {
+// //         window.location.hash = '';
+// //         app.visibility = 'all';
+// //     }
+// // });
 
-//     // $('.categories').filter(function () {
-//     //     if ($(this).children("li").length > 1) {
-//     //         $(this).each(function (){
-//     //             $('li:eq(0)', this).addClass('first-category');
-//     //             $('li:gt(0)', this).wrapAll('<ul class="submenu" />');
-//     //         });
-
-//     //         $('.submenu').hide();
-
-//     //         $(this).hover(function (){
-//     //             $(this).find('.submenu').toggle();
-//     //         });
-//     //     }
-//     // });
-
-// }(jQuery));
+// // router.init();

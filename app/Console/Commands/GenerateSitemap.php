@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use File;
 use Illuminate\Console\Command;
-use Videouri\Entities\SearchHistory;
+use Videouri\Entities\Search;
 use Videouri\Entities\Sitemap;
 use Videouri\Entities\Video;
 
@@ -32,9 +32,9 @@ class GenerateSitemap extends Command
     protected $videos;
 
     /**
-     * @var SearchHistory
+     * @var Search
      */
-    protected $searchHistory;
+    protected $Search;
 
     /**
      * [$videoDumpPath description]
@@ -49,7 +49,7 @@ class GenerateSitemap extends Command
      *
      * @return void
      */
-    public function __construct(Video $videos, SearchHistory $searchHistory)
+    public function __construct(Video $videos, Search $searchHistory)
     {
         parent::__construct();
 

@@ -4,9 +4,9 @@ namespace Videouri\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * 
- */
+use Videouri\Entities\User;
+use Videouri\Entities\Favorite;
+
 class Video extends Model
 {
 
@@ -16,7 +16,7 @@ class Video extends Model
      * @var string
      */
     protected $table = 'videos';
-    
+
     /**
      * Indicates if the model should be timestamped.
      *
@@ -35,4 +35,9 @@ class Video extends Model
         'thumbnail', 'views',
         'categories', 'tags'
     ];
+
+    public function watchers()
+    {
+        return $this->belongsToMany('Videouri\Entities\User', 'views');
+    }
 }

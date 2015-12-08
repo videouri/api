@@ -6,15 +6,25 @@
             </a>
             <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.url }}"></span>
 
-            <a href="{{ video.url }}" title="{{ video.title }}">
-                <h1 class="card-title">
-                    {{ video.title }}
-                </h1>
-            </a>
-
             <span class="video-source {{ video.source }}">
                 {{ video.source }}
             </span>
+        </div>
+        <div class="card-content">
+            <!-- <h1 class="card-title"> -->
+            <!-- <p class="flow-text"> -->
+            <p>
+                {{ video.title }}
+            </p>
+            <!-- </h1> -->
+        </div>
+        <div class="card-action">
+            <a href="{{ video.url }}" title="{{ video.title }}">
+                View video
+            </a>
+            <a href="#!">
+                Watch later
+            </a>
         </div>
 
 

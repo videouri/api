@@ -20,15 +20,13 @@
                             <i class="mdi-navigation-menu"></i>
                         </a>
                     </div>
-                    <form action="/results" method="get" id="navbar-search" class="col s5 m7 offset-s2" autocomplete="off">
+                    <form action="/search" method="get" id="navbar-search" class="col s5 m7 offset-s2" autocomplete="off">
                         <div class="row">
                             <div class="input-field col s11">
-                                <input id="search" type="text" name="search_query" value="{{ isset($searchQuery) ? $searchQuery : '' }}" class="validate" required placeholder="Search">
-                                {{-- <i class="material-icons prefix">search</i> --}}
-                                {{-- <label for="search">Search...</label> --}}
+                                <input id="search" type="text" name="query" value="{{ isset($query) ? $query : '' }}" class="validate" required placeholder="Search">
                             </div>
                             <div class="input-field col s1">
-                                <button id="submit-search" class="btn waves-effect waves-light" type="submit" name="action">
+                                <button id="submit-search" class="btn waves-effect waves-light" type="submit">
                                     <i class="mdi-action-search"></i>
                                 </button>
                             </div>

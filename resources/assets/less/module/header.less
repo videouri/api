@@ -45,9 +45,9 @@ nav#top-nav {
         line-height: 100px;
 
         /* label color */
-        .input-field .material-icons {
-            color: #000;
-        }
+        // .input-field .material-icons {
+        //     color: #000;
+        // }
 
         /* label focus color */
         .input-field input[type=text]:focus + label {
@@ -60,25 +60,29 @@ nav#top-nav {
             box-shadow: none;
             background: #F7F8FA;
             border-radius: 5px;
+            color: #888;
         }
 
         button#submit-search {
             margin-left: 10px;
             margin-top: -5px;
             height: 41px;
-            line-height: 41px;
+
+            i.mdi-action-search {
+                line-height: 41px;
+            }
         }
 
         /* label underline focus color */
         .input-field input[type=text] {
             padding: 10px;
-            // color: green;
+            // color: #888;
 
             /* valid color */
             &.valid {
                 border-bottom: 1px solid #EFEFEF;
                 box-shadow: 0 1px 0 0 #EFEFEF;
-                color: #888;
+                // color: #888;
             }
 
             /* invalid color */

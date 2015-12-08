@@ -3,7 +3,10 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 
-class CreateUserWatchedVideosTable extends Migration
+/**
+ * Watched videos
+ */
+class CreateViewsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,7 +15,7 @@ class CreateUserWatchedVideosTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_watched_videos', function ($table) {
+        Schema::create('views', function ($table) {
             $table->integer('video_id')->unsigned();
             $table->foreign('video_id')->references('id')->on('videos');
 
@@ -20,8 +23,8 @@ class CreateUserWatchedVideosTable extends Migration
             $table->foreign('user_id')->references('id')->on('users');
 
             // Set the search term that was used to access a video
-            $table->integer('search_term')->unsigned()->nullable();
-            $table->foreign('search_term')->references('id')->on('search_history');
+            // $table->integer('search_term')->unsigned()->nullable();
+            // $table->foreign('search_term')->references('id')->on('searches');
 
             // @TODO: track like/dislike
 
@@ -36,6 +39,6 @@ class CreateUserWatchedVideosTable extends Migration
      */
     public function down()
     {
-        Schema::drop('user_watched_videos');
+        Schema::drop('watched');
     }
 }

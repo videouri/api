@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Http\Requests;
+use App\Jobs\SaveVideo;
+use App\Jobs\RegisterView;
 
-use App\Jobs\SaveVideoData;
-use Videouri\Services\ApiProcessing;
 use Videouri\Entities\Video;
+use Videouri\Services\ApiProcessing;
+
+use Illuminate\Http\Request;
+use Auth;
 
 class VideoController extends Controller
 {
@@ -31,7 +33,7 @@ class VideoController extends Controller
      */
     public function show($customId, $videoSlug = null)
     {
-        $api    = substr($customId, 1, 1);
+        $api = substr($customId, 1, 1);
         $origId = substr_replace($customId, '', 1, 1);
 
         switch ($api) {
@@ -49,7 +51,7 @@ class VideoController extends Controller
 
             case 'M':
                 $api = 'Metacafe';
-                $long_id  = $origId . '/' . $videoSlug;
+                $long_id = $origId . '/' . $videoSlug;
                 break;
 
             default:
@@ -57,7 +59,6 @@ class VideoController extends Controller
                 #show_error(lang('video_id',$customId));
                 break;
         }
-
 
         // $this->apiprocessing->videoId = ($api === "Metacafe") ? $long_id : $origId;
         $this->apiprocessing->videoId = $origId;
@@ -70,46 +71,52 @@ class VideoController extends Controller
         #} else {
 
         try {
-            if ( ! $response = $this->apiprocessing->individualCall($api))
+            if (!$response = $this->apiprocessing->individualCall($api)) {
                 abort(404);
+            }
         } catch (\Exception $e) {
             abort(404);
         }
 
         $video = $this->apiprocessing->parseIndividualResult($api, $response);
 
-        $video['related']     = $this->_relatedVideos($api, $origId);
+        $video['related'] = $this->_relatedVideos($api, $origId);
 
         $video['customId'] = $customId;
-        $video['origId']   = $origId;
+        $video['origId'] = $origId;
 
+        // Save Video data
+        $this->dispatch(new SaveVideo($video, $api));
 
-        // Queue to save video data
-        $this->dispatch(new SaveVideoData($video, $api));
+        // If there's a user logged, register
+        // the video view
+        if ($user = Auth::user()) {
+            $this->dispatch(new RegisterView($video['origId'], $user));
+        }
 
-        $data['video']       = $video;
-        $data['thumbnail']   = $video['thumbnail'];
-        $data['source']      = $api;
+        $data['video'] = $video;
+        $data['thumbnail'] = $video['thumbnail'];
+        $data['source'] = $api;
 
         // Metadata
-        $data['title']       = $video['title'] . ' - Videouri';
+        $data['title'] = $video['title'] . ' - Videouri';
         $data['description'] = str_limit($video['description'], 100);
-        $data['canonical']   = "video/$customId";
+        $data['canonical'] = "video/$customId";
 
-        $data['bodyId']      = 'videoPage';
+        $data['bodyId'] = 'videoPage';
 
         return view('videouri.public.video', $data);
     }
 
     /**
-    * This function will retrieve related videos according to its id or some of its tags
-    *
-    * @param string $origId The id for which to look for data
-    * @return the php response from parsing the data.
-    */
+     * This function will retrieve related videos according to its id or some of its tags
+     *
+     * @param string $origId The id for which to look for data
+     * @return the php response from parsing the data.
+     */
     private function _relatedVideos($api, $origId = null)
     {
-        $this->apiprocessing->content    = 'getRelatedVideos';
+        $this->apiprocessing->content = 'getRelatedVideos';
         $this->apiprocessing->maxResults = 8;
         // $this->apiprocessing->api = $api;
         // $this->apiprocessing->videoId = $origId;

@@ -7,16 +7,15 @@ use Vinkla\Vimeo\Facades\Vimeo;
 class VimeoAgent
 {
     /**
-    * The function that interacts with Vimeo API Library to retrieve data
-    *
-    * @param array $parameters containing the data to be sent when querying the api
-    * @return the json_decoded array data.
-    */
-    function data(array $parameters = array())
+     * The function that interacts with Vimeo API Library to retrieve data
+     *
+     * @param array $parameters containing the data to be sent when querying the api
+     * @return the json_decoded array data.
+     */
+    public function data(array $parameters = array())
     {
         if (isset($parameters['sort'])) {
-
-            switch($parameters['sort']) {
+            switch ($parameters['sort']) {
                 case 'relevance':
                     $sort = 'relevant';
                     break;
@@ -39,8 +38,7 @@ class VimeoAgent
         // $token = Vimeo::clientCredentials(['public', 'private']);
         // dd($token);
 
-        switch ($parameters['content'])
-        {
+        switch ($parameters['content']) {
             /* Search and tags content */
             case 'search':
                 $result = Vimeo::request('/videos', [
@@ -69,7 +67,7 @@ class VimeoAgent
                 $result = Vimeo::request("/videos/{$parameters['videoId']}/videos", [
                     // 'page'     => $parameters['page'],
                     'per_page' => $parameters['maxResults'],
-                    'filter'   => 'related',
+                    'filter'   => 'related'
                 ]);
                 break;
 

@@ -3,7 +3,7 @@
 module.exports = {
     template: require('./VideosList.template.html'),
 
-    props: ['content'],
+    props: ['content', 'query'],
 
     data: function() {
         return {
@@ -27,7 +27,7 @@ module.exports = {
         //         });
         //         break;
         // }
-        // console.log('created', this)
+        // console.log('created,' this)
         // this.$set('videos', 'plm');
     },
 
@@ -36,6 +36,16 @@ module.exports = {
             case 'homeVideos':
                 this.$http.get('/api/videos/home', function(homeVideos) {
                     this.$set('videos', homeVideos);
+                });
+
+                break;
+            case 'search':
+                var parameters = {
+                    'query': this.query
+                };
+
+                this.$http.get('/api/search/videos', parameters, function(searchResults) {
+                    this.$set('videos', searchResults.data);
                 });
 
                 break;
@@ -50,19 +60,40 @@ module.exports = {
     // },
 
     ready: function(e) {
-        var $isotopeContainer;
+        // this.$nextTick(function () {
+        //     // DOM is now updated
+        //     // `this` is bound to the current instance
+        //     // this.doSomethingElse()
+        //     console.log('nextTick');
+        // });
 
-        $isotopeContainer = jQuery('#videos').isotope({
-            columnWidth: '.video',
+        var $grid = jQuery('#videos').isotope({
+            // columnWidth: '.video',
             itemSelector: '.video',
-            layoutMode: 'masonry',
-            gutter: 20
+            layoutMode: 'fitRows',
+            // layoutMode: 'masonry',
+            // disable initial layout
+            isInitLayout: false,
+            gutter: 200
         });
 
-
-        jQuery(window).on('resize', function(){
-            jQuery('#videos').isotope('layout');
+        // bind event
+        $grid.isotope( 'on', 'arrangeComplete', function() {
+            console.log('arrange is complete');
         });
+
+        $grid.isotope();
+
+        $grid.on('layoutComplete', function(event, laidOutItems) {
+            console.log( 'Isotope layout completed on ' +
+                        laidOutItems.length + ' items' );
+        });
+
+        console.log($grid);
+
+        // jQuery(window).on('resize', function(){
+        //     jQuery('#videos').isotope('layout');
+        // });
     },
 
     // methods: {

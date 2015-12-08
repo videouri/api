@@ -4,12 +4,20 @@ namespace Videouri\Traits;
 
 trait ApiParsersTrait
 {
-    public function parseApiResult($api, $videos, $specificContent = null)
+    /**
+     * [parseApiResult description]
+     *
+     * @param  string $api
+     * @param  array  $videos
+     * @param  string $content
+     * @return array
+     */
+    public function parseApiResult($api, $videos, $content = null)
     {
         $apiParser = "{$api}Parser";
 
-        if (!is_null($specificContent)) {
-            $this->contentForParser = $specificContent;
+        if (!is_null($content)) {
+            $this->videoContent = $content;
         }
 
         return $this->$apiParser($videos);
@@ -38,29 +46,26 @@ trait ApiParsersTrait
                 $duration = ISO8601ToSeconds($seconds);
             }
 
-            $results[$i] = array(
-                'url' => url('video/' . $id),
-                'title' => $video->snippet->title,
+            $results[$i] = [
+                'url'         => url('video/' . $id),
+                'title'       => $video->snippet->title,
                 'description' => self::parseDescription($video->snippet->description),
                 // 'author'   => $video['author'][0]['name']['$t'],
                 // 'category'    => [],
-                'thumbnail' => $video->snippet->thumbnails->medium->url,
+                'thumbnail'   => $video->snippet->thumbnails->medium->url,
 
-                'rating' => isset($video->rating) ? $video->rating : 0,
-                'views' => $views,
-                'duration' => $duration,
+                'rating'      => isset($video->rating) ? $video->rating : 0,
+                'views'       => $views,
+                'duration'    => $duration,
 
-                'source' => 'Youtube',
-            );
+                'source'      => 'Youtube'
+            ];
+
+            if ($this->videoContent) {
+                $results[$i]['content'] = $this->videoContent;
+            }
 
             $i++;
-        }
-
-        if ($content = $this->contentForParser) {
-            // $results[$content]['Youtube'] = $results['Youtube'];
-            // unset($results['Youtube']);
-
-            return array($content => $results);
         }
 
         return $results;
@@ -79,28 +84,25 @@ trait ApiParsersTrait
             $thumbnailUrl = preg_replace("/^http:/i", "https:", $video['thumbnail_360_url']);
 
             $results[$i] = array(
-                'url' => $url,
-                'title' => $video['title'],
+                'url'         => $url,
+                'title'       => $video['title'],
                 'description' => self::parseDescription($video['description']),
                 // 'author'      => '',
                 // 'category'      => '',
-                'thumbnail' => $thumbnailUrl,
+                'thumbnail'   => $thumbnailUrl,
 
-                'rating' => $video['rating'],
-                'duration' => $video['duration'],
-                'views' => $video['views_total'],
+                'rating'      => $video['rating'],
+                'duration'    => $video['duration'],
+                'views'       => $video['views_total'],
 
-                'source' => 'Dailymotion',
+                'source'      => 'Dailymotion'
             );
 
+            if ($this->videoContent) {
+                $results[$i]['content'] = $this->videoContent;
+            }
+
             $i++;
-        }
-
-        if ($content = $this->contentForParser) {
-            // $results[$content]['Dailymotion'] = $results['Dailymotion'];
-            // unset($results['Dailymotion']);
-
-            return array($content => $results);
         }
 
         return $results;
@@ -122,17 +124,17 @@ trait ApiParsersTrait
             $url = url('video/' . substr($id, 0, 1) . 'M' . substr($id, 1));
 
             $results['Metacafe'][$i] = array(
-                'url' => $url,
-                'title' => $video['title'],
+                'url'         => $url,
+                'title'       => $video['title'],
                 'description' => self::parseDescription($video['title']),
                 // 'author'      => $video['author'],
                 // 'category'    => $video['category'],
-                'thumbnail' => "http://www.metacafe.com/thumb/{$video['id']}.jpg",
+                'thumbnail'   => "http://www.metacafe.com/thumb/{$video['id']}.jpg",
 
-                'rating' => isset($video['rank']) ? $video['rank'] : 0,
-                'views' => 0,
+                'rating'      => isset($video['rank']) ? $video['rank'] : 0,
+                'views'       => 0,
 
-                'source' => 'Metacafe',
+                'source'      => 'Metacafe'
             );
 
             if ($i === $this->maxResults) {
@@ -143,7 +145,7 @@ trait ApiParsersTrait
 
         }
 
-        if (isset($results['Metacafe']) && $content = $this->contentForParser) {
+        if (isset($results['Metacafe']) && $content = $this->videoContent) {
             $results[$content]['Metacafe'] = $results['Metacafe'];
             unset($results['Metacafe']);
         }
@@ -165,18 +167,18 @@ trait ApiParsersTrait
             $id = substr($origId, 0, 1) . 'v' . substr($origId, 1);
 
             $results[$i] = array(
-                'url' => url('video/' . $id),
-                'title' => $video['name'],
+                'url'         => url('video/' . $id),
+                'title'       => $video['name'],
                 'description' => self::parseDescription($video['description']),
                 // 'author'      => $video['user']['name'],
                 // 'category'    => '',
-                'thumbnail' => $video['pictures']['sizes'][2]['link'],
+                'thumbnail'   => $video['pictures']['sizes'][2]['link'],
 
-                'rating' => $video['metadata']['connections']['likes']['total'],
-                'duration' => $video['duration'],
-                'views' => $video['stats']['plays'],
+                'rating'      => $video['metadata']['connections']['likes']['total'],
+                'duration'    => $video['duration'],
+                'views'       => $video['stats']['plays'],
 
-                'source' => 'Vimeo',
+                'source'      => 'Vimeo'
             );
 
             if ($i === $this->maxResults) {
@@ -187,7 +189,7 @@ trait ApiParsersTrait
 
         }
 
-        if (isset($results['Vimeo']) && $content = $this->contentForParser) {
+        if (isset($results['Vimeo']) && $content = $this->videoContent) {
             $results[$content]['Vimeo'] = $results['Vimeo'];
             unset($results['Vimeo']);
         }
