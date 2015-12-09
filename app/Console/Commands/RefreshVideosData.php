@@ -3,9 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-
-use Videouri\Services\ApiProcessing;
 use Videouri\Entities\Video;
+use Videouri\Services\ApiProcessing;
 
 class RefreshVideosData extends Command
 {
@@ -28,14 +27,12 @@ class RefreshVideosData extends Command
      */
     protected $description = 'Refresh the data stored in the db for the videos.';
 
-
     /**
      * [$canRefresh description]
      * @var [type]
      */
     // private $canRefresh = ['title', 'description', 'views', 'duration', 'all'];
     private $canRefresh = ['views', 'duration'];
-
 
     /**
      * [$apiprocessing description]
@@ -83,13 +80,16 @@ class RefreshVideosData extends Command
             die;
         }
 
-        if ($options['limit'])
+        if ($options['limit']) {
             $limit = (int) $options['limit'];
+        }
 
         $videos = Video::limit($limit);
 
-        if ($options['videoId'])
+        // Just this video
+        if ($options['videoId']) {
             $videos = $videos->where('original_id', '=', $options['videoId']);
+        }
 
         if ($options['viewsCondition']) {
             $conditions = explode(',', $options['viewsCondition']);
@@ -112,7 +112,7 @@ class RefreshVideosData extends Command
             $this->apiprocessing->content = 'getVideoEntry';
 
             try {
-                $response  = $this->apiprocessing->individualCall($video->provider);
+                $response = $this->apiprocessing->individualCall($video->provider);
                 $videoData = $this->apiprocessing->parseIndividualResult($video->provider, $response);
 
                 $videoToUpdate = Video::where('original_id', '=', $video->original_id)->first();
@@ -120,10 +120,12 @@ class RefreshVideosData extends Command
                 foreach ($toRefresh as $field) {
                     if (in_array($field, $this->canRefresh)) {
                         $videoToUpdate->{$field} = $videoData[$field];
-                        if (is_numeric($videoData[$field]))
+                        if (is_numeric($videoData[$field])) {
                             $this->info("   \-> Refreshing $field. " . $video->{$field} . " to " . $videoToUpdate->{$field});
-                        else
+                        } else {
                             $this->info("   \-> Refreshing $field. " . strlen($video->{$field}) . " characters to " . strlen($videoToUpdate->{$field}));
+                        }
+
                     }
                 }
 
