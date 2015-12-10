@@ -15,7 +15,7 @@ class SaveVideo extends Job implements SelfHandling, ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
 
-    private $videoData;
+    private $data;
 
     private $provider;
 
@@ -24,9 +24,9 @@ class SaveVideo extends Job implements SelfHandling, ShouldQueue
      *
      * @return void
      */
-    public function __construct($videoData, $provider)
+    public function __construct($data, $provider)
     {
-        $this->videoData = $videoData;
+        $this->data = $data;
         $this->provider = $provider;
     }
 
@@ -37,11 +37,7 @@ class SaveVideo extends Job implements SelfHandling, ShouldQueue
      */
     public function handle()
     {
-        $video = Video::where('original_id', '=', $this->videoData['origId'])->first();
-
-        // if (!$video) {
-        //     $video = new Video();
-        // }
+        $video = Video::where('original_id', '=', $this->data['origId'])->first();
 
         if ($video) {
             return true;
@@ -50,26 +46,28 @@ class SaveVideo extends Job implements SelfHandling, ShouldQueue
         $video = new Video;
 
         $video->provider = $this->provider;
-        $video->original_id = $this->videoData['origId'];
-        $video->videouri_url = url('/video/' . $this->videoData['customId']);
-        $video->title = $this->videoData['title'];
+        $video->original_id = $this->data['origId'];
+        $video->custom_id = $this->data['customId'];
+        // $video->slug = null;
 
-        if (!empty($this->videoData['description'])) {
-            $video->description = $this->videoData['description'];
+        $video->title = $this->data['title'];
+
+        if (!empty($this->data['description'])) {
+            $video->description = $this->data['description'];
         }
 
-        $video->thumbnail = $this->videoData['thumbnail'];
+        $video->thumbnail = $this->data['thumbnail'];
 
-        if ($this->videoData['views'] > 0) {
-            $video->views = $this->videoData['views'];
+        if ($this->data['views'] > 0) {
+            $video->views = $this->data['views'];
         }
 
-        if ($this->videoData['duration'] > 0) {
-            $video->duration = $this->videoData['duration'];
+        if ($this->data['duration'] > 0) {
+            $video->duration = $this->data['duration'];
         }
 
         $video->categories = null;
-        $video->tags = json_encode($this->videoData['tags']);
+        $video->tags = json_encode($this->data['tags']);
 
         $video->save();
 

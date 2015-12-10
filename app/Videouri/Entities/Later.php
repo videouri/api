@@ -4,14 +4,14 @@ namespace Videouri\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 
-class View extends Model
+class Later extends Model
 {
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'views';
+    protected $table = 'watch_later';
 
     /**
      * Indicates if the model should be timestamped.

@@ -2,6 +2,8 @@
 
 namespace Videouri\Traits;
 
+use Videouri\Entities\Video;
+
 trait ApiParsersTrait
 {
     /**
@@ -300,6 +302,15 @@ trait ApiParsersTrait
 
             $video['tags'] = isset($data->snippet->tags) ? $data->snippet->tags : [];
         }
+
+        $videoObject = new Video;
+        foreach ($video as $field => $value) {
+            $videoObject->$field = $value;
+        }
+
+        dump($video);
+        dump($videoObject);
+        die;
 
         return $video;
     }

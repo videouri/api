@@ -4,8 +4,6 @@ namespace Videouri\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 
-use Videouri\Entities\User;
-
 class Search extends Model
 {
     /**
@@ -31,6 +29,6 @@ class Search extends Model
 
     public function user()
     {
-        return $this->belongsTo('User');
+        return $this->belongsTo('Videouri\Entities\User');
     }
 }

@@ -6,23 +6,38 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests;
 use App\Jobs\SaveVideo;
 use App\Jobs\RegisterView;
+use App\Transformers\VideoTransformer;
 
 use Videouri\Entities\Video;
 use Videouri\Services\ApiProcessing;
 
+use League\Fractal\Resource\Item as FractalItem;
+use League\Fractal\Manager as FractalManager;
+use League\Fractal\Serializer\ArraySerializer;
 use Illuminate\Http\Request;
 use Auth;
 
 class VideoController extends Controller
 {
     /**
-     * ApiProcessing
+     * @var Videouri\Services\ApiProcessing
      */
     protected $apiprocessing;
+
+    /**
+     * @var League\Fractal\Resource\Item
+     */
+    protected $fractalItem;
 
     public function __construct(ApiProcessing $apiprocessing)
     {
         $this->apiprocessing = $apiprocessing;
+        // $this->fractalItem = $item;
+    }
+
+    public function index()
+    {
+        return redirect('/');
     }
 
     /**
@@ -31,7 +46,7 @@ class VideoController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function show($customId, $videoSlug = null)
+    public function show($customId, $slug = null)
     {
         $api = substr($customId, 1, 1);
         $origId = substr_replace($customId, '', 1, 1);
@@ -51,7 +66,7 @@ class VideoController extends Controller
 
             case 'M':
                 $api = 'Metacafe';
-                $long_id = $origId . '/' . $videoSlug;
+                $long_id = $origId . '/' . $slug;
                 break;
 
             default:
@@ -64,29 +79,32 @@ class VideoController extends Controller
         $this->apiprocessing->videoId = $origId;
         $this->apiprocessing->content = 'getVideoEntry';
 
-        // @TODO
-        //   - Try to get data from the database, if not do an API call
-        #if ($response = Video::where('original_id', '=', $origId)->first()) {
-        #    $response = $response->toArray();
-        #} else {
-
-        try {
-            if (!$response = $this->apiprocessing->individualCall($api)) {
+        /**
+         * If no video is fetched from DB, call API and follow
+         * the process to store it for next time.
+         *   '
+         *       What is caching?
+         *       Baby don\'t cache me, don\'t cache me!
+         *       No more!
+         *   '
+         */
+        if (!$video = Video::where('original_id', '=', $origId)->first()) {
+            try {
+                if (!$response = $this->apiprocessing->individualCall($api)) {
+                    abort(404);
+                }
+            } catch (\Exception $e) {
                 abort(404);
             }
-        } catch (\Exception $e) {
-            abort(404);
+
+            $video = $this->apiprocessing->parseIndividualResult($api, $response);
+
+            // Save Video data
+            $this->dispatch(new SaveVideo($video, $api));
+
+            $video = Video::where('original_id', $origId)->first();
+            $video['related'] = $this->_relatedVideos($api, $origId);
         }
-
-        $video = $this->apiprocessing->parseIndividualResult($api, $response);
-
-        $video['related'] = $this->_relatedVideos($api, $origId);
-
-        $video['customId'] = $customId;
-        $video['origId'] = $origId;
-
-        // Save Video data
-        $this->dispatch(new SaveVideo($video, $api));
 
         // If there's a user logged, register
         // the video view
@@ -94,14 +112,21 @@ class VideoController extends Controller
             $this->dispatch(new RegisterView($video['origId'], $user));
         }
 
+        $resource = new FractalItem($video, new VideoTransformer);
+        $fractalManager = new FractalManager;
+        $fractalManager->setSerializer(new ArraySerializer());
+
+        $video = $fractalManager->createData($resource)->toArray();
+        dd($video);
+
         $data['video'] = $video;
-        $data['thumbnail'] = $video['thumbnail'];
-        $data['source'] = $api;
+        // $data['thumbnail'] = $video['thumbnail'];
+        // $data['source'] = $api;
 
         // Metadata
-        $data['title'] = $video['title'] . ' - Videouri';
-        $data['description'] = str_limit($video['description'], 100);
-        $data['canonical'] = "video/$customId";
+        // $data['title'] = $video['title'] . ' - Videouri';
+        // $data['description'] = str_limit($video['description'], 100);
+        // $data['canonical'] = "video/$customId";
 
         $data['bodyId'] = 'videoPage';
 

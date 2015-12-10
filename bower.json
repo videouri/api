@@ -18,12 +18,12 @@
     "jquery": "2.x",
     "isotope": "~2.2.2",
     "momentjs": "~2.10.6",
-    "font-awesome": "~4.4.0",
-    "video.js": "~4.12.15",
-    "videojs-youtube": "~1.2.12",
-    "videojs-vimeo": "*",
+    "font-awesome": "~4.5.0",
+    "video.js": "~5.4.2",
+    "videojs-youtube": "~2.0.3",
+    "videojs-vimeo": "1.0.2",
     "videojs-dailymotion": "*",
-    "imagesloaded": "~3.1.8",
-    "Materialize": "materialize#~0.97.1"
+    "imagesloaded": "~3.2.0",
+    "Materialize": "materialize#~0.97.3"
   }
 }

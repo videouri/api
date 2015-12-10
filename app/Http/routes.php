@@ -23,6 +23,7 @@ Route::get('search', [
 
 Route::get('info/{view}/{part?}', 'PagesController@ifno');
 
+Route::get('video', 'VideoController@index');
 Route::get('video/{id}/{videoSlug?}', 'VideoController@show');
 
 // Authentication routes...

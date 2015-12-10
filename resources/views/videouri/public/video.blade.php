@@ -9,78 +9,88 @@
     </video>
 </div>
 
-<div id="video-info">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <ul class="video-details list-inline">
-                    <li class="video-vuration">
-                        <i class="fa fa-clock-o fa-2x"></i>
-                        <span>
-                            <?= humanizeSeconds($video['duration']) ?>
-                        </span>
-                    </li>
-                    <li>
-                        <span class="separator">
-                            |
-                        </span>
-                    </li>
-                    <li class="video-v-iews">
-                        <i class="fa fa-eye fa-2x"></i>
-                        <span>
-                            <?= humanizeNumber($video['views']) ?>
-                        </span>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-md-6 pull-right text-right">
-                <ul class="list-inline" id="sharing">
-                    <li>
-                        <a href="https://www.facebook.com/sharer.php" id="facebook-share" class="popup btn-social-facebook" title="Share to Facebook">
-                            <i class="fa fa-facebook fa-2x" style="vertical-align: middle"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="https://twitter.com/share" id="twitter-share" class="popup btn-social-twitter" title="Share to Twitter">
-                            <i class="fa fa-twitter fa-2x" style="vertical-align: middle"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <div class="addthis_responsive_sharing"></div>
-                    </li>
-                </ul>
-            </div>
+<div id="video-info" class="container">
+    <div class="row" id="title-share-and-stats">
+        <div class="col s7">
+            <h4>
+                <?= $video['title'] ?>
+            </h4>
         </div>
 
-        <div class="row">
-            <div class="col-md-9">
-                <h4 style="letter-spacing: 1px;">
-                    <?= $video['title'] ?>
-                </h4>
-                <br/>
-
-                <div class="description" style="font-size: 12px">
-                    <?php
-                        $video['description'] = !empty($video['description']) ? $video['description'] : 'No description';
-                        // echo parseLinks(nl2br($video['description']));
-                        echo nl2br($video['description']);
-                    ?>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <h6>Tags</h6>
-                @foreach ($video['tags'] as $tag)
-                <?php
-                    $url = url('search?query='.$tag);
-                ?>
-                <div class="chip" style="margin-bottom: 5px;">
-                    <a title="{{ $tag }}" href="{{ $url }}">
-                        {{ $tag }}
+        <div class="col s5 right-align" id="share-and-stats">
+            <ul>
+                <li>
+                    <a href="https://www.facebook.com/sharer.php" id="facebook-share" class="popup facebook-color" title="Share to Facebook">
+                        <i class="fa fa-facebook-official fa-2x" style="vertical-align: middle"></i>
                     </a>
-                </div>
-                @endforeach
-            </div>
+                </li>
+                <li>
+                    <a href="https://twitter.com/share" id="twitter-share" class="popup twitter-color" title="Share to Twitter">
+                        <i class="fa fa-twitter fa-2x" style="vertical-align: middle"></i>
+                    </a>
+                </li>
+
+                <li class="divider">
+                    &nbsp;&nbsp;&nbsp;
+                </li>
+
+                <li class="chip">
+                    <i class="fa fa-eye"></i>
+                    {{-- {{ humanizeNumber($video['views']) }} --}}
+                    {{ $video['views'] }}
+                </li>
+
+                <li class="divider">
+                    &nbsp;&nbsp;&nbsp;
+                </li>
+
+                <li>
+                    <a href="#!favorite" id="favorite-video" class="valign" data-id="{{ $video['origId'] }}">
+                        <?php
+                            $starClass = 'fa-star-o';
+                            if ($video->favorited) {
+                                $starClass = 'fa-star';
+                            }
+                        ?>
+                        <i class="fa {{ $starClass }} fa-2x" style="vertical-align: middle"></i>
+                    </a>
+                </li>
+            </ul>
         </div>
+    </div>
+
+    <hr style="border: 1px dotted #eee;"/>
+
+    <div class="row">
+        <div class="col s9">
+            <p class="flow-text">
+                <?php
+                    if (empty($video['description']) ||
+                        $video['description'] === $video['title']
+                    ) {
+                        $video['description'] =  'No description';
+                    }
+
+                    // echo parseLinks(nl2br($video['description']));
+                    echo nl2br($video['description']);
+                ?>
+            </p>
+        </div>
+        @if (!empty($video['tags']))
+        <div class="col s3">
+            <h6>Tags</h6>
+            @foreach ($video['tags'] as $tag)
+            <?php
+                $url = url('search?query='.$tag);
+            ?>
+            <div class="chip" style="margin-bottom: 5px;">
+                <a title="{{ $tag }}" href="{{ $url }}">
+                    {{ $tag }}
+                </a>
+            </div>
+            @endforeach
+        </div>
+        @endif
     </div>
 </div>
 
@@ -93,7 +103,7 @@
             </h4>
         </div>
     </div>
-    <hr style="border-color: #c0392b" />
+    {{-- <hr style="border-color: #c0392b" /> --}}
     <div id="related-videos" class="row">
         @foreach ($video['related'] as $relatedVideo)
         <div class="col s4 video <?= $relatedVideo['source'] ?>">

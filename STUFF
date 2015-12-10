@@ -12,5 +12,13 @@ INSPIRATION
     http://onreplaytv.com/
     http://demo.touchsize.com/videotouch/homepage-6-2/
 
+TODO:
 
-"RobotoDraft", "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif
+ALTER TABLE `videos`
+    ADD COLUMN `custom_id` VARCHAR(255) NULL AFTER `original_id`;
+
+ALTER TABLE `videos`
+    ADD COLUMN `slug` VARCHAR(255) NULL AFTER `videouri_url`;
+
+ALTER TABLE `videos`
+    DROP COLUMN `videouri_url`;

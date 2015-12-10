@@ -75,6 +75,7 @@ class UpdateCustomId extends Command
             }
 
             $custom_id = substr($video->original_id, 0, 1) . $api . substr($video->original_id, 1);
+
             Video::where('original_id', $video->original_id)->update(['custom_id' => $custom_id]);
 
             $i++;

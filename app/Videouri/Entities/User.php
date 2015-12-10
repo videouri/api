@@ -44,14 +44,25 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
      */
     protected $hidden = ['password', 'remember_token'];
 
+
     public function favorites()
     {
-        return $this->belongsToMany('Videouri\Entities\Favorite', 'favorites', 'video_id', 'user_id');
+        return $this->hasMany('Videouri\Entities\Favorite');
     }
 
-    public function views()
+    public function later()
     {
-        return $this->belongsToMany('Videouri\Entities\View', 'views');
+        return $this->hasMany('Videouri\Entities\Later');
+    }
+
+
+    /////////////
+    // HISTORY //
+    /////////////
+
+    public function watched()
+    {
+        return $this->hasMany('Videouri\Entities\View');
     }
 
     public function searches()

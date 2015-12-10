@@ -48,7 +48,7 @@ elixir(
 
         mix
             .copy([
-                // './bower_components/font-awesome/fonts/**',
+                './bower_components/font-awesome/fonts/**',
                 './bower_components/Materialize/dist/font/**',
                 './bower_components/video.js/dist/video-js/font/**',
                 './resources/assets/font/**'
