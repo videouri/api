@@ -7,8 +7,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 
-use Videouri\Entities\User;
-use Videouri\Traits\SocialAuth;
+use App\Entities\User;
+use App\Traits\SocialAuth;
 
 class AuthController extends Controller
 {

@@ -17,12 +17,9 @@ class CreateVideosTable extends Migration
 
             $table->string('provider');
             $table->string('original_id')->unique();
+            $table->string('custom_id')->unique()->nullable(); // TODO: remove nullable once populated on LIVE DB
 
-            // TODO: remove nullable once populated on LIVE DB
-            $table->string('custom_id')->unique()->nullable();
-
-            // Maybe remove this and build URL from custom_id on the go?
-            $table->string('videouri_url');
+            $table->string('original_url');
             $table->string('slug')->nullable();
 
             $table->string('author')->nullable();

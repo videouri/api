@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "16603250894c9b64ee384e4537d753c5",
-    "content-hash": "a77b7264d83bce7b1b4b4b3065bb50a8",
+    "hash": "8f4666b72634727c30db54b864885d74",
+    "content-hash": "4c2c2ec66f151f804dd6961bb14a3d36",
     "packages": [
         {
             "name": "alaouy/youtube",
@@ -1112,6 +1112,51 @@
             "time": "2015-12-05 17:17:57"
         },
         {
+            "name": "kwi/urllinker",
+            "version": "dev-default",
+            "source": {
+                "type": "hg",
+                "url": "https://bitbucket.org/kwi/urllinker",
+                "reference": "b5e097f03963454b4e8f32581265c8e57c3409e6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://bitbucket.org/kwi/urllinker/get/b5e097f03963454b4e8f32581265c8e57c3409e6.zip",
+                "reference": "b5e097f03963454b4e8f32581265c8e57c3409e6",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Kwi\\": "lib"
+                },
+                "files": [
+                    "UrlLinker.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "CC0-1.0"
+            ],
+            "authors": [
+                {
+                    "name": "Søren Løvborg",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Dawid Nowak",
+                    "email": "code@dnowak.pl",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Autolink URLs in text or html",
+            "homepage": "http://www.kwi.dk/projects/php/UrlLinker/",
+            "time": "2014-12-28 23:05:00"
+        },
+        {
             "name": "laravel/framework",
             "version": "v5.1.26",
             "source": {
@@ -1775,16 +1820,16 @@
         },
         {
             "name": "paragonie/random_compat",
-            "version": "1.1.1",
+            "version": "1.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paragonie/random_compat.git",
-                "reference": "a208865a5aeffc2dbbef2a5b3409887272d93f32"
+                "reference": "d762ee5b099a29044603cd4649851e81aa66cb47"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paragonie/random_compat/zipball/a208865a5aeffc2dbbef2a5b3409887272d93f32",
-                "reference": "a208865a5aeffc2dbbef2a5b3409887272d93f32",
+                "url": "https://api.github.com/repos/paragonie/random_compat/zipball/d762ee5b099a29044603cd4649851e81aa66cb47",
+                "reference": "d762ee5b099a29044603cd4649851e81aa66cb47",
                 "shasum": ""
             },
             "require": {
@@ -1819,7 +1864,7 @@
                 "pseudorandom",
                 "random"
             ],
-            "time": "2015-12-01 02:52:15"
+            "time": "2015-12-10 14:48:13"
         },
         {
             "name": "pda/pheanstalk",
@@ -3999,16 +4044,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "4.8.19",
+            "version": "4.8.21",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "b2caaf8947aba5e002d42126723e9d69795f32b4"
+                "reference": "ea76b17bced0500a28098626b84eda12dbcf119c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/b2caaf8947aba5e002d42126723e9d69795f32b4",
-                "reference": "b2caaf8947aba5e002d42126723e9d69795f32b4",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ea76b17bced0500a28098626b84eda12dbcf119c",
+                "reference": "ea76b17bced0500a28098626b84eda12dbcf119c",
                 "shasum": ""
             },
             "require": {
@@ -4067,7 +4112,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2015-11-30 08:18:59"
+            "time": "2015-12-12 07:45:58"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
@@ -4547,11 +4592,12 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": {
-        "dingo/api": 20
+        "dingo/api": 20,
+        "kwi/urllinker": 20
     },
-    "prefer-stable": false,
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": []

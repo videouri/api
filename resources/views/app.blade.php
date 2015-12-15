@@ -6,17 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     @if (isset($title))
-    <title><?= $title ?></title>
-    <meta property="og:title" content="<?= $title ?>">
+        <title><?= $title ?></title>
+        <meta property="og:title" content="<?= $title ?>">
     @else
-    <title><?= config('videouri.default.title') ?></title>
-    <meta property="og:title" content="<?= config('videouri.default.title') ?>">
+        <title><?= config('videouri.default.title') ?></title>
+        <meta property="og:title" content="<?= config('videouri.default.title') ?>">
     @endif
 
     @if (isset($description))
-    <meta name="description" content="<?= $description ?>" />
+        <meta name="description" content="<?= $description ?>" />
     @else
-    <meta name="description" content="<?= config('videouri.default.description') ?>" />
+        <meta name="description" content="<?= config('videouri.default.description') ?>" />
     @endif
 
 
@@ -26,8 +26,8 @@
     <meta property="og:url" content="http://<?= $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ?>"/>
 
     @if (isset($thumbnail))
-    <meta property="og:type" content="video"/>
-    <meta property="og:image" content="<?= $thumbnail ?>">
+        <meta property="og:type" content="video"/>
+        <meta property="og:image" content="<?= $thumbnail ?>">
     @endif
 
     {{-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
@@ -35,6 +35,8 @@
     <link href="{{ videouri_asset('/css/app.css') }}" rel="stylesheet">
 
     <meta name="msvalidate.01" content="48B0A933360DDEC6CF1775D7C7E28FD3" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta id="_token" value="{{ csrf_token() }}">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->

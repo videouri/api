@@ -6,9 +6,9 @@ use Validator;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 
-use Videouri\Entities\User;
-use Videouri\Services\Authentication;
-use Videouri\Traits\AuthenticatesAndRegistersUsers;
+use App\Entities\User;
+use App\Services\Authentication;
+use App\Traits\AuthenticatesAndRegistersUsers;
 
 // use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 

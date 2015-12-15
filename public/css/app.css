@@ -15392,6 +15392,10 @@ section#register .card-panel.padded-panel {
   color: #5ea9dd;
 }
 
+ul#social-and-stats li {
+  display: inline-block;
+}
+
 div.or-container {
   text-align: center;
   margin-top: 20px;

@@ -8,8 +8,8 @@ use App\Jobs\SaveVideo;
 use App\Jobs\RegisterView;
 use App\Transformers\VideoTransformer;
 
-use Videouri\Entities\Video;
-use Videouri\Services\ApiProcessing;
+use App\Entities\Video;
+use App\Services\ApiProcessing;
 
 use League\Fractal\Resource\Item as FractalItem;
 use League\Fractal\Manager as FractalManager;
@@ -20,7 +20,7 @@ use Auth;
 class VideoController extends Controller
 {
     /**
-     * @var Videouri\Services\ApiProcessing
+     * @var App\Services\ApiProcessing
      */
     protected $apiprocessing;
 
@@ -49,24 +49,24 @@ class VideoController extends Controller
     public function show($customId, $slug = null)
     {
         $api = substr($customId, 1, 1);
-        $origId = substr_replace($customId, '', 1, 1);
+        $originalId = substr_replace($customId, '', 1, 1);
 
         switch ($api) {
             case 'd':
-                $api = 'Dailymotion';
+                $api = 'dailymotion';
                 break;
 
             case 'v':
-                $api = 'Vimeo';
+                $api = 'vimeo';
                 break;
 
             case 'y':
-                $api = 'Youtube';
+                $api = 'youtube';
                 break;
 
-            case 'M':
-                $api = 'Metacafe';
-                $long_id = $origId . '/' . $slug;
+            case 'm':
+                $api = 'metacafe';
+                $long_id = $originalId . '/' . $slug;
                 break;
 
             default:
@@ -74,10 +74,6 @@ class VideoController extends Controller
                 #show_error(lang('video_id',$customId));
                 break;
         }
-
-        // $this->apiprocessing->videoId = ($api === "Metacafe") ? $long_id : $origId;
-        $this->apiprocessing->videoId = $origId;
-        $this->apiprocessing->content = 'getVideoEntry';
 
         /**
          * If no video is fetched from DB, call API and follow
@@ -88,45 +84,35 @@ class VideoController extends Controller
          *       No more!
          *   '
          */
-        if (!$video = Video::where('original_id', '=', $origId)->first()) {
+        if (!$video = Video::where('original_id', '=', $originalId)->first()) {
             try {
-                if (!$response = $this->apiprocessing->individualCall($api)) {
-                    abort(404);
-                }
+                $video = $this->apiprocessing->getVideoInfo($api, $originalId)['data'][0];
             } catch (\Exception $e) {
-                abort(404);
+                dd($e->getMessage());
+                // abort(404);
             }
 
-            $video = $this->apiprocessing->parseIndividualResult($api, $response);
-
             // Save Video data
-            $this->dispatch(new SaveVideo($video, $api));
+            // $this->dispatch(new SaveVideo($video, $api));
 
-            $video = Video::where('original_id', $origId)->first();
-            $video['related'] = $this->_relatedVideos($api, $origId);
+            // $video = Video::where('original_id', $originalId)->first();
+            // $video['related'] = $this->relatedVideos($api, $originalId);
         }
 
         // If there's a user logged, register
         // the video view
         if ($user = Auth::user()) {
-            $this->dispatch(new RegisterView($video['origId'], $user));
+            $this->dispatch(new RegisterView($video['originalId'], $user));
         }
 
-        $resource = new FractalItem($video, new VideoTransformer);
-        $fractalManager = new FractalManager;
-        $fractalManager->setSerializer(new ArraySerializer());
-
-        $video = $fractalManager->createData($resource)->toArray();
-        dd($video);
-
-        $data['video'] = $video;
-        // $data['thumbnail'] = $video['thumbnail'];
+        $data['video'] = json_encode($video);
+        $data['thumbnail'] = $video['thumbnail'];
         // $data['source'] = $api;
 
         // Metadata
-        // $data['title'] = $video['title'] . ' - Videouri';
-        // $data['description'] = str_limit($video['description'], 100);
-        // $data['canonical'] = "video/$customId";
+        $data['title'] = $video['title'] . ' - Videouri';
+        $data['description'] = str_limit($video['description'], 100);
+        $data['canonical'] = 'video/' . $video['custom_id'];
 
         $data['bodyId'] = 'videoPage';
 
@@ -136,15 +122,15 @@ class VideoController extends Controller
     /**
      * This function will retrieve related videos according to its id or some of its tags
      *
-     * @param string $origId The id for which to look for data
+     * @param string $originalId The id for which to look for data
      * @return the php response from parsing the data.
      */
-    private function _relatedVideos($api, $origId = null)
+    private function relatedVideos($api, $originalId = null)
     {
         $this->apiprocessing->content = 'getRelatedVideos';
         $this->apiprocessing->maxResults = 8;
         // $this->apiprocessing->api = $api;
-        // $this->apiprocessing->videoId = $origId;
+        // $this->apiprocessing->videoId = $originalId;
 
         $response = $this->apiprocessing->individualCall($api);
         $response = $this->apiprocessing->parseApiResult($api, $response);
@@ -190,8 +176,8 @@ class VideoController extends Controller
         //     case "Vimeo":
         //         $i = 0;
         //         foreach ($response['body']['data'] as $video) {
-        //             $origid = explode('/', $video['uri'])[2];
-        //             $id     = substr($origid,0,1).'v'.substr($origid,1);
+        //             $originalId = explode('/', $video['uri'])[2];
+        //             $id     = substr($originalId,0,1).'v'.substr($originalId,1);
         //             $url    = url('video/'.$id);
 
         //             $related[$i]['url']       = $url;
@@ -205,8 +191,8 @@ class VideoController extends Controller
         //     case 'Youtube':
         //         $i = 0;
         //         foreach ($response['feed']['entry'] as $video) {
-        //             $origid = substr( $video['id']['$t'], strrpos( $video['id']['$t'], '/' )+1 );
-        //             $id     = substr($origid,0,1).'y'.substr($origid,1);
+        //             $originalId = substr( $video['id']['$t'], strrpos( $video['id']['$t'], '/' )+1 );
+        //             $id     = substr($originalId,0,1).'y'.substr($originalId,1);
         //             $url    = url('video/'.$id);
 
         //             $related[$i]['url']       = $url;

@@ -4,9 +4,9 @@ namespace App\Console\Commands;
 
 use File;
 use Illuminate\Console\Command;
-use Videouri\Entities\Search;
-use Videouri\Entities\Sitemap;
-use Videouri\Entities\Video;
+use App\Entities\Search;
+use App\Entities\Sitemap;
+use App\Entities\Video;
 
 class GenerateSitemap extends Command
 {

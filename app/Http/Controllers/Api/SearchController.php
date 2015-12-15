@@ -8,8 +8,8 @@ use Auth;
 use App\Http\Controllers\Controller;
 use App\Jobs\RegisterSearch;
 
-use Videouri\Services\ApiProcessing;
-use Videouri\Services\FakeContentGenerator;
+use App\Services\ApiProcessing;
+use App\Services\FakeContentGenerator;
 
 class SearchController extends Controller
 {
@@ -42,8 +42,6 @@ class SearchController extends Controller
             return response()->error('invalid_search_query', 400);
         }
 
-        $this->apiprocessing->searchQuery = $searchQuery;
-
         /**
          * Avoid flooding with max results input
          */
@@ -63,17 +61,15 @@ class SearchController extends Controller
             $this->apiprocessing->apis = $apis;
         }
 
-        $this->apiprocessing->page = $request->get('page', 1);
-        $this->apiprocessing->sort = $request->get('sort', 'relevance');
-        $this->apiprocessing->content = 'search';
+        $page = $request->get('page', 1);
+        $sort = $request->get('sort', 'relevance');
 
         // Queue to save search term
         $this->dispatch(new RegisterSearch($searchQuery, Auth::user()));
 
         $videos = array();
-
         try {
-            $videosRaw = $this->apiprocessing->mixedCalls()['search'];
+            $videosRaw = $this->apiprocessing->searchVideos($query, $page, $sort);
 
             foreach ($videosRaw as $api => $apiData) {
                 $videos = array_merge($videos, $this->apiprocessing->parseApiResult($api, $apiData));

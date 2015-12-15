@@ -8,8 +8,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-use Videouri\Entities\Video;
-use Videouri\Entities\User;
+use App\Entities\Video;
+use App\Entities\User;
 
 class SaveVideo extends Job implements SelfHandling, ShouldQueue
 {
@@ -37,7 +37,7 @@ class SaveVideo extends Job implements SelfHandling, ShouldQueue
      */
     public function handle()
     {
-        $video = Video::where('original_id', '=', $this->data['origId'])->first();
+        $video = Video::where('original_id', '=', $this->data['originalId'])->first();
 
         if ($video) {
             return true;
@@ -46,7 +46,7 @@ class SaveVideo extends Job implements SelfHandling, ShouldQueue
         $video = new Video;
 
         $video->provider = $this->provider;
-        $video->original_id = $this->data['origId'];
+        $video->original_id = $this->data['originalId'];
         $video->custom_id = $this->data['customId'];
         // $video->slug = null;
 

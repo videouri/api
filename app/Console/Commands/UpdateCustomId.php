@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Videouri\Entities\Video;
-use Videouri\Services\ApiProcessing;
+use App\Entities\Video;
+use App\Services\ApiProcessing;
 
 class UpdateCustomId extends Command
 {
@@ -23,7 +23,7 @@ class UpdateCustomId extends Command
     protected $description = 'refresh those empty custom_id';
 
     /**
-     * @var Videouri\Services\ApiProcessing
+     * @var App\Services\ApiProcessing
      */
     private $apiprocessing;
 

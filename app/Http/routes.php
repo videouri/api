@@ -68,6 +68,7 @@ $api->version('v1', function ($api) {
     $api->controller('authenticate', 'App\Http\Controllers\AuthenticateController');
     $api->controller('videos', 'App\Http\Controllers\Api\VideosController');
     $api->controller('search', 'App\Http\Controllers\Api\SearchController');
+    $api->controller('user', 'App\Http\Controllers\Api\UserController');
 });
 
 //protected with JWT

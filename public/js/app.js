@@ -1,4 +1,1526 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+module.exports = require('./lib/linkify');
+
+},{"./lib/linkify":3}],2:[function(require,module,exports){
+/**
+	Convert strings of text into linkable HTML text
+*/
+
+'use strict';
+
+exports.__esModule = true;
+
+var _linkify = require('./linkify');
+
+function cleanText(text) {
+	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function cleanAttr(href) {
+	return href.replace(/"/g, '&quot;');
+}
+
+function attributesToString(attributes) {
+
+	if (!attributes) return '';
+	var result = [];
+
+	for (var attr in attributes) {
+		var val = (attributes[attr] + '').replace(/"/g, '&quot;');
+		result.push(attr + '="' + cleanAttr(val) + '"');
+	}
+	return result.join(' ');
+}
+
+function linkifyStr(str) {
+	var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	opts = _linkify.options.normalize(opts);
+
+	var tokens = _linkify.tokenize(str),
+	    result = [];
+
+	for (var i = 0; i < tokens.length; i++) {
+		var token = tokens[i];
+		if (token.isLink) {
+
+			var href = token.toHref(opts.defaultProtocol),
+			    formatted = _linkify.options.resolve(opts.format, token.toString(), token.type),
+			    formattedHref = _linkify.options.resolve(opts.formatHref, href, token.type),
+			    attributesHash = _linkify.options.resolve(opts.attributes, href, token.type),
+			    tagName = _linkify.options.resolve(opts.tagName, href, token.type),
+			    linkClass = _linkify.options.resolve(opts.linkClass, href, token.type),
+			    target = _linkify.options.resolve(opts.target, href, token.type);
+
+			var link = '<' + tagName + ' href="' + cleanAttr(formattedHref) + '" class="' + cleanAttr(linkClass) + '"';
+			if (target) {
+				link += ' target="' + cleanAttr(target) + '"';
+			}
+
+			if (attributesHash) {
+				link += ' ' + attributesToString(attributesHash);
+			}
+
+			link += '>' + cleanText(formatted) + '</' + tagName + '>';
+			result.push(link);
+		} else if (token.type === 'nl' && opts.nl2br) {
+			if (opts.newLine) {
+				result.push(opts.newLine);
+			} else {
+				result.push('<br>\n');
+			}
+		} else {
+			result.push(cleanText(token.toString()));
+		}
+	}
+
+	return result.join('');
+}
+
+if (!String.prototype.linkify) {
+	String.prototype.linkify = function (options) {
+		return linkifyStr(this, options);
+	};
+}
+
+exports['default'] = linkifyStr;
+module.exports = exports['default'];
+},{"./linkify":3}],3:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
+var _linkifyUtilsOptions = require('./linkify/utils/options');
+
+var options = _interopRequireWildcard(_linkifyUtilsOptions);
+
+var _linkifyCoreScanner = require('./linkify/core/scanner');
+
+var scanner = _interopRequireWildcard(_linkifyCoreScanner);
+
+var _linkifyCoreParser = require('./linkify/core/parser');
+
+var parser = _interopRequireWildcard(_linkifyCoreParser);
+
+if (!Array.isArray) {
+	Array.isArray = function (arg) {
+		return Object.prototype.toString.call(arg) === '[object Array]';
+	};
+}
+
+/**
+	Converts a string into tokens that represent linkable and non-linkable bits
+	@method tokenize
+	@param {String} str
+	@return {Array} tokens
+*/
+var tokenize = function tokenize(str) {
+	return parser.run(scanner.run(str));
+};
+
+/**
+	Returns a list of linkable items in the given string.
+*/
+var find = function find(str) {
+	var type = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+	var tokens = tokenize(str),
+	    filtered = [];
+
+	for (var i = 0; i < tokens.length; i++) {
+		if (tokens[i].isLink && (!type || tokens[i].type === type)) {
+			filtered.push(tokens[i].toObject());
+		}
+	}
+
+	return filtered;
+};
+
+/**
+	Is the given string valid linkable text of some sort
+	Note that this does not trim the text for you.
+
+	Optionally pass in a second `type` param, which is the type of link to test
+	for.
+
+	For example,
+
+		test(str, 'email');
+
+	Will return `true` if str is a valid email.
+*/
+var test = function test(str) {
+	var type = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+	var tokens = tokenize(str);
+	return tokens.length === 1 && tokens[0].isLink && (!type || tokens[0].type === type);
+};
+
+// Scanner and parser provide states and tokens for the lexicographic stage
+// (will be used to add additional link types)
+exports.find = find;
+exports.options = options;
+exports.parser = parser;
+exports.scanner = scanner;
+exports.test = test;
+exports.tokenize = tokenize;
+},{"./linkify/core/parser":4,"./linkify/core/scanner":5,"./linkify/utils/options":8}],4:[function(require,module,exports){
+/**
+	Not exactly parser, more like the second-stage scanner (although we can
+	theoretically hotswap the code here with a real parser in the future... but
+	for a little URL-finding utility abstract syntax trees may be a little
+	overkill).
+
+	URL format: http://en.wikipedia.org/wiki/URI_scheme
+	Email format: http://en.wikipedia.org/wiki/Email_address (links to RFC in
+	reference)
+
+	@module linkify
+	@submodule parser
+	@main parser
+*/
+
+'use strict';
+
+exports.__esModule = true;
+
+var _tokens = require('./tokens');
+
+var _state = require('./state');
+
+var makeState = function makeState(tokenClass) {
+	return new _state.TokenState(tokenClass);
+};
+
+var TT_DOMAIN = _tokens.text.DOMAIN,
+    TT_AT = _tokens.text.AT,
+    TT_COLON = _tokens.text.COLON,
+    TT_DOT = _tokens.text.DOT,
+    TT_PUNCTUATION = _tokens.text.PUNCTUATION,
+    TT_LOCALHOST = _tokens.text.LOCALHOST,
+    TT_NL = _tokens.text.NL,
+    TT_NUM = _tokens.text.NUM,
+    TT_PLUS = _tokens.text.PLUS,
+    TT_POUND = _tokens.text.POUND,
+    TT_PROTOCOL = _tokens.text.PROTOCOL,
+    TT_QUERY = _tokens.text.QUERY,
+    TT_SLASH = _tokens.text.SLASH,
+    TT_SYM = _tokens.text.SYM,
+    TT_TLD = _tokens.text.TLD;
+// TT_WS 			= TEXT_TOKENS.WS;
+
+var T_EMAIL = _tokens.multi.EMAIL,
+    T_NL = _tokens.multi.NL,
+    T_TEXT = _tokens.multi.TEXT,
+    T_URL = _tokens.multi.URL;
+
+// The universal starting state.
+var S_START = makeState();
+
+// Intermediate states for URLs. Note that domains that begin with a protocol
+// are treated slighly differently from those that don't.
+// (PSS == "PROTOCOL SLASH SLASH")
+// S_DOMAIN* states can generally become prefixes for email addresses, while
+// S_PSS_DOMAIN* cannot
+var S_PROTOCOL = makeState(),
+    // e.g., 'http:'
+S_PROTOCOL_SLASH = makeState(),
+    // e.g., '/', 'http:/''
+S_PROTOCOL_SLASH_SLASH = makeState(),
+    // e.g., '//', 'http://'
+S_DOMAIN = makeState(),
+    // parsed string ends with a potential domain name (A)
+S_DOMAIN_DOT = makeState(),
+    // (A) domain followed by DOT
+S_TLD = makeState(T_URL),
+    // (A) Simplest possible URL with no query string
+S_TLD_COLON = makeState(),
+    // (A) URL followed by colon (potential port number here)
+S_TLD_PORT = makeState(T_URL),
+    // TLD followed by a port number
+S_PSS_DOMAIN = makeState(),
+    // parsed string starts with protocol and ends with a potential domain name (B)
+S_PSS_DOMAIN_DOT = makeState(),
+    // (B) domain followed by DOT
+S_PSS_TLD = makeState(T_URL),
+    // (B) Simplest possible URL with no query string and a protocol
+S_PSS_TLD_COLON = makeState(),
+    // (A) URL followed by colon (potential port number here)
+S_PSS_TLD_PORT = makeState(T_URL),
+    // TLD followed by a port number
+S_URL = makeState(T_URL),
+    // Long URL with optional port and maybe query string
+S_URL_SYMS = makeState(),
+    // URL followed by some symbols (will not be part of the final URL)
+S_EMAIL_DOMAIN = makeState(),
+    // parsed string starts with local email info + @ with a potential domain name (C)
+S_EMAIL_DOMAIN_DOT = makeState(),
+    // (C) domain followed by DOT
+S_EMAIL = makeState(T_EMAIL),
+    // (C) Possible email address (could have more tlds)
+S_EMAIL_COLON = makeState(),
+    // (C) URL followed by colon (potential port number here)
+S_EMAIL_PORT = makeState(T_EMAIL),
+    // (C) Email address with a port
+S_LOCALPART = makeState(),
+    // Local part of the email address
+S_LOCALPART_AT = makeState(),
+    // Local part of the email address plus @
+S_LOCALPART_DOT = makeState(),
+    // Local part of the email address plus '.' (localpart cannot end in .)
+S_NL = makeState(T_NL); // single new line
+
+// Make path from start to protocol (with '//')
+S_START.on(TT_NL, S_NL);
+S_START.on(TT_PROTOCOL, S_PROTOCOL);
+S_START.on(TT_SLASH, S_PROTOCOL_SLASH);
+S_PROTOCOL.on(TT_SLASH, S_PROTOCOL_SLASH);
+S_PROTOCOL_SLASH.on(TT_SLASH, S_PROTOCOL_SLASH_SLASH);
+
+// The very first potential domain name
+S_START.on(TT_TLD, S_DOMAIN);
+S_START.on(TT_DOMAIN, S_DOMAIN);
+S_START.on(TT_LOCALHOST, S_TLD);
+S_START.on(TT_NUM, S_DOMAIN);
+S_PROTOCOL_SLASH_SLASH.on(TT_TLD, S_PSS_DOMAIN);
+S_PROTOCOL_SLASH_SLASH.on(TT_DOMAIN, S_PSS_DOMAIN);
+S_PROTOCOL_SLASH_SLASH.on(TT_NUM, S_PSS_DOMAIN);
+S_PROTOCOL_SLASH_SLASH.on(TT_LOCALHOST, S_PSS_TLD);
+
+// Account for dots and hyphens
+// hyphens are usually parts of domain names
+S_DOMAIN.on(TT_DOT, S_DOMAIN_DOT);
+S_PSS_DOMAIN.on(TT_DOT, S_PSS_DOMAIN_DOT);
+S_EMAIL_DOMAIN.on(TT_DOT, S_EMAIL_DOMAIN_DOT);
+
+// Hyphen can jump back to a domain name
+
+// After the first domain and a dot, we can find either a URL or another domain
+S_DOMAIN_DOT.on(TT_TLD, S_TLD);
+S_DOMAIN_DOT.on(TT_DOMAIN, S_DOMAIN);
+S_DOMAIN_DOT.on(TT_NUM, S_DOMAIN);
+S_DOMAIN_DOT.on(TT_LOCALHOST, S_DOMAIN);
+S_PSS_DOMAIN_DOT.on(TT_TLD, S_PSS_TLD);
+S_PSS_DOMAIN_DOT.on(TT_DOMAIN, S_PSS_DOMAIN);
+S_PSS_DOMAIN_DOT.on(TT_NUM, S_PSS_DOMAIN);
+S_PSS_DOMAIN_DOT.on(TT_LOCALHOST, S_PSS_DOMAIN);
+S_EMAIL_DOMAIN_DOT.on(TT_TLD, S_EMAIL);
+S_EMAIL_DOMAIN_DOT.on(TT_DOMAIN, S_EMAIL_DOMAIN);
+S_EMAIL_DOMAIN_DOT.on(TT_NUM, S_EMAIL_DOMAIN);
+S_EMAIL_DOMAIN_DOT.on(TT_LOCALHOST, S_EMAIL_DOMAIN);
+
+// S_TLD accepts! But the URL could be longer, try to find a match greedily
+// The `run` function should be able to "rollback" to the accepting state
+S_TLD.on(TT_DOT, S_DOMAIN_DOT);
+S_PSS_TLD.on(TT_DOT, S_PSS_DOMAIN_DOT);
+S_EMAIL.on(TT_DOT, S_EMAIL_DOMAIN_DOT);
+
+// Become real URLs after `SLASH` or `COLON NUM SLASH`
+// Here PSS and non-PSS converge
+S_TLD.on(TT_COLON, S_TLD_COLON);
+S_TLD.on(TT_SLASH, S_URL);
+S_TLD_COLON.on(TT_NUM, S_TLD_PORT);
+S_TLD_PORT.on(TT_SLASH, S_URL);
+S_PSS_TLD.on(TT_COLON, S_PSS_TLD_COLON);
+S_PSS_TLD.on(TT_SLASH, S_URL);
+S_PSS_TLD_COLON.on(TT_NUM, S_PSS_TLD_PORT);
+S_PSS_TLD_PORT.on(TT_SLASH, S_URL);
+S_EMAIL.on(TT_COLON, S_EMAIL_COLON);
+S_EMAIL_COLON.on(TT_NUM, S_EMAIL_PORT);
+
+// Types of characters the URL can definitely end in
+var qsAccepting = [TT_DOMAIN, TT_AT, TT_LOCALHOST, TT_NUM, TT_PLUS, TT_POUND, TT_PROTOCOL, TT_SLASH, TT_TLD, TT_SYM];
+
+// Types of tokens that can follow a URL and be part of the query string
+// but cannot be the very last characters
+// Characters that cannot appear in the URL at all should be excluded
+var qsNonAccepting = [TT_COLON, TT_DOT, TT_QUERY, TT_PUNCTUATION];
+
+// Account for the query string
+S_URL.on(qsAccepting, S_URL);
+S_URL_SYMS.on(qsAccepting, S_URL);
+
+S_URL.on(qsNonAccepting, S_URL_SYMS);
+S_URL_SYMS.on(qsNonAccepting, S_URL_SYMS);
+
+// Email address-specific state definitions
+// Note: We are not allowing '/' in email addresses since this would interfere
+// with real URLs
+
+// Tokens allowed in the localpart of the email
+var localpartAccepting = [TT_DOMAIN, TT_NUM, TT_PLUS, TT_POUND, TT_QUERY, TT_SYM, TT_TLD];
+
+// Some of the tokens in `localpartAccepting` are already accounted for here and
+// will not be overwritten (don't worry)
+S_DOMAIN.on(localpartAccepting, S_LOCALPART);
+S_DOMAIN.on(TT_AT, S_LOCALPART_AT);
+S_DOMAIN_DOT.on(localpartAccepting, S_LOCALPART);
+S_TLD.on(localpartAccepting, S_LOCALPART);
+S_TLD.on(TT_AT, S_LOCALPART_AT);
+
+// Okay we're on a localpart. Now what?
+// TODO: IP addresses and what if the email starts with numbers?
+S_LOCALPART.on(localpartAccepting, S_LOCALPART);
+S_LOCALPART.on(TT_AT, S_LOCALPART_AT); // close to an email address now
+S_LOCALPART.on(TT_DOT, S_LOCALPART_DOT);
+S_LOCALPART_DOT.on(localpartAccepting, S_LOCALPART);
+S_LOCALPART_AT.on(TT_TLD, S_EMAIL_DOMAIN);
+S_LOCALPART_AT.on(TT_DOMAIN, S_EMAIL_DOMAIN);
+S_LOCALPART_AT.on(TT_LOCALHOST, S_EMAIL);
+// States following `@` defined above
+
+var run = function run(tokens) {
+	var len = tokens.length,
+	    cursor = 0,
+	    multis = [],
+	    textTokens = [];
+
+	while (cursor < len) {
+
+		var state = S_START,
+		    secondState = null,
+		    nextState = null,
+		    multiLength = 0,
+		    latestAccepting = null,
+		    sinceAccepts = -1;
+
+		while (cursor < len && !(secondState = state.next(tokens[cursor]))) {
+			// Starting tokens with nowhere to jump to.
+			// Consider these to be just plain text
+			textTokens.push(tokens[cursor++]);
+		}
+
+		while (cursor < len && (nextState = secondState || state.next(tokens[cursor]))) {
+
+			// Get the next state
+			secondState = null;
+			state = nextState;
+
+			// Keep track of the latest accepting state
+			if (state.accepts()) {
+				sinceAccepts = 0;
+				latestAccepting = state;
+			} else if (sinceAccepts >= 0) {
+				sinceAccepts++;
+			}
+
+			cursor++;
+			multiLength++;
+		}
+
+		if (sinceAccepts < 0) {
+
+			// No accepting state was found, part of a regular text token
+			// Add all the tokens we looked at to the text tokens array
+			for (var i = cursor - multiLength; i < cursor; i++) {
+				textTokens.push(tokens[i]);
+			}
+		} else {
+
+			// Accepting state!
+
+			// First close off the textTokens (if available)
+			if (textTokens.length > 0) {
+				multis.push(new T_TEXT(textTokens));
+				textTokens = [];
+			}
+
+			// Roll back to the latest accepting state
+			cursor -= sinceAccepts;
+			multiLength -= sinceAccepts;
+
+			// Create a new multitoken
+			var MULTI = latestAccepting.emit();
+			multis.push(new MULTI(tokens.slice(cursor - multiLength, cursor)));
+		}
+	}
+
+	// Finally close off the textTokens (if available)
+	if (textTokens.length > 0) {
+		multis.push(new T_TEXT(textTokens));
+	}
+
+	return multis;
+};
+
+var TOKENS = _tokens.multi,
+    start = S_START;
+exports.State = _state.TokenState;
+exports.TOKENS = TOKENS;
+exports.run = run;
+exports.start = start;
+},{"./state":6,"./tokens":7}],5:[function(require,module,exports){
+/**
+	The scanner provides an interface that takes a string of text as input, and
+	outputs an array of tokens instances that can be used for easy URL parsing.
+
+	@module linkify
+	@submodule scanner
+	@main scanner
+*/
+
+'use strict';
+
+exports.__esModule = true;
+
+var _tokens = require('./tokens');
+
+var _state = require('./state');
+
+var tlds = "abogado|ac|academy|accountants|active|actor|ad|adult|ae|aero|af|ag|agency|ai|airforce|al|allfinanz|alsace|am|an|android|ao|aq|aquarelle|ar|archi|army|arpa|as|asia|associates|at|attorney|au|auction|audio|autos|aw|ax|axa|az|ba|band|bar|bargains|bayern|bb|bd|be|beer|berlin|best|bf|bg|bh|bi|bid|bike|bio|biz|bj|black|blackfriday|bloomberg|blue|bm|bmw|bn|bnpparibas|bo|boo|boutique|br|brussels|bs|bt|budapest|build|builders|business|buzz|bv|bw|by|bz|bzh|ca|cab|cal|camera|camp|cancerresearch|capetown|capital|caravan|cards|care|career|careers|casa|cash|cat|catering|cc|cd|center|ceo|cern|cf|cg|ch|channel|cheap|christmas|chrome|church|ci|citic|city|ck|cl|claims|cleaning|click|clinic|clothing|club|cm|cn|co|coach|codes|coffee|college|cologne|com|community|company|computer|condos|construction|consulting|contractors|cooking|cool|coop|country|cr|credit|creditcard|cricket|crs|cruises|cu|cuisinella|cv|cw|cx|cy|cymru|cz|dad|dance|dating|day|de|deals|degree|delivery|democrat|dental|dentist|desi|diamonds|diet|digital|direct|directory|discount|dj|dk|dm|dnp|do|domains|durban|dvag|dz|eat|ec|edu|education|ee|eg|email|emerck|energy|engineer|engineering|enterprises|equipment|er|es|esq|estate|et|eu|eurovision|eus|events|everbank|exchange|expert|exposed|fail|farm|fashion|feedback|fi|finance|financial|firmdale|fish|fishing|fitness|fj|fk|flights|florist|flsmidth|fly|fm|fo|foo|forsale|foundation|fr|frl|frogans|fund|furniture|futbol|ga|gal|gallery|gb|gbiz|gd|ge|gent|gf|gg|gh|gi|gift|gifts|gives|gl|glass|gle|global|globo|gm|gmail|gmo|gmx|gn|google|gop|gov|gp|gq|gr|graphics|gratis|green|gripe|gs|gt|gu|guide|guitars|guru|gw|gy|hamburg|haus|healthcare|help|here|hiphop|hiv|hk|hm|hn|holdings|holiday|homes|horse|host|hosting|house|how|hr|ht|hu|ibm|id|ie|il|im|immo|immobilien|in|industries|info|ing|ink|institute|insure|int|international|investments|io|iq|ir|irish|is|it|je|jetzt|jm|jo|jobs|joburg|jp|juegos|kaufen|ke|kg|kh|ki|kim|kitchen|kiwi|km|kn|koeln|kp|kr|krd|kred|kw|ky|kz|la|lacaixa|land|latrobe|lawyer|lb|lc|lds|lease|legal|lgbt|li|life|lighting|limited|limo|link|lk|loans|london|lotto|lr|ls|lt|ltda|lu|luxe|luxury|lv|ly|ma|madrid|maison|management|mango|market|marketing|mc|md|me|media|meet|melbourne|meme|memorial|menu|mg|mh|miami|mil|mini|mk|ml|mm|mn|mo|mobi|moda|moe|monash|money|mormon|mortgage|moscow|motorcycles|mov|mp|mq|mr|ms|mt|mu|museum|mv|mw|mx|my|mz|na|nagoya|name|navy|nc|ne|net|network|neustar|new|nexus|nf|ng|ngo|nhk|ni|ninja|nl|no|np|nr|nra|nrw|nu|nyc|nz|okinawa|om|ong|onl|ooo|org|organic|otsuka|ovh|pa|paris|partners|parts|party|pe|pf|pg|ph|pharmacy|photo|photography|photos|physio|pics|pictures|pink|pizza|pk|pl|place|plumbing|pm|pn|pohl|poker|porn|post|pr|praxi|press|pro|prod|productions|prof|properties|property|ps|pt|pub|pw|py|qa|qpon|quebec|re|realtor|recipes|red|rehab|reise|reisen|reit|ren|rentals|repair|report|republican|rest|restaurant|reviews|rich|rio|rip|ro|rocks|rodeo|rs|rsvp|ru|ruhr|rw|ryukyu|sa|saarland|sarl|sb|sc|sca|scb|schmidt|schule|science|scot|sd|se|services|sexy|sg|sh|shiksha|shoes|si|singles|sj|sk|sl|sm|sn|so|social|software|sohu|solar|solutions|soy|space|spiegel|sr|st|su|supplies|supply|support|surf|surgery|suzuki|sv|sx|sy|sydney|systems|sz|taipei|tatar|tattoo|tax|tc|td|technology|tel|tf|tg|th|tienda|tips|tirol|tj|tk|tl|tm|tn|to|today|tokyo|tools|top|town|toys|tp|tr|trade|training|travel|trust|tt|tui|tv|tw|tz|ua|ug|uk|university|uno|uol|us|uy|uz|va|vacations|vc|ve|vegas|ventures|versicherung|vet|vg|vi|viajes|villas|vision|vlaanderen|vn|vodka|vote|voting|voto|voyage|vu|wales|wang|watch|webcam|website|wed|wedding|wf|whoswho|wien|wiki|williamhill|wme|work|works|world|ws|wtc|wtf|xxx|xyz|yachts|yandex|ye|yoga|yokohama|youtube|yt|za|zip|zm|zone|zw".split("|"); // macro, see gulpfile.js
+
+var REGEXP_NUM = /[0-9]/,
+    REGEXP_ALPHANUM = /[a-z0-9]/,
+    COLON = ':';
+
+var domainStates = [],
+    // states that jump to DOMAIN on /[a-z0-9]/
+makeState = function makeState(tokenClass) {
+	return new _state.CharacterState(tokenClass);
+};
+
+var // Frequently used tokens
+T_DOMAIN = _tokens.text.DOMAIN,
+    T_LOCALHOST = _tokens.text.LOCALHOST,
+    T_NUM = _tokens.text.NUM,
+    T_PROTOCOL = _tokens.text.PROTOCOL,
+    T_TLD = _tokens.text.TLD,
+    T_WS = _tokens.text.WS;
+
+var // Frequently used states
+S_START = makeState(),
+    // start state
+S_NUM = makeState(T_NUM),
+    S_DOMAIN = makeState(T_DOMAIN),
+    S_DOMAIN_HYPHEN = makeState(),
+    // domain followed by 1 or more hyphen characters
+S_WS = makeState(T_WS);
+
+// States for special URL symbols
+S_START.on('@', makeState(_tokens.text.AT));
+S_START.on('.', makeState(_tokens.text.DOT));
+S_START.on('+', makeState(_tokens.text.PLUS));
+S_START.on('#', makeState(_tokens.text.POUND));
+S_START.on('?', makeState(_tokens.text.QUERY));
+S_START.on('/', makeState(_tokens.text.SLASH));
+S_START.on(COLON, makeState(_tokens.text.COLON));
+S_START.on(/[,;!]/, makeState(_tokens.text.PUNCTUATION));
+
+// Whitespace jumps
+// Tokens of only non-newline whitespace are arbitrarily long
+S_START.on(/\n/, makeState(_tokens.text.NL));
+S_START.on(/\s/, S_WS);
+S_WS.on(/[^\S\n]/, S_WS); // If any whitespace except newline, more whitespace!
+
+// Generates states for top-level domains
+// Note that this is most accurate when tlds are in alphabetical order
+for (var i = 0; i < tlds.length; i++) {
+	var newStates = _state.stateify(tlds[i], S_START, T_TLD, T_DOMAIN);
+	domainStates.push.apply(domainStates, newStates);
+}
+
+// Collect the states generated by different protocls
+var partialProtocolFileStates = _state.stateify('file', S_START, T_DOMAIN, T_DOMAIN),
+    partialProtocolFtpStates = _state.stateify('ftp', S_START, T_DOMAIN, T_DOMAIN),
+    partialProtocolHttpStates = _state.stateify('http', S_START, T_DOMAIN, T_DOMAIN);
+
+// Add the states to the array of DOMAINeric states
+domainStates.push.apply(domainStates, partialProtocolFileStates);
+domainStates.push.apply(domainStates, partialProtocolFtpStates);
+domainStates.push.apply(domainStates, partialProtocolHttpStates);
+
+var // Protocol states
+S_PROTOCOL_FILE = partialProtocolFileStates.pop(),
+    S_PROTOCOL_FTP = partialProtocolFtpStates.pop(),
+    S_PROTOCOL_HTTP = partialProtocolHttpStates.pop(),
+    S_PROTOCOL_SECURE = makeState(T_DOMAIN),
+    S_FULL_PROTOCOL = makeState(T_PROTOCOL); // Full protocol ends with COLON
+
+// Secure protocols (end with 's')
+S_PROTOCOL_FTP.on('s', S_PROTOCOL_SECURE);
+S_PROTOCOL_HTTP.on('s', S_PROTOCOL_SECURE);
+domainStates.push(S_PROTOCOL_SECURE);
+
+// Become protocol tokens after a COLON
+S_PROTOCOL_FILE.on(COLON, S_FULL_PROTOCOL);
+S_PROTOCOL_FTP.on(COLON, S_FULL_PROTOCOL);
+S_PROTOCOL_HTTP.on(COLON, S_FULL_PROTOCOL);
+S_PROTOCOL_SECURE.on(COLON, S_FULL_PROTOCOL);
+
+// Localhost
+var partialLocalhostStates = _state.stateify('localhost', S_START, T_LOCALHOST, T_DOMAIN);
+domainStates.push.apply(domainStates, partialLocalhostStates);
+
+// Everything else
+// DOMAINs make more DOMAINs
+// Number and character transitions
+S_START.on(REGEXP_NUM, S_NUM);
+S_NUM.on('-', S_DOMAIN_HYPHEN);
+S_NUM.on(REGEXP_NUM, S_NUM);
+S_NUM.on(REGEXP_ALPHANUM, S_DOMAIN); // number becomes DOMAIN
+S_DOMAIN.on('-', S_DOMAIN_HYPHEN);
+S_DOMAIN.on(REGEXP_ALPHANUM, S_DOMAIN);
+
+// All the generated states should have a jump to DOMAIN
+for (var i = 0; i < domainStates.length; i++) {
+	domainStates[i].on('-', S_DOMAIN_HYPHEN);
+	domainStates[i].on(REGEXP_ALPHANUM, S_DOMAIN);
+}
+
+S_DOMAIN_HYPHEN.on('-', S_DOMAIN_HYPHEN);
+S_DOMAIN_HYPHEN.on(REGEXP_NUM, S_DOMAIN);
+S_DOMAIN_HYPHEN.on(REGEXP_ALPHANUM, S_DOMAIN);
+
+// Any other character is considered a single symbol token
+S_START.on(/./, makeState(_tokens.text.SYM));
+
+/**
+	Given a string, returns an array of TOKEN instances representing the
+	composition of that string.
+
+	@method run
+	@param {String} str Input string to scan
+	@return {Array} Array of TOKEN instances
+*/
+var run = function run(str) {
+
+	// The state machine only looks at lowercase strings.
+	// This selective `toLowerCase` is used because lowercasing the entire
+	// string causes the length and character position to vary in some in some
+	// non-English strings. This happens only on V8-based runtimes.
+	var lowerStr = str.replace(/[A-Z]/g, function (c) {
+		return c.toLowerCase();
+	});
+	var len = str.length;
+	var tokens = []; // return value
+
+	var cursor = 0;
+
+	// Tokenize the string
+	while (cursor < len) {
+
+		var state = S_START,
+		    secondState = null,
+		    nextState = null,
+		    tokenLength = 0,
+		    latestAccepting = null,
+		    sinceAccepts = -1;
+
+		while (cursor < len && (nextState = state.next(lowerStr[cursor]))) {
+			secondState = null;
+			state = nextState;
+
+			// Keep track of the latest accepting state
+			if (state.accepts()) {
+				sinceAccepts = 0;
+				latestAccepting = state;
+			} else if (sinceAccepts >= 0) {
+				sinceAccepts++;
+			}
+
+			tokenLength++;
+			cursor++;
+		}
+
+		if (sinceAccepts < 0) continue; // Should never happen
+
+		// Roll back to the latest accepting state
+		cursor -= sinceAccepts;
+		tokenLength -= sinceAccepts;
+
+		// Get the class for the new token
+		var TOKEN = latestAccepting.emit(); // Current token class
+
+		// No more jumps, just make a new token
+		tokens.push(new TOKEN(str.substr(cursor - tokenLength, tokenLength)));
+	}
+
+	return tokens;
+};
+
+var start = S_START;
+exports.State = _state.CharacterState;
+exports.TOKENS = _tokens.text;
+exports.run = run;
+exports.start = start;
+},{"./state":6,"./tokens":7}],6:[function(require,module,exports){
+
+/**
+	A simple state machine that can emit token classes
+
+	The `j` property in this class refers to state jumps. It's a
+	multidimensional array where for each element:
+
+	* index [0] is a symbol or class of symbols to transition to.
+	* index [1] is a State instance which matches
+
+	The type of symbol will depend on the target implementation for this class.
+	In Linkify, we have a two-stage scanner. Each stage uses this state machine
+	but with a slighly different (polymorphic) implementation.
+
+	The `T` property refers to the token class.
+
+	TODO: Can the `on` and `next` methods be combined?
+
+	@class BaseState
+*/
+"use strict";
+
+exports.__esModule = true;
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var BaseState = (function () {
+
+	/**
+ 	@method constructor
+ 	@param {Class} tClass Pass in the kind of token to emit if there are
+ 		no jumps after this state and the state is accepting.
+ */
+
+	function BaseState(tClass) {
+		_classCallCheck(this, BaseState);
+
+		this.j = [];
+		this.T = tClass || null;
+	}
+
+	/**
+ 	State machine for string-based input
+ 
+ 	@class CharacterState
+ 	@extends BaseState
+ */
+
+	/**
+ 	On the given symbol(s), this machine should go to the given state
+ 		@method on
+ 	@param {Array|Mixed} symbol
+ 	@param {BaseState} state Note that the type of this state should be the
+ 		same as the current instance (i.e., don't pass in a different
+ 		subclass)
+ */
+
+	BaseState.prototype.on = function on(symbol, state) {
+		if (symbol instanceof Array) {
+			for (var i = 0; i < symbol.length; i++) {
+				this.j.push([symbol[i], state]);
+			}
+			return;
+		}
+		this.j.push([symbol, state]);
+	};
+
+	/**
+ 	Given the next item, returns next state for that item
+ 	@method next
+ 	@param {Mixed} item Should be an instance of the symbols handled by
+ 		this particular machine.
+ 	@return {State} state Returns false if no jumps are available
+ */
+
+	BaseState.prototype.next = function next(item) {
+
+		for (var i = 0; i < this.j.length; i++) {
+
+			var jump = this.j[i],
+			    symbol = jump[0],
+			    // Next item to check for
+			state = jump[1]; // State to jump to if items match
+
+			// compare item with symbol
+			if (this.test(item, symbol)) return state;
+		}
+
+		// Nowhere left to jump!
+		return false;
+	};
+
+	/**
+ 	Does this state accept?
+ 	`true` only of `this.T` exists
+ 		@method accepts
+ 	@return {Boolean}
+ */
+
+	BaseState.prototype.accepts = function accepts() {
+		return !!this.T;
+	};
+
+	/**
+ 	Determine whether a given item "symbolizes" the symbol, where symbol is
+ 	a class of items handled by this state machine.
+ 		This method should be overriden in extended classes.
+ 		@method test
+ 	@param {Mixed} item Does this item match the given symbol?
+ 	@param {Mixed} symbol
+ 	@return {Boolean}
+ */
+
+	BaseState.prototype.test = function test(item, symbol) {
+		return item === symbol;
+	};
+
+	/**
+ 	Emit the token for this State (just return it in this case)
+ 	If this emits a token, this instance is an accepting state
+ 	@method emit
+ 	@return {Class} T
+ */
+
+	BaseState.prototype.emit = function emit() {
+		return this.T;
+	};
+
+	return BaseState;
+})();
+
+var CharacterState = (function (_BaseState) {
+	_inherits(CharacterState, _BaseState);
+
+	function CharacterState() {
+		_classCallCheck(this, CharacterState);
+
+		_BaseState.apply(this, arguments);
+	}
+
+	/**
+ 	State machine for input in the form of TextTokens
+ 
+ 	@class TokenState
+ 	@extends BaseState
+ */
+
+	/**
+ 	Does the given character match the given character or regular
+ 	expression?
+ 		@method test
+ 	@param {String} char
+ 	@param {String|RegExp} charOrRegExp
+ 	@return {Boolean}
+ */
+
+	CharacterState.prototype.test = function test(character, charOrRegExp) {
+		return character === charOrRegExp || charOrRegExp instanceof RegExp && charOrRegExp.test(character);
+	};
+
+	return CharacterState;
+})(BaseState);
+
+var TokenState = (function (_BaseState2) {
+	_inherits(TokenState, _BaseState2);
+
+	function TokenState() {
+		_classCallCheck(this, TokenState);
+
+		_BaseState2.apply(this, arguments);
+	}
+
+	/**
+ 	Given a non-empty target string, generates states (if required) for each
+ 	consecutive substring of characters in str starting from the beginning of
+ 	the string. The final state will have a special value, as specified in
+ 	options. All other "in between" substrings will have a default end state.
+ 
+ 	This turns the state machine into a Trie-like data structure (rather than a
+ 	intelligently-designed DFA).
+ 
+ 	Note that I haven't really tried these with any strings other than
+ 	DOMAIN.
+ 
+ 	@param {String} str
+ 	@param {CharacterState} start State to jump from the first character
+ 	@param {Class} endToken Token class to emit when the given string has been
+ 		matched and no more jumps exist.
+ 	@param {Class} defaultToken "Filler token", or which token type to emit when
+ 		we don't have a full match
+ 	@return {Array} list of newly-created states
+ */
+
+	/**
+ 	Is the given token an instance of the given token class?
+ 		@method test
+ 	@param {TextToken} token
+ 	@param {Class} tokenClass
+ 	@return {Boolean}
+ */
+
+	TokenState.prototype.test = function test(token, tokenClass) {
+		return token instanceof tokenClass;
+	};
+
+	return TokenState;
+})(BaseState);
+
+function stateify(str, start, endToken, defaultToken) {
+
+	var i = 0,
+	    len = str.length,
+	    state = start,
+	    newStates = [],
+	    nextState = undefined;
+
+	// Find the next state without a jump to the next character
+	while (i < len && (nextState = state.next(str[i]))) {
+		state = nextState;
+		i++;
+	}
+
+	if (i >= len) return []; // no new tokens were added
+
+	while (i < len - 1) {
+		nextState = new CharacterState(defaultToken);
+		newStates.push(nextState);
+		state.on(str[i], nextState);
+		state = nextState;
+		i++;
+	}
+
+	nextState = new CharacterState(endToken);
+	newStates.push(nextState);
+	state.on(str[len - 1], nextState);
+
+	return newStates;
+}
+
+exports.CharacterState = CharacterState;
+exports.TokenState = TokenState;
+exports.stateify = stateify;
+},{}],7:[function(require,module,exports){
+/******************************************************************************
+	Text Tokens
+	Tokens composed of strings
+******************************************************************************/
+
+/**
+	Abstract class used for manufacturing text tokens.
+	Pass in the value this token represents
+
+	@class TextToken
+	@abstract
+*/
+'use strict';
+
+exports.__esModule = true;
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var TextToken = (function () {
+	/**
+ 	@method constructor
+ 	@param {String} value The string of characters representing this particular Token
+ */
+
+	function TextToken(value) {
+		_classCallCheck(this, TextToken);
+
+		this.v = value;
+	}
+
+	/**
+ 	A valid domain token
+ 	@class DOMAIN
+ 	@extends TextToken
+ */
+
+	/**
+ 	String representing the type for this token
+ 	@property type
+ 	@default 'TOKEN'
+ */
+
+	TextToken.prototype.toString = function toString() {
+		return this.v + '';
+	};
+
+	return TextToken;
+})();
+
+var DOMAIN = (function (_TextToken) {
+	_inherits(DOMAIN, _TextToken);
+
+	function DOMAIN() {
+		_classCallCheck(this, DOMAIN);
+
+		_TextToken.apply(this, arguments);
+	}
+
+	/**
+ 	@class AT
+ 	@extends TextToken
+ */
+	return DOMAIN;
+})(TextToken);
+
+var AT = (function (_TextToken2) {
+	_inherits(AT, _TextToken2);
+
+	function AT() {
+		_classCallCheck(this, AT);
+
+		_TextToken2.call(this, '@');
+	}
+
+	/**
+ 	Represents a single colon `:` character
+ 
+ 	@class COLON
+ 	@extends TextToken
+ */
+	return AT;
+})(TextToken);
+
+var COLON = (function (_TextToken3) {
+	_inherits(COLON, _TextToken3);
+
+	function COLON() {
+		_classCallCheck(this, COLON);
+
+		_TextToken3.call(this, ':');
+	}
+
+	/**
+ 	@class DOT
+ 	@extends TextToken
+ */
+	return COLON;
+})(TextToken);
+
+var DOT = (function (_TextToken4) {
+	_inherits(DOT, _TextToken4);
+
+	function DOT() {
+		_classCallCheck(this, DOT);
+
+		_TextToken4.call(this, '.');
+	}
+
+	/**
+ 	A character class that can surround the URL, but which the URL cannot begin
+ 	or end with. Does not include certain English punctuation like parentheses.
+ 
+ 	@class PUNCTUATION
+ 	@extends TextToken
+ */
+	return DOT;
+})(TextToken);
+
+var PUNCTUATION = (function (_TextToken5) {
+	_inherits(PUNCTUATION, _TextToken5);
+
+	function PUNCTUATION() {
+		_classCallCheck(this, PUNCTUATION);
+
+		_TextToken5.apply(this, arguments);
+	}
+
+	/**
+ 	The word localhost (by itself)
+ 	@class LOCALHOST
+ 	@extends TextToken
+ */
+	return PUNCTUATION;
+})(TextToken);
+
+var LOCALHOST = (function (_TextToken6) {
+	_inherits(LOCALHOST, _TextToken6);
+
+	function LOCALHOST() {
+		_classCallCheck(this, LOCALHOST);
+
+		_TextToken6.apply(this, arguments);
+	}
+
+	/**
+ 	Newline token
+ 	@class TNL
+ 	@extends TextToken
+ */
+	return LOCALHOST;
+})(TextToken);
+
+var TNL = (function (_TextToken7) {
+	_inherits(TNL, _TextToken7);
+
+	function TNL() {
+		_classCallCheck(this, TNL);
+
+		_TextToken7.call(this, '\n');
+	}
+
+	/**
+ 	@class NUM
+ 	@extends TextToken
+ */
+	return TNL;
+})(TextToken);
+
+var NUM = (function (_TextToken8) {
+	_inherits(NUM, _TextToken8);
+
+	function NUM() {
+		_classCallCheck(this, NUM);
+
+		_TextToken8.apply(this, arguments);
+	}
+
+	/**
+ 	@class PLUS
+ 	@extends TextToken
+ */
+	return NUM;
+})(TextToken);
+
+var PLUS = (function (_TextToken9) {
+	_inherits(PLUS, _TextToken9);
+
+	function PLUS() {
+		_classCallCheck(this, PLUS);
+
+		_TextToken9.call(this, '+');
+	}
+
+	/**
+ 	@class POUND
+ 	@extends TextToken
+ */
+	return PLUS;
+})(TextToken);
+
+var POUND = (function (_TextToken10) {
+	_inherits(POUND, _TextToken10);
+
+	function POUND() {
+		_classCallCheck(this, POUND);
+
+		_TextToken10.call(this, '#');
+	}
+
+	/**
+ 	Represents a web URL protocol. Supported types include
+ 
+ 	* `http:`
+ 	* `https:`
+ 	* `ftp:`
+ 	* `ftps:`
+ 	* There's Another super weird one
+ 
+ 	@class PROTOCOL
+ 	@extends TextToken
+ */
+	return POUND;
+})(TextToken);
+
+var PROTOCOL = (function (_TextToken11) {
+	_inherits(PROTOCOL, _TextToken11);
+
+	function PROTOCOL() {
+		_classCallCheck(this, PROTOCOL);
+
+		_TextToken11.apply(this, arguments);
+	}
+
+	/**
+ 	@class QUERY
+ 	@extends TextToken
+ */
+	return PROTOCOL;
+})(TextToken);
+
+var QUERY = (function (_TextToken12) {
+	_inherits(QUERY, _TextToken12);
+
+	function QUERY() {
+		_classCallCheck(this, QUERY);
+
+		_TextToken12.call(this, '?');
+	}
+
+	/**
+ 	@class SLASH
+ 	@extends TextToken
+ */
+	return QUERY;
+})(TextToken);
+
+var SLASH = (function (_TextToken13) {
+	_inherits(SLASH, _TextToken13);
+
+	function SLASH() {
+		_classCallCheck(this, SLASH);
+
+		_TextToken13.call(this, '/');
+	}
+
+	/**
+ 	One ore more non-whitespace symbol.
+ 	@class SYM
+ 	@extends TextToken
+ */
+	return SLASH;
+})(TextToken);
+
+var SYM = (function (_TextToken14) {
+	_inherits(SYM, _TextToken14);
+
+	function SYM() {
+		_classCallCheck(this, SYM);
+
+		_TextToken14.apply(this, arguments);
+	}
+
+	/**
+ 	@class TLD
+ 	@extends TextToken
+ */
+	return SYM;
+})(TextToken);
+
+var TLD = (function (_TextToken15) {
+	_inherits(TLD, _TextToken15);
+
+	function TLD() {
+		_classCallCheck(this, TLD);
+
+		_TextToken15.apply(this, arguments);
+	}
+
+	/**
+ 	Represents a string of consecutive whitespace characters
+ 
+ 	@class WS
+ 	@extends TextToken
+ */
+	return TLD;
+})(TextToken);
+
+var WS = (function (_TextToken16) {
+	_inherits(WS, _TextToken16);
+
+	function WS() {
+		_classCallCheck(this, WS);
+
+		_TextToken16.apply(this, arguments);
+	}
+
+	return WS;
+})(TextToken);
+
+var text = {
+	Base: TextToken,
+	DOMAIN: DOMAIN,
+	AT: AT,
+	COLON: COLON,
+	DOT: DOT,
+	PUNCTUATION: PUNCTUATION,
+	LOCALHOST: LOCALHOST,
+	NL: TNL,
+	NUM: NUM,
+	PLUS: PLUS,
+	POUND: POUND,
+	QUERY: QUERY,
+	PROTOCOL: PROTOCOL,
+	SLASH: SLASH,
+	SYM: SYM,
+	TLD: TLD,
+	WS: WS
+};
+
+/******************************************************************************
+	Multi-Tokens
+	Tokens composed of arrays of TextTokens
+******************************************************************************/
+
+// Is the given token a valid domain token?
+// Should nums be included here?
+function isDomainToken(token) {
+	return token instanceof DOMAIN || token instanceof TLD;
+}
+
+/**
+	Abstract class used for manufacturing tokens of text tokens. That is rather
+	than the value for a token being a small string of text, it's value an array
+	of text tokens.
+
+	Used for grouping together URLs, emails, hashtags, and other potential
+	creations.
+
+	@class MultiToken
+	@abstract
+*/
+
+var MultiToken = (function () {
+	/**
+ 	@method constructor
+ 	@param {Array} value The array of `TextToken`s representing this
+ 	particular MultiToken
+ */
+
+	function MultiToken(value) {
+		_classCallCheck(this, MultiToken);
+
+		this.v = value;
+
+		/**
+  	String representing the type for this token
+  	@property type
+  	@default 'TOKEN'
+  */
+		this.type = 'token';
+
+		/**
+  	Is this multitoken a link?
+  	@property isLink
+  	@default false
+  */
+		this.isLink = false;
+	}
+
+	/**
+ 	Represents a list of tokens making up a valid email address
+ 	@class EMAIL
+ 	@extends MultiToken
+ */
+
+	/**
+ 	Return the string this token represents.
+ 	@method toString
+ 	@return {String}
+ */
+
+	MultiToken.prototype.toString = function toString() {
+		var result = [];
+		for (var i = 0; i < this.v.length; i++) {
+			result.push(this.v[i].toString());
+		}
+		return result.join('');
+	};
+
+	/**
+ 	What should the value for this token be in the `href` HTML attribute?
+ 	Returns the `.toString` value by default.
+ 		@method toHref
+ 	@return {String}
+ */
+
+	MultiToken.prototype.toHref = function toHref() {
+		return this.toString();
+	};
+
+	/**
+ 	Returns a hash of relevant values for this token, which includes keys
+ 	* type - Kind of token ('url', 'email', etc.)
+ 	* value - Original text
+ 	* href - The value that should be added to the anchor tag's href
+ 		attribute
+ 		@method toObject
+ 	@param {String} [protocol] `'http'` by default
+ 	@return {Object}
+ */
+
+	MultiToken.prototype.toObject = function toObject() {
+		var protocol = arguments.length <= 0 || arguments[0] === undefined ? 'http' : arguments[0];
+
+		return {
+			type: this.type,
+			value: this.toString(),
+			href: this.toHref(protocol)
+		};
+	};
+
+	return MultiToken;
+})();
+
+var EMAIL = (function (_MultiToken) {
+	_inherits(EMAIL, _MultiToken);
+
+	function EMAIL(value) {
+		_classCallCheck(this, EMAIL);
+
+		_MultiToken.call(this, value);
+		this.type = 'email';
+		this.isLink = true;
+	}
+
+	/**
+ 	Represents some plain text
+ 	@class TEXT
+ 	@extends MultiToken
+ */
+
+	EMAIL.prototype.toHref = function toHref() {
+		return 'mailto:' + this.toString();
+	};
+
+	return EMAIL;
+})(MultiToken);
+
+var TEXT = (function (_MultiToken2) {
+	_inherits(TEXT, _MultiToken2);
+
+	function TEXT(value) {
+		_classCallCheck(this, TEXT);
+
+		_MultiToken2.call(this, value);
+		this.type = 'text';
+	}
+
+	/**
+ 	Multi-linebreak token - represents a line break
+ 	@class MNL
+ 	@extends MultiToken
+ */
+	return TEXT;
+})(MultiToken);
+
+var MNL = (function (_MultiToken3) {
+	_inherits(MNL, _MultiToken3);
+
+	function MNL(value) {
+		_classCallCheck(this, MNL);
+
+		_MultiToken3.call(this, value);
+		this.type = 'nl';
+	}
+
+	/**
+ 	Represents a list of tokens making up a valid URL
+ 	@class URL
+ 	@extends MultiToken
+ */
+	return MNL;
+})(MultiToken);
+
+var URL = (function (_MultiToken4) {
+	_inherits(URL, _MultiToken4);
+
+	function URL(value) {
+		_classCallCheck(this, URL);
+
+		_MultiToken4.call(this, value);
+		this.type = 'url';
+		this.isLink = true;
+	}
+
+	/**
+ 	Lowercases relevant parts of the domain and adds the protocol if
+ 	required. Note that this will not escape unsafe HTML characters in the
+ 	URL.
+ 		@method href
+ 	@param {String} protocol
+ 	@return {String}
+ */
+
+	URL.prototype.toHref = function toHref() {
+		var protocol = arguments.length <= 0 || arguments[0] === undefined ? 'http' : arguments[0];
+
+		var hasProtocol = false,
+		    hasSlashSlash = false,
+		    tokens = this.v,
+		    result = [],
+		    i = 0;
+
+		// Make the first part of the domain lowercase
+		// Lowercase protocol
+		while (tokens[i] instanceof PROTOCOL) {
+			hasProtocol = true;
+			result.push(tokens[i].toString().toLowerCase());
+			i++;
+		}
+
+		// Skip slash-slash
+		while (tokens[i] instanceof SLASH) {
+			hasSlashSlash = true;
+			result.push(tokens[i].toString());
+			i++;
+		}
+
+		// Lowercase all other characters in the domain
+		while (isDomainToken(tokens[i])) {
+			result.push(tokens[i].toString().toLowerCase());
+			i++;
+		}
+
+		// Leave all other characters as they were written
+		for (; i < tokens.length; i++) {
+			result.push(tokens[i].toString());
+		}
+
+		result = result.join('');
+
+		if (!(hasProtocol || hasSlashSlash)) {
+			result = protocol + '://' + result;
+		}
+
+		return result;
+	};
+
+	URL.prototype.hasProtocol = function hasProtocol() {
+		return this.v[0] instanceof PROTOCOL;
+	};
+
+	return URL;
+})(MultiToken);
+
+var multi = {
+	Base: MultiToken,
+	EMAIL: EMAIL,
+	NL: MNL,
+	TEXT: TEXT,
+	URL: URL
+};
+
+exports.text = text;
+exports.multi = multi;
+},{}],8:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+function noop(val) {
+	return val;
+}
+
+function typeToTarget(href, type) {
+	return type === 'url' ? '_blank' : null;
+}
+
+function normalize(opts) {
+	opts = opts || {};
+	var newLine = opts.newLine || false; // deprecated
+	return {
+		attributes: opts.linkAttributes || null,
+		defaultProtocol: opts.defaultProtocol || 'http',
+		events: opts.events || null,
+		format: opts.format || noop,
+		formatHref: opts.formatHref || noop,
+		newLine: opts.newLine || false, // deprecated
+		nl2br: !!newLine || opts.nl2br || false,
+		tagName: opts.tagName || 'a',
+		target: opts.target || typeToTarget,
+		linkClass: opts.linkClass || 'linkified'
+	};
+}
+
+function resolve(value) {
+	for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+		params[_key - 1] = arguments[_key];
+	}
+
+	return typeof value === 'function' ? value.apply(undefined, params) : value;
+}
+
+exports.normalize = normalize;
+exports.resolve = resolve;
+},{}],9:[function(require,module,exports){
+module.exports = require('./lib/linkify-string');
+
+},{"./lib/linkify-string":2}],10:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -91,7 +1613,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],2:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /**
  * Service for sending network requests.
  */
@@ -253,7 +1775,7 @@ module.exports = function (_) {
     return _.http = Http;
 };
 
-},{"./lib/jsonp":4,"./lib/promise":5,"./lib/xhr":7}],3:[function(require,module,exports){
+},{"./lib/jsonp":13,"./lib/promise":14,"./lib/xhr":16}],12:[function(require,module,exports){
 /**
  * Install plugin.
  */
@@ -294,7 +1816,7 @@ if (window.Vue) {
 }
 
 module.exports = install;
-},{"./http":2,"./lib/util":6,"./resource":8,"./url":9}],4:[function(require,module,exports){
+},{"./http":11,"./lib/util":15,"./resource":17,"./url":18}],13:[function(require,module,exports){
 /**
  * JSONP request.
  */
@@ -346,7 +1868,7 @@ module.exports = function (_, options) {
 
 };
 
-},{"./promise":5}],5:[function(require,module,exports){
+},{"./promise":14}],14:[function(require,module,exports){
 /**
  * Promises/A+ polyfill v1.1.0 (https://github.com/bramstein/promis)
  */
@@ -558,7 +2080,7 @@ if (window.MutationObserver) {
 
 module.exports = window.Promise || Promise;
 
-},{}],6:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /**
  * Utility functions.
  */
@@ -640,7 +2162,7 @@ module.exports = function (Vue) {
     return _;
 };
 
-},{}],7:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /**
  * XMLHttp request.
  */
@@ -693,7 +2215,7 @@ module.exports = function (_, options) {
     return promise;
 };
 
-},{"./promise":5}],8:[function(require,module,exports){
+},{"./promise":14}],17:[function(require,module,exports){
 /**
  * Service for interacting with RESTful services.
  */
@@ -806,7 +2328,7 @@ module.exports = function (_) {
     return _.resource = Resource;
 };
 
-},{}],9:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /**
  * Service for URL templating.
  */
@@ -965,7 +2487,7 @@ module.exports = function (_) {
     return _.url = Url;
 };
 
-},{}],10:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function (process){
 /*!
  * Vue.js v1.0.10
@@ -10270,19 +11792,27 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = Vue;
 }).call(this,require('_process'))
-},{"_process":1}],11:[function(require,module,exports){
+},{"_process":10}],20:[function(require,module,exports){
 'use strict';
 
 var app,
     Vue = require('vue'),
-    Resource = require('vue-resource');
+    Resource = require('vue-resource'),
+    linkify = require('linkifyjs'),
+    linkifyStr = require('linkifyjs/string');
+
+// require('linkifyjs/plugin/hashtag')(linkify); // optional
 
 Vue.config.debug = true;
 
 // Import vue-resource and configure to use the csrf token in all requests,
 // in which I put him in a meta tag in home.blade.php
 Vue.use(Resource);
-// Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('#token').getAttribute('value');
+Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('#_token').getAttribute('value');
+
+Vue.filter('linkify', function (text) {
+    return linkifyStr(text);
+});
 
 /**
  * Main APP
@@ -10292,10 +11822,10 @@ app = new Vue({
     el: '#app',
 
     components: {
-        'videos-list': require('./components/VideosList')
+        'videos-list': require('./components/VideosList'),
+        'video-page': require('./components/VideoPage')
     },
 
-    // 'video-page': require('./components/VideoPage')
     ready: function ready() {
         // Floating-Fixed table of contents
         // if (jQuery('nav').length) {
@@ -10374,7 +11904,7 @@ app = new Vue({
 
 // // router.init();
 
-},{"./components/VideosList":14,"vue":10,"vue-resource":3}],12:[function(require,module,exports){
+},{"./components/VideoPage":23,"./components/VideosList":25,"linkifyjs":1,"linkifyjs/string":9,"vue":19,"vue-resource":12}],21:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -10384,20 +11914,148 @@ module.exports = {
 
     replace: true,
 
+    // data: function() {
+    //     return {
+    //         id: '',
+    //         url: '',
+    //         thumbnail: '',
+    //         title: '',
+    //         source: ''
+    //     };
+    // },
+
+    methods: {
+        saveForLater: function saveForLater(stuff) {
+            var parameters = {
+                original_id: this.video.original_id
+            };
+
+            console.log(parameters);
+
+            this.$http.post('/api/user/watch-later', parameters, function (homeVideos) {
+                alert('success bitches');
+            });
+        }
+    }
+};
+
+},{"./VideoCard.template.html":22}],22:[function(require,module,exports){
+module.exports = '<div class="col s4 video {{ video.source }}">\n    <div class="card hoverable">\n        <div class="card-image">\n            <a href="{{ video.custom_url }}">\n                <img :src="video.thumbnail" alt="{{ video.title }}" />\n            </a>\n            <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.custom_url }}"></span>\n\n            <span class="video-source {{ video.source }}">\n                {{ video.source }}\n            </span>\n        </div>\n        <div class="card-content">\n            <!-- <h1 class="card-title"> -->\n            <!-- <p class="flow-text"> -->\n            <a href="{{ video.custom_url }}" class="black-text">\n                {{ video.title }}\n            </a>\n            <!-- </h1> -->\n        </div>\n        <!-- <div class="card-action">\n            <a href="{{ video.custom_url }}" title="{{ video.title }}">\n                Watch video\n            </a>\n            <a href="#" v-on:click="saveForLater()">\n                Watch later\n            </a>\n        </div> -->\n\n\n        <!-- <div class="tile-sidebar hidden">\n            <ul class="list-unstyled" style="position: relative;">\n                <li>\n                    <button class="close">\n                        <span class="fui-time text-muted"\n                              data-toggle="tooltip" title="5:30"></span>\n                    </button>\n                </li>\n                <?php if (isset($video[\'category\'])): ?>\n                <li>\n                    <button class="dropdown-toggle" data-toggle="dropdown">\n                        <span class="fui-list text-muted"></span>\n                    </button>\n                    <span class="dropdown-arrow dropdown-arrow-inverse"></span>\n                    <ul class="dropdown-menu dropdown-inverse">\n                        <?php foreach($video[\'category\'] as $category): ?>\n                        <li>\n                            <a href="/category/<?= $category ?>"> <?= $category ?> </a>\n                        </li>\n                        <?php endforeach; ?>\n                    </ul>\n                </li>\n                <?php endif; ?>\n            </ul>\n        </div> -->\n    </div>\n</div>\n';
+},{}],23:[function(require,module,exports){
+'use strict';
+
+module.exports = {
+    template: require('./VideoPage.template.html'),
+
+    props: ['video'],
+
+    replace: true,
+
     data: function data() {
         return {
             id: '',
             url: '',
-            thumbnail: '',
             title: '',
-            source: ''
+            duration: '',
+            views: '',
+            description: '',
+            tags: [],
+            related: []
         };
+    },
+
+    ready: function ready() {
+        // var videoDetailsHeight = $('#video-details').height();
+
+        // function videoDetailsReadMore() {
+
+        // }
+
+        $('#video-details').readmore({
+            collapsedHeight: 150
+        });
+
+        videojs.options.flash.swf = "/dist/misc/video-js.swf";
+
+        var title = encodeURIComponent(document.title),
+            url = encodeURI(window.location.href);
+
+        var facebookUrl = 'http://www.facebook.com/sharer.php?u=' + url + '&t=' + title,
+            tuentiUrl = 'http://www.tuenti.com/?m=Share&func=index&url=' + url + '&suggested-text=',
+            twitterUrl = 'https://twitter.com/intent/tweet?url=' + url + '&text=' + title + '&via=videouri';
+
+        $('#facebook-share').attr('href', facebookUrl);
+        $('#tuenti-share').attr('href', tuentiUrl);
+        $('#twitter-share').attr('href', twitterUrl);
+
+        $('.popup').click(function (event) {
+            var width = 575,
+                height = 400,
+                left = ($(window).width() - width) / 2,
+                top = ($(window).height() - height) / 2,
+                url = this.href,
+                title = $(this).attr('id'),
+                opts = 'status=1' + ',width=' + width + ',height=' + height + ',top=' + top + ',left=' + left;
+
+            window.open(url, title, opts);
+
+            return false;
+        });
+
+        var videoContainer = $('#videoPlayer'),
+            videoSource = videoContainer.data('src'),
+            videoUrl = videoContainer.data('url');
+
+        videojs('videoPlayer', { "techOrder": [videoSource], "src": videoUrl }).ready(function () {
+
+            // You can use the video.js events even though we use the vimeo controls
+            // As you can see here, we change the background to red when the video is paused and set it back when unpaused
+            // this.on('pause', function() {
+            //     document.body.style.backgroundColor = 'red';
+            // });
+
+            // this.on('play', function() {
+            //     document.body.style.backgroundColor = '';
+            // });
+
+            // You can also change the video when you want
+            // Here we cue a second video once the first is done
+            // this.one('ended', function() {
+            //     this.src('http://vimeo.com/79380715');
+            //     this.play();
+            // });
+        });
+
+        ////////////
+        // Disqus //
+        ////////////
+        function initializeDisqus() {
+            /*
+            var disqus_config = function () {
+            this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+            */
+            (function () {
+                // DON'T EDIT BELOW THIS LINE
+                var d = document,
+                    s = d.createElement('script');
+                s.src = '//videouri.disqus.com/embed.js';
+
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
+            })();
+        }
+
+        if (window.location.hostname !== 'local.videouri.com') {
+            initializeDisqus();
+        }
     }
 };
 
-},{"./VideoCard.template.html":13}],13:[function(require,module,exports){
-module.exports = '<div class="col s4 video {{ video.source }}">\n    <div class="card hoverable">\n        <div class="card-image">\n            <a href="{{ video.url }}">\n                <img :src="video.thumbnail" alt="{{ video.title }}" />\n            </a>\n            <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.url }}"></span>\n\n            <span class="video-source {{ video.source }}">\n                {{ video.source }}\n            </span>\n        </div>\n        <div class="card-content">\n            <!-- <h1 class="card-title"> -->\n            <!-- <p class="flow-text"> -->\n            <p>\n                {{ video.title }}\n            </p>\n            <!-- </h1> -->\n        </div>\n        <div class="card-action">\n            <a href="{{ video.url }}" title="{{ video.title }}">\n                View video\n            </a>\n            <a href="#!">\n                Watch later\n            </a>\n        </div>\n\n\n        <!-- <div class="tile-sidebar hidden">\n            <ul class="list-unstyled" style="position: relative;">\n                <li>\n                    <button class="close">\n                        <span class="fui-time text-muted"\n                              data-toggle="tooltip" title="5:30"></span>\n                    </button>\n                </li>\n                <?php if (isset($video[\'category\'])): ?>\n                <li>\n                    <button class="dropdown-toggle" data-toggle="dropdown">\n                        <span class="fui-list text-muted"></span>\n                    </button>\n                    <span class="dropdown-arrow dropdown-arrow-inverse"></span>\n                    <ul class="dropdown-menu dropdown-inverse">\n                        <?php foreach($video[\'category\'] as $category): ?>\n                        <li>\n                            <a href="/category/<?= $category ?>"> <?= $category ?> </a>\n                        </li>\n                        <?php endforeach; ?>\n                    </ul>\n                </li>\n                <?php endif; ?>\n            </ul>\n        </div> -->\n    </div>\n</div>\n';
-},{}],14:[function(require,module,exports){
+},{"./VideoPage.template.html":24}],24:[function(require,module,exports){
+module.exports = '<div class="vbg">\n    <video id="videoPlayer" :src="video.original_url" class="video-js vjs-default-skin vjs-big-play-centered"\n           data-src="{{ video.provider }}" data-url="{{ video.original_url }}"\n           controls preload="auto" width="100%" height="530">\n        <p>Video Playback Not Supported</p>\n    </video>\n</div>\n\n<div id="video-info" class="container">\n    <div class="row">\n        <div class="col s12">\n            <h4 style="margin-bottom: 0">\n                {{ video.title }}\n            </h4>\n        </div>\n    </div>\n    <div class="row">\n        <div class="col s12">\n            <ul id="social-and-stats">\n                <li class="chip">\n                    <i class="fa fa-eye"></i>\n                    {{ video.views }}\n                </li>\n                <div class="right">\n                    <li>\n                        <a class="dropdown-button btn white black-text" href="#" data-activates="share-menu">\n                            <i class="fa fa-share-square-o"></i>\n                            Share\n                        </a>\n                        <ul id="share-menu" class="dropdown-content">\n                            <li>\n                                <a href="https://www.facebook.com/sharer.php" id="facebook-share" class="popup facebook-color" title="Share to Facebook">\n                                    <i class="fa fa-facebook-official"></i>\n                                    Facebook\n                                </a>\n                            </li>\n                            <li>\n                                <a href="https://twitter.com/share" id="twitter-share" class="popup twitter-color" title="Share to Twitter">\n                                    <i class="fa fa-twitter"></i>\n                                    Twitter\n                                </a>\n                            </li>\n                        </ul>\n                    </li>\n\n                    <li style="margin-left: 5px">\n                        <a class="dropdown-button btn white black-text" href="#" data-activates="add-to-menu">\n                            <i class="fa fa-plus"></i>\n                            Add to\n                        </a>\n                        <ul id="add-to-menu" class="dropdown-content">\n                            <li>\n                                <a href="#!favorite" id="favorite-video" class="valign" data-id="{{ video.original_id }}">\n                                    <i class="fa fa-star-o"></i>\n                                    Favorite\n                                </a>\n                            </li>\n                            <li>\n                                <a href="#!favorite" id="favorite-video" class="valign" data-id="{{ video.original_id }}">\n                                    <i class="fa fa-clock-o"></i>\n                                    Watch later\n                                </a>\n                            </li>\n                        </ul>\n                    </li>\n                </div>\n            </ul>\n        </div>\n    </div>\n\n    <hr style="border: 1px dotted #eee;"/>\n\n    <div id="video-details">\n        <div class="row">\n            <div class="col s12">\n                <h4>Description</h4>\n                <p class="flow-text">\n                    {{{ video.description |linkify }}}\n                </p>\n            </div>\n        </div>\n        <div class="row">\n            <div class="col s12" v-if="video.tags">\n                <h4>Tags</h4>\n                <div class="chip" style="margin: 5px;" v-for="tag in video.tags">\n                    <a title="{{ tag }}" href="/search?query={{ tag }}">\n                        {{ tag }}\n                    </a>\n                </div>\n            </div>\n        </div>\n    </div>\n\n    <hr style="border: 1px dotted #eee;"/>\n\n    <div class="row">\n        <div class="col s12">\n            <h4>Comments</h4>\n            <div id="disqus_thread"></div>\n            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>\n        </div>\n    </div>\n</div>\n';
+},{}],25:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -10435,7 +12093,7 @@ module.exports = {
         switch (this.content) {
             case 'homeVideos':
                 this.$http.get('/api/videos/home', function (homeVideos) {
-                    this.$set('videos', homeVideos);
+                    this.$set('videos', homeVideos.data);
                 });
 
                 break;
@@ -10505,8 +12163,8 @@ module.exports = {
 //     }
 // }
 
-},{"./VideoCard":12,"./VideosList.template.html":15}],15:[function(require,module,exports){
+},{"./VideoCard":21,"./VideosList.template.html":26}],26:[function(require,module,exports){
 module.exports = '<div id="videos" class="row">\n    <video-card :video="data" v-for="data in videos"></video-card>\n</div>\n';
-},{}]},{},[11]);
+},{}]},{},[20]);
 
 //# sourceMappingURL=app.js.map

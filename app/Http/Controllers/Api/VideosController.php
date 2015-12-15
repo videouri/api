@@ -7,8 +7,8 @@ use Auth;
 
 use App\Http\Controllers\Controller;
 
-use Videouri\Services\ApiProcessing;
-use Videouri\Services\FakeContentGenerator;
+use App\Services\ApiProcessing;
+use App\Services\FakeContentGenerator;
 
 class VideosController extends Controller
 {
@@ -35,10 +35,12 @@ class VideosController extends Controller
          * Default parameters for homepage
          */
         // $this->apiprocessing->apis       = ['Youtube', 'Dailymotion'];
-        $this->apiprocessing->apis = ['Dailymotion', 'Youtube'];
-        $this->apiprocessing->content = ['most_viewed'];
+        // $this->apiprocessing->apis = ['dailymotion', 'youtube'];
+        $this->apiprocessing->apis = ['youtube'];
         $this->apiprocessing->period = 'today';
         $this->apiprocessing->maxResults = 8;
+
+        $content = ['most_viewed'];
 
         $videos = [];
         if ($this->fakeContent) {
@@ -46,7 +48,11 @@ class VideosController extends Controller
             return $faker->videos();
         }
 
-        $apiResults = $this->apiprocessing->mixedCalls();
+        try {
+            $apiResults = $this->apiprocessing->mixedCalls($content);
+        } catch (Exception $e) {
+            dump($e);
+        }
         // dd($apiResults);
 
         foreach ($apiResults as $content => $contentData) {
@@ -58,12 +64,12 @@ class VideosController extends Controller
 
                 $viewsCount = [];
                 // $ratings = [];
-                foreach ($videos as $k => $v) {
+                foreach ($videos['data'] as $k => $v) {
                     $viewsCount[$k] = $v['views'];
                     // $ratings[$k] = $v['rating'];
                 }
 
-                array_multisort($viewsCount, SORT_DESC, $videos);
+                array_multisort($viewsCount, SORT_DESC, $videos['data']);
             }
             // $sortData as $api => $apiData
             // array_multisort($viewData['data'][$content], SORT_DESC, $viewData['data'][$content]);

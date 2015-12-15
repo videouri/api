@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\Jobs\Job;
-use Videouri\Entities\Video;
-use Videouri\Entities\User;
+use App\Entities\Video;
+use App\Entities\User;
 
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -24,9 +24,9 @@ class RegisterView extends Job implements SelfHandling, ShouldQueue
      *
      * @return void
      */
-    public function __construct($origId, User $user)
+    public function __construct($originalId, User $user)
     {
-        $this->video = Video::where('original_id', '=', $origId)->first();
+        $this->video = Video::where('original_id', '=', $originalId)->first();
         $this->user = $user;
     }
 

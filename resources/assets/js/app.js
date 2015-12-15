@@ -3,15 +3,24 @@
 var
     app,
     Vue = require('vue'),
-    Resource = require('vue-resource')
+    Resource = require('vue-resource'),
+    linkify = require('linkifyjs'),
+    linkifyStr = require('linkifyjs/string')
 ;
+
+// require('linkifyjs/plugin/hashtag')(linkify); // optional
 
 Vue.config.debug = true;
 
 // Import vue-resource and configure to use the csrf token in all requests,
 // in which I put him in a meta tag in home.blade.php
 Vue.use(Resource);
-// Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('#token').getAttribute('value');
+Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('#_token').getAttribute('value');
+
+
+Vue.filter('linkify', function(text) {
+    return linkifyStr(text);
+});
 
 /**
  * Main APP
@@ -22,7 +31,7 @@ app = new Vue({
 
     components: {
         'videos-list': require('./components/VideosList'),
-        // 'video-page': require('./components/VideoPage')
+        'video-page': require('./components/VideoPage')
     },
 
     ready: function() {

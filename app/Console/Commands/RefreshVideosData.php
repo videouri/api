@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Videouri\Entities\Video;
-use Videouri\Services\ApiProcessing;
+use App\Entities\Video;
+use App\Services\ApiProcessing;
 
 class RefreshVideosData extends Command
 {
@@ -108,12 +108,9 @@ class RefreshVideosData extends Command
         $i = 1;
         foreach ($videos as $video) {
             $this->info("\n - Processing video $i out of $limit, from $video->provider and with id $video->original_id");
-            $this->apiprocessing->videoId = $video->original_id;
-            $this->apiprocessing->content = 'getVideoEntry';
 
             try {
-                $response = $this->apiprocessing->individualCall($video->provider);
-                $videoData = $this->apiprocessing->parseIndividualResult($video->provider, $response);
+                $videoData = $this->apiprocessing->getVideoInfo($video->provider, $video->original_id);
 
                 $videoToUpdate = Video::where('original_id', '=', $video->original_id)->first();
 

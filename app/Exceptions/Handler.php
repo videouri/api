@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Videouri\Exceptions\CreateUserException;
-use Videouri\Exceptions\RegisterValidationException;
-use Videouri\Exceptions\SearchQueryEmpty;
-use Videouri\Exceptions\SendMailException;
+use App\Exceptions\CreateUserException;
+use App\Exceptions\RegisterValidationException;
+use App\Exceptions\SearchQueryEmpty;
+use App\Exceptions\SendMailException;
 
 class Handler extends ExceptionHandler
 {

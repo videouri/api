@@ -35,7 +35,7 @@ module.exports = {
         switch (this.content) {
             case 'homeVideos':
                 this.$http.get('/api/videos/home', function(homeVideos) {
-                    this.$set('videos', homeVideos);
+                    this.$set('videos', homeVideos.data);
                 });
 
                 break;

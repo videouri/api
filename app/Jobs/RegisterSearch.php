@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\Jobs\Job;
-use Videouri\Entities\Search;
-use Videouri\Entities\User;
+use App\Entities\Search;
+use App\Entities\User;
 
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;

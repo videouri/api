@@ -7,8 +7,8 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Auth;
 
-use Videouri\Entities\Video;
-use Videouri\Entities\Search;
+use App\Entities\Video;
+use App\Entities\Search;
 
 class HistoryController extends Controller
 {

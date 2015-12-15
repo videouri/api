@@ -159,8 +159,8 @@ return [
         /**
          * Custom Providers
          */
-        Videouri\Providers\ResponseMacroServiceProvider::class,
-        Videouri\Providers\CommonViewVariablesProvider::class,
+        App\Providers\ResponseMacroServiceProvider::class,
+        App\Providers\CommonViewVariablesProvider::class,
 
     ],
 

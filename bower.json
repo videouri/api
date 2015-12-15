@@ -24,6 +24,7 @@
     "videojs-vimeo": "1.0.2",
     "videojs-dailymotion": "*",
     "imagesloaded": "~3.2.0",
-    "Materialize": "materialize#~0.97.3"
+    "Materialize": "materialize#~0.97.3",
+    "Readmore.js": "readmore#~2.1.0"
   }
 }

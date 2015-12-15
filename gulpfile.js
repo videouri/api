@@ -39,6 +39,8 @@ elixir(
                 '../../bower_components/videojs-vimeo/vjs.vimeo.js',
                 '../../bower_components/videojs-dailymotion/src/dailymotion.js',
                 // 'js/vendor/video.js-dailymotion/vjs.dailymotion.js',
+
+                '../../bower_components/Readmore.js/readmore.js',
             ], 'public/js/vendor.js', 'resources/assets/')
 
             .browserify('app.js')
