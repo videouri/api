@@ -5,8 +5,8 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Contracts\Auth\Guard;
 
-class Authenticate {
-
+class Authenticate
+{
     /**
      * The Guard implementation.
      *
@@ -15,7 +15,7 @@ class Authenticate {
     protected $auth;
 
     /**
-     * Create a new filter instance.
+     * Create a new middleware instance.
      *
      * @param  Guard  $auth
      * @return void
@@ -44,5 +44,4 @@ class Authenticate {
 
         return $next($request);
     }
-
 }

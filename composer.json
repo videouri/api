@@ -1,35 +1,42 @@
 {
-	"name": "laravel/laravel",
-	"description": "The Laravel Framework.",
-	"keywords": ["framework", "laravel"],
-	"license": "MIT",
+	"name": "videouri/videouri",
+	"description": "Videouri, your friendly neighborhood video search engine",
+	"keywords": ["videos", "youtube", "vimeo", "dailymotion"],
+	"license": "propietary",
 	"type": "project",
 	"require": {
 		"laravel/framework": "5.1.*",
-		"barryvdh/laravel-debugbar": "~2.0",
-		"alaouy/youtube": "dev-master#4ed6ad253e5f3e8ccaeddbe0319971ca8153e044",
-		"vinkla/vimeo": "~2.1",
-		"dailymotion/sdk": "dev-master",
 		"laravel/socialite": "^2.0",
-		"pda/pheanstalk": "^3.1"
+		"alaouy/youtube": "^1.2",
+		"dailymotion/sdk": "^1.6",
+		"dingo/api": "^1.0@dev",
+		"barryvdh/laravel-cors": "^0.7.2",
+		"vinkla/vimeo": "^3.2",
+		"pda/pheanstalk": "^3.1",
+		"tymon/jwt-auth": "^0.5.6",
+		"league/fractal": "^0.13.0",
+		"maknz/slack": "^1.7",
+		"cocur/slugify": "^1.4",
+		"nesbot/carbon": "^1.21"
 	},
 	"require-dev": {
+		"barryvdh/laravel-debugbar": "~2.0",
 		"phpunit/phpunit": "~4.0",
 		"phpspec/phpspec": "~2.1",
 		"mockery/mockery": "^0.9.4",
 		"fzaninotto/faker": "^1.5"
 	},
 	"minimum-stability": "dev",
+	"prefer-stable": true,
 	"autoload": {
 		"classmap": [
 			["database", "vendor/dailymotion/sdk"]
 		],
 		"psr-4": {
-			"App\\": "app/",
-			"Videouri\\": "app/Videouri"
+			"App\\": "app/"
 		},
 		"files": [
-			"app/Videouri/helpers.php"
+			"app/helpers.php"
 		]
 	},
 	"autoload-dev": {

@@ -2,12 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use File;
-
-use Videouri\Entities\Sitemap;
-use Videouri\Entities\Video;
-use Videouri\Entities\SearchHistory;
+use Illuminate\Console\Command;
+use App\Entities\Search;
+use App\Entities\Sitemap;
+use App\Entities\Video;
 
 class GenerateSitemap extends Command
 {
@@ -25,7 +24,6 @@ class GenerateSitemap extends Command
      */
     protected $description = 'Generate sitemap based on data registered in the database';
 
-
     // VIDEOURI
 
     /**
@@ -34,17 +32,16 @@ class GenerateSitemap extends Command
     protected $videos;
 
     /**
-     * @var SearchHistory
+     * @var Search
      */
-    protected $searchHistory;
-
+    protected $Search;
 
     /**
      * [$videoDumpPath description]
      * @var string
      */
     protected $videoDumpPath = 'storage/app/videoDumpPath.json';
-    
+
     protected $sitemapsDirectory = 'public/sitemaps';
 
     /**
@@ -52,7 +49,7 @@ class GenerateSitemap extends Command
      *
      * @return void
      */
-    public function __construct(Video $videos, SearchHistory $searchHistory)
+    public function __construct(Video $videos, Search $searchHistory)
     {
         parent::__construct();
 
@@ -70,8 +67,8 @@ class GenerateSitemap extends Command
         ///
         $this->info('Initialized sitemap generating tool');
         ///
-        
-        $mainSitemapPath = $this->sitemapsDirectory . '/index.xml';
+
+        $mainSitemapPath = $this->sitemapsDirectory . '/main.xml';
 
         $xmlHeading = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -88,7 +85,7 @@ EOF;
         ///
         $this->info('Appending video sitemap(s) to main sitemap');
         ///
-        
+
         $sitemaps = Sitemap::all();
         foreach ($sitemaps as $sitemap) {
             $updated_at = explode(' ', $sitemap->updated_at);
@@ -104,7 +101,7 @@ EOF;
         ///
         $this->info('Saving main sitemap at ' . $mainSitemapPath);
         ///
-        
+
         $xml->asXML($mainSitemapPath);
     }
 
@@ -116,7 +113,6 @@ EOF;
 
         $fields = ['id', 'original_id', 'provider', 'title', 'description', 'thumbnail', 'duration', 'updated_at', 'created_at'];
 
-        
         // Initialize base Video eloquent query
         $videos = $this->videos->whereNotNull('title')->where('duration', '>', 0);
 
@@ -129,12 +125,13 @@ EOF;
         // Load last video sitemap or create a new one
         if ($lastSitemap &&
             File::exists($lastSitemap['path']) &&
-            $lastSitemap->items_count < 50000)
-        {
+            $lastSitemap->items_count < 50000) {
             $xml = simplexml_load_file($lastSitemap['path']);
 
-            if (($xml->count() + $limit === 50000) && (50000 - $xml->count() < $limit))
+            if (($xml->count() + $limit === 50000) && (50000 - $xml->count() < $limit)) {
                 $limit = 50000 - $xml->count();
+            }
+
         } else {
             $xmlHeading = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -167,23 +164,24 @@ EOF;
         foreach ($videos as $video) {
             $xmlUrl = $xml->addChild('url');
 
-            if ($video['provider'] == 'Dailymotion')
+            if ($video['provider'] == 'Dailymotion') {
                 $key = 'd';
-            elseif ($video['provider'] == 'Vimeo')
+            } elseif ($video['provider'] == 'Vimeo') {
                 $key = 'v';
-            elseif ($video['provider'] == 'Youtube')
+            } elseif ($video['provider'] == 'Youtube') {
                 $key = 'y';
+            }
 
-            $customId    = substr($video['original_id'], 0, 1) . $key . substr($video['original_id'], 1);
-            
-            $videoUrl    = url('/video/' . $customId);
+            $customId = substr($video['original_id'], 0, 1) . $key . substr($video['original_id'], 1);
+
+            $videoUrl = url('/video/' . $customId);
             $description = htmlspecialchars(str_limit($video['description'], 2040));
-            
-            $created_at  = explode(' ', $video['created_at']);
-            $created_at  = $created_at[0];
-            
-            $updated_at  = explode(' ', $video['updated_at']);
-            $updated_at  = $updated_at[0];
+
+            $created_at = explode(' ', $video['created_at']);
+            $created_at = $created_at[0];
+
+            $updated_at = explode(' ', $video['updated_at']);
+            $updated_at = $updated_at[0];
 
             $xmlUrl->addChild('loc', $videoUrl);
             $xmlUrl->addChild('lastmod', $updated_at);
@@ -194,12 +192,11 @@ EOF;
             $videoGroup->addChild('video:thumbnail_loc', $video['thumbnail']);
             $videoGroup->addChild('video:title', htmlspecialchars($video['title']));
             $videoGroup->addChild('video:description', $description);
-            $videoGroup->addChild('video:player_loc', $videoUrl);
+            // $videoGroup->addChild('video:player_loc', $videoUrl);
             $videoGroup->addChild('video:duration', $video['duration']);
             $videoGroup->addChild('video:publication_date', $created_at);
             // $videoGroup->addChild('video:tag', $video['tags']);
         }
-
 
         // Dump last video information into a file
         $videosCount = count($videos);
@@ -217,41 +214,34 @@ EOF;
         // var_dump($sitemapId);
         // die;
 
-
-
         ///
         $this->info("Saving videoDump, video sitemap and updating db registry");
         ///
 
-
-        $videoSitemapName = 'videos-' . $sitemapId . '.xml';
+        $videoSitemapName = 'videos-index-' . $sitemapId . '.xml';
         $videoSitemapPath = $this->sitemapsDirectory . '/' . $videoSitemapName;
 
         $videoDumpPath = File::put($this->videoDumpPath, serialize($lastVideo));
 
-        
         // Save xml file
         Header('Content-type: text/xml; charset=utf-8');
         $xml->asXML($videoSitemapPath);
 
-
         // Save sitemap info into DB
         if ($lastSitemap &&
             File::exists($lastSitemap['path']) &&
-            $lastSitemap->items_count < 50000)
-        {
+            $lastSitemap->items_count < 50000) {
             $lastSitemap->items_count = $xml->count();
             $lastSitemap->save();
         } else {
             Sitemap::create([
-                'path'        => $videoSitemapPath,
-                'filename'    => $videoSitemapName,
-                'items_count' => $xml->count()
+                'path' => $videoSitemapPath,
+                'filename' => $videoSitemapName,
+                'items_count' => $xml->count(),
             ]);
         }
-        
+
         // $this->info("Sitemap create at $this->videoSitemapPath");
         // $this->error("Couldn't save sitemap at $this->videoSitemapPath");
     }
 }
-

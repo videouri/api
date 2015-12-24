@@ -3,6 +3,8 @@ var
     autoprefixer = require('gulp-autoprefixer')
 ;
 
+require('laravel-elixir-livereload');
+
 /*
  |--------------------------------------------------------------------------
  | Elixir Asset Management
@@ -16,40 +18,42 @@ var
 
 elixir(
     function(mix) {
-        // Front-end assets
+        mix.less('app.less');
+
         mix
-            .less('app.less')
-
             .scripts([
-                "../../bower_components/jquery/dist/jquery.js",
-                "scripts/vendor/jquery-ui-1.10.3.custom.min.js",
-                "scripts/vendor/jquery.ui.touch-punch.min.js",
+                // '../../bower_components/vue/dist/vue.js',
+                // '../../bower_components/vue-resource/dist/vue-resource.js',
+                '../../bower_components/jquery/dist/jquery.js',
+                '../../bower_components/Materialize/dist/js/materialize.js',
 
-                "scripts/vendor/jquery.placeholder.js",
-                "scripts/vendor/jquery.cookie.js",
-                "scripts/vendor/jquery.query.js",
+                'js/vendor/jquery.placeholder.js',
+                'js/vendor/jquery.cookie.js',
+                'js/vendor/jquery.query.js',
 
-                "../../bower_components/bootstrap/dist/js/bootstrap.js",
-                "../../bower_components/jquery.lazyload/jquery.lazyload.js",
-                "../../bower_components/isotope/dist/isotope.pkgd.js",
+                '../../bower_components/imagesloaded/imagesloaded.pkgd.js',
+                '../../bower_components/isotope/dist/isotope.pkgd.js',
 
-                "../../bower_components/video.js/dist/video-js/video.js",
-                "../../bower_components/videojs-youtube/dist/vjs.youtube.js",
-                "../../bower_components/videojs-vimeo/vjs.vimeo.js",
-                "../../bower_components/videojs-dailymotion/src/dailymotion.js",
-                // "scripts/vendor/video.js-dailymotion/vjs.dailymotion.js",
-                "scripts/main.js"
-            ], 'public/js/app.js', 'resources/assets/')
+                '../../bower_components/video.js/dist/video-js/video.js',
+                '../../bower_components/videojs-youtube/src/youtube.js',
+                '../../bower_components/videojs-vimeo/src/media.vimeo.js',
+                '../../bower_components/videojs-dailymotion/src/dailymotion.js',
 
-            .copy([
-                './resources/assets/scripts/modules/**'
-            ], 'public/js/modules/')
+                '../../bower_components/Readmore.js/readmore.js',
+            ], 'public/js/vendor.js', 'resources/assets/')
 
+            .browserify('app.js')
+        ;
+
+        mix.livereload();
+
+        mix
             .copy([
                 './bower_components/font-awesome/fonts/**',
+                './bower_components/Materialize/dist/font/**',
                 './bower_components/video.js/dist/video-js/font/**',
-                './resources/assets/fonts/**'
-            ], 'public/fonts')
+                './resources/assets/font/**'
+            ], 'public/font')
         ;
 
         // TESTING!

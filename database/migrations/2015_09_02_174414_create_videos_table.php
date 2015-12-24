@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 
 class CreateVideosTable extends Migration
 {
@@ -12,13 +12,15 @@ class CreateVideosTable extends Migration
      */
     public function up()
     {
-        Schema::create('videos', function(Blueprint $table)
-        {
+        Schema::create('videos', function (Blueprint $table) {
             $table->increments('id');
 
             $table->string('provider');
             $table->string('original_id')->unique();
-            $table->string('videouri_url');
+            $table->string('custom_id')->unique()->nullable(); // TODO: remove nullable once populated on LIVE DB
+
+            $table->string('original_url')->unique();
+            $table->string('slug')->nullable();
 
             $table->string('author')->nullable();
             $table->string('title');

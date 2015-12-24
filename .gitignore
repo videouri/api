@@ -1,5 +1,7 @@
 .idea
 .phpintel
+oracle.sqlite
+oracle.sqlite-journal
 /stats
 
 # Don't ignore composer.lock, to make sure live version has no compatibility issue

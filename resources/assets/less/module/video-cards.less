@@ -1,0 +1,38 @@
+.card {
+    .card-image {
+        // Extends .card-title
+        .card-title {
+            background: rgba(0, 0, 0, 0.7);
+            width: 100%;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .video-source {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            color: white;
+            border-radius: 3px;
+            opacity: 0.3;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+        .video-source.Youtube {
+            background-color: #cc181e;
+        }
+
+        .video-source.Dailymotion {
+            background-color: #0066DC;
+        }
+
+        .video-source.Vimeo {
+            background-color: #00adef;
+        }
+    }
+
+}

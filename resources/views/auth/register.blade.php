@@ -1,38 +1,48 @@
 @extends('app')
 
 @section('content')
-<div class="row">
-    <div class="col-md-4 col-md-offset-4">
+<section id="register" class="row">
+    <div class="col s6 push-s3">
+        <h3 class="flow-text center-align">Register your new account</h3>
         @if (session('status'))
-        <div class="tile tile-padded alert">
-            <div class="alert-info">
+        <div class="card-panel yellow">
+            <div class="flow-text">
                 {{ session('status') }}
             </div>
         </div>
         @endif
 
         @if (count($errors) > 0)
-        <div class="tile tile-padded alert ">
+        <div class="card-panel red">
             <h4> Whoops! </h4>
             <p> There were some problems with your input. </p>
-            @foreach ($errors->all() as $error)
-                <div class="alert-danger">
+
+            <ul>
+                @foreach ($errors->all() as $error)
+                <li>
                     {{ $error }}
-                </div>
-            @endforeach
+                </li>
+                @endforeach
+            </ul>
         </div>
         @endif
 
-        <div class="tile tile-padded">
-            <a href="/login/twitter" class="btn btn-block btn-social-twitter text-center">
-                <i class="fa fa-twitter-square"></i>
-                &nbsp; Register with Twitter
-            </a>
+        <div class="z-depth-1 card-panel">
+            <div class="row">
+                <div class="col s12">
+                    <a href="/login/facebook" class="btn btn-block btn-flat facebook-bg text-center">
+                        Register with Facebook
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <a href="/login/twitter" class="btn btn-block btn-flat twitter-bg text-center">
+                        Register with Twitter
+                    </a>
+                </div>
+            </div>
 
-            <a href="/login/facebook" class="btn btn-block btn-social-facebook text-center">
-                <i class="fa fa-facebook-square"></i>
-                &nbsp; Register with Facebook
-            </a>
 
             <div class="or-container">
                 <hr class="or-hr">
@@ -41,49 +51,50 @@
                 </div>
             </div>
 
-            <form class="form" role="form" method="POST" action="{{ url('/join') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
-                <div class="form-group">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="username" value="{{ old('username') }}" placeholder="Enter your username" tabindex="1">
-                        <span class="input-group-btn">
-                            <button type="button" class="btn"><i class="fa fa-user"></i></button>
-                        </span>
-                    </div>
+            <div class="row">
+                <div class="col s12">
+                    <form class="register-form" method="POST" action="{{ url('/register') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+                        <div class="row margin">
+                            <div class="input-field col s12">
+                                <i class="mdi-social-person-outline prefix"></i>
+                                <input id="username" class="validate" required type="text" autocomplete="off" value="{{ old('username') }}" name="username" tabindex="1">
+                                <label for="username" class="center-align">Username</label>
+                            </div>
+                        </div>
+
+                        <div class="row margin">
+                            <div class="input-field col s12">
+                                <i class="mdi-social-person-outline prefix"></i>
+                                <input id="email" class="validate" required type="text" autocomplete="off" value="{{ old('email') }}" name="email" tabindex="2">
+                                <label for="email" class="center-align">Email</label>
+                            </div>
+                        </div>
+
+                        <div class="row margin">
+                            <div class="input-field col s12">
+                                <i class="mdi-action-lock-outline prefix"></i>
+                                <input id="password" class="validate" required type="password" name="password" tabindex="2">
+                                <label for="password" class="">Password</label>
+                            </div>
+                        </div>
+
+                        <div class="row margin">
+                            <div class="input-field col s12">
+                                <i class="mdi-action-lock-outline prefix"></i>
+                                <input id="password_confirmation" class="validate" required type="password" name="password_confirmation" tabindex="3">
+                                <label for="password_confirmation" class="">Password confirmation</label>
+                            </div>
+                        </div>
+
+                        <button class="btn waves-effect waves-light" type="submit" name="action">
+                            Register
+                        </button>
+                    </form>
                 </div>
-
-                <div class="form-group">
-                    <div class="input-group">
-                        <input type="email" class="form-control" name="email" value="{{ old('email') }}" placeholder="Enter your email" tabindex="2">
-                        <span class="input-group-btn">
-                            <button type="button" class="btn"><i class="fa fa-envelope"></i></button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="input-group">
-                        <input type="password" class="form-control" name="password" placeholder="Choose a password" tabindex="3">
-                        <span class="input-group-btn">
-                            <button type="button" class="btn"><i class="fa fa-lock"></i></button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="input-group">
-                        <input type="password" class="form-control" name="password_confirmation" placeholder="Confirm your password" tabindex="4">
-                        <span class="input-group-btn">
-                            <button type="button" class="btn"><i class="fa fa-lock"></i></button>
-                        </span>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    Register
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 </div>

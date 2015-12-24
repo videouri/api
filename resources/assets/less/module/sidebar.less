@@ -1,0 +1,180 @@
+/*
+ * Sidebar
+ */
+ul.side-nav.fixed {
+    box-shadow: none;
+    background: #f7f8fa;
+    border-right: 1px solid #efefef;
+    overflow: hidden;
+
+    li.logo {
+        text-align: center;
+        height: 99px;
+        background-color: white;
+
+        a#logo-container {
+            font-size: 30px;
+            line-height: 100px;
+        }
+
+
+        // #logo-container {
+        //     height: 57px;
+        //     margin-bottom: 32px;
+
+        // }
+        &:hover {
+            background-color: white;
+        }
+    }
+
+    li.nav-header {
+        color: #388e3c; // green 300
+        margin-bottom: 10px;
+        text-align: center;
+
+        &:hover {
+            background: transparent;
+        }
+    }
+
+    li {
+        line-height: 44px;
+    }
+
+    li:hover,
+    li.active {
+        // background-color: rgba(0, 0, 0, 0.05);
+        background-color: transparent;
+    }
+
+    //////////////////
+    // li.side-menu //
+    //////////////////
+
+    li.side-menu.margin {
+        margin-bottom: 5px;
+    }
+
+    li.side-menu a {
+        font-size: 15px;
+        line-height: 44px;
+        height: 44px;
+    }
+
+    li.side-menu > a:hover,
+    li.side-menu.active {
+        transition: all 0.5s ease;
+    }
+
+    li.side-menu.favorites {
+        // border-left: 5px solid #ffeb3b;
+
+        &.active > a {
+            background: #ffeb3b;
+            border-radius: 4px;
+            border-left: 2px solid #fdd835;
+            border-bottom: 2px solid #fdd835;
+            /* color: #f57f17; */
+            /* text-shadow: 1px 1px 0px #ff6f00; */
+            // text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        & > a:hover {
+            border-left: 4px solid #ffeb3b;
+        }
+    }
+
+    li.side-menu.later {
+        &.active > a {
+            background: #2196f3;
+            border-radius: 4px;
+            border-left: 2px solid #1e88e5;
+            border-bottom: 2px solid #1e88e5;
+            /* color: #f57f17; */
+            /* text-shadow: 1px 1px 0px #ff6f00; */
+            // text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        & > a:hover {
+            border-left: 4px solid #2196f3;
+        }
+    }
+
+    li.side-menu.history {
+        &.active > a {
+            background: #009688;
+            border-radius: 4px;
+            border-left: 2px solid #00897b;
+            border-bottom: 2px solid #00897b;
+            /* color: #f57f17; */
+            /* text-shadow: 1px 1px 0px #ff6f00; */
+            // text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        & > a:hover {
+            border-left: 4px solid #009688;
+        }
+    }
+
+    &:hover {
+        overflow-y: auto;
+    }
+}
+// #sidebar {
+//     /* Hide for mobile, show later */
+//     // display: none;
+
+//     // padding-top: 10px;
+//     border-right: 1px solid #efefef;
+//     background: #f7f8fa;
+//     // box-shadow: inset -8px 0 13px -10px #ccc;
+
+//     .nav-list {
+//         li.nav-header {
+//             color: #388e3c; // green 300
+//             margin-bottom: 10px;
+//         }
+
+//         li > a {
+//             font-size: 13px;
+//             font-weight: 300;
+
+//             i.fa {
+//                 margin-right: 10px;
+//             }
+//         }
+
+//         li.active > a,
+//         li.active > a:hover,
+//         li.active > a:focus {
+//             background-color: transparent;
+//             border-radius: 0;
+//             // color: #1abc9c;
+//             font-weight: 400;
+//         }
+//     }
+// }
+
+// // @media (min-width: 768px) {
+// //     #sidebar {
+// //         position: fixed;
+// //         top: 53px;
+// //         bottom: -60px;
+// //         left: 0;
+// //         z-index: 10;
+// //         display: block;
+// //         padding: 20px;
+
+
+// //         // Scrollable contents if viewport is shorter than content.
+// //         overflow-y: auto;
+// //         overflow-x: hidden;
+
+// //         // background-color: #f5f5f5;
+// //         border-right: 1px solid #eee;
+// //     }
+// // }
