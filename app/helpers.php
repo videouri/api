@@ -2,11 +2,13 @@
 
 function videouri_asset($path)
 {
-    if (env('SECURE') === true) {
-        return secure_asset($path);
-    } else {
-        return asset($path);
+    $path = asset($path);
+
+    if (env('APP_SECURE') === true) {
+        $path = secure_asset($path);
     }
+
+    return $path;
 }
 
 /**
