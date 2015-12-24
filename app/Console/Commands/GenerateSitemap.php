@@ -40,9 +40,9 @@ class GenerateSitemap extends Command
      * [$videoDumpPath description]
      * @var string
      */
-    protected $videoDumpPath = 'storage/app/videoDumpPath.json';
+    protected $videoDumpPath;
 
-    protected $sitemapsDirectory = 'public/sitemaps';
+    protected $sitemapsDirectory;
 
     /**
      * Create a new command instance.
@@ -55,6 +55,9 @@ class GenerateSitemap extends Command
 
         $this->videos = $videos;
         $this->searchHistory = $searchHistory;
+
+        $this->videoDumpPath = storage_path('app/videoDumpPath.json');
+        $this->sitemapsDirectory = public_path('sitemaps');
     }
 
     /**
@@ -108,7 +111,7 @@ EOF;
     private function generateVideoSitemap()
     {
         ///
-        $this->info("Started processing videos into sitemap");
+        $this->info('Started processing videos into sitemap');
         ///
 
         $fields = ['id', 'original_id', 'provider', 'title', 'description', 'thumbnail', 'duration', 'updated_at', 'created_at'];
@@ -156,7 +159,7 @@ EOF;
         $videos = $videos->limit($limit)->get($fields);
 
         ///
-        $this->info("Appending videos to video sitemap");
+        $this->info('Appending videos to video sitemap');
         ///
 
         // Add videos to main xml
@@ -215,7 +218,7 @@ EOF;
         // die;
 
         ///
-        $this->info("Saving videoDump, video sitemap and updating db registry");
+        $this->info('Sitemap videos count: ' . $xml->count());
         ///
 
         $videoSitemapName = 'videos-index-' . $sitemapId . '.xml';
@@ -235,13 +238,13 @@ EOF;
             $lastSitemap->save();
         } else {
             Sitemap::create([
-                'path' => $videoSitemapPath,
-                'filename' => $videoSitemapName,
+                'path'        => $videoSitemapPath,
+                'filename'    => $videoSitemapName,
                 'items_count' => $xml->count(),
             ]);
         }
 
-        // $this->info("Sitemap create at $this->videoSitemapPath");
-        // $this->error("Couldn't save sitemap at $this->videoSitemapPath");
+        // $this->info('Sitemap create at $this->videoSitemapPath');
+        // $this->error('Couldn't save sitemap at $this->videoSitemapPath');
     }
 }

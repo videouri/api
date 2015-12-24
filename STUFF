@@ -19,17 +19,10 @@ INSPIRATION
 
 TODO:
     - SQL Upgrade
-        ALTER TABLE `videos`
-            DROP COLUMN `videouri_url`;
-
-        ALTER TABLE `videos`
-            ADD COLUMN `custom_id` VARCHAR(255) NULL AFTER `original_id`;
-
-        ALTER TABLE `videos`
-            ADD COLUMN `original_url` VARCHAR(255) NULL AFTER `custom_id`;
-
-        ALTER TABLE `videos`
-            ADD COLUMN `slug` VARCHAR(255) NULL AFTER `original_url`;
+        ALTER TABLE `videos` DROP COLUMN `videouri_url`;
+        ALTER TABLE `videos` ADD COLUMN `custom_id` VARCHAR(255) NULL AFTER `original_id`;
+        ALTER TABLE `videos` ADD COLUMN `original_url` VARCHAR(255) NULL AFTER `custom_id`;
+        ALTER TABLE `videos` ADD COLUMN `slug` VARCHAR(255) NULL AFTER `original_url`;
 
     - Slugs
         https://github.com/jbroadway/urlify
