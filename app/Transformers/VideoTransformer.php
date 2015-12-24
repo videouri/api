@@ -5,14 +5,15 @@ namespace App\Transformers;
 use League\Fractal\Resource\Collection;
 use League\Fractal\TransformerAbstract;
 use App\Entities\Video;
+use Auth;
 
 class VideoTransformer extends TransformerAbstract
 {
     public function transform(Video $video)
     {
-        return [
+        $response = [
             'id'           => (int) $video->id,
-            'provider'     => $video->provider,
+            'provider'     => ucfirst($video->provider),
 
             'original_id'  => $video->original_id,
             'custom_id'    => $video->custom_id,
@@ -27,5 +28,23 @@ class VideoTransformer extends TransformerAbstract
             'duration'     => (int) $video->duration,
             'tags'         => $video->tags,
         ];
+
+        $isFavorited = false;
+        $savedForLater = false;
+
+        if ($user = Auth::user()) {
+            if ($video->favorited()->whereUserId($user->id)->first()) {
+                $isFavorited = true;
+            }
+
+            if ($video->watchLater()->whereUserId($user->id)->first()) {
+                $savedForLater = true;
+            }
+        }
+
+        $response['favorited'] = $isFavorited;
+        $response['saved_for_later'] = $savedForLater;
+
+        return $response;
     }
 }

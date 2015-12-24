@@ -3,10 +3,11 @@
 namespace App\Exceptions;
 
 use Exception;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Slack;
+
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+
 use App\Exceptions\CreateUserException;
 use App\Exceptions\RegisterValidationException;
 use App\Exceptions\SearchQueryEmpty;
@@ -20,8 +21,8 @@ class Handler extends ExceptionHandler
      * @var array
      */
     protected $dontReport = [
-        HttpException::class,
-        ModelNotFoundException::class,
+        \Symfony\Component\HttpKernel\Exception\HttpException::class,
+        \Illuminate\Database\Eloquent\ModelNotFoundException::class
     ];
 
     /**
@@ -34,6 +35,11 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $e)
     {
+        // if (env('APP_ENV') === 'local' && $e->getCode() >= 500) {
+        if (env('APP_ENV') === 'local') {
+            $this->sendNotification($request = null, $e);
+        }
+
         return parent::report($e);
     }
 
@@ -46,16 +52,24 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $e)
     {
+        if ($e->getCode() >= 500) {
+            $this->sendNotification($request, $e);
+        }
+
         if ($e instanceof ModelNotFoundException) {
             $e = new NotFoundHttpException($e->getMessage(), $e);
         }
 
-        if ($e instanceof RegisterValidationException) {
-            return redirect('join')->withErrors($e->getMessage());
-        }
+        // if ($e instanceof RegisterValidationException) {;
+        //     return redirect('login')->withErrors([
+        //         $e->getMessage()
+        //     ]);
+        // }
 
         if ($e instanceof CreateUserException) {
-            return redirect('join')->withErrors('Your account couldn\'t be create please try again');
+            return redirect('login')->withErrors([
+                'Your account couldn\'t be create please try again'
+            ]);
         }
 
         if ($e instanceof SendMailException) {
@@ -65,4 +79,52 @@ class Handler extends ExceptionHandler
         return parent::render($request, $e);
     }
 
+    /**
+     * [sendNotification description]
+     * @param  [type] $request [description]
+     * @param  [type] $e       [description]
+     * @return [type]          [description]
+     */
+    private function sendNotification($request = null, $e)
+    {
+        $attachment = [
+            'fallback' => 'Videouri Error',
+            'text'     => 'Videouri Error',
+            'color'    => '#c0392b',
+            'fields'   => [
+                [
+                    'title' => 'Requested URL',
+                    'value' => $request ? $request->url() : '',
+                    // 'short' => true,
+                ],
+                [
+                    'title' => 'HTTP Code',
+                    'value' => $e->getCode(),
+                    // 'short' => true,
+                ],
+                [
+                    'title' => 'Exception',
+                    'value' => $e->getMessage(),
+                    // 'short' => true,
+                ],
+                [
+                    'title' => 'File',
+                    'value' => $e->getFile() . ': ' . $e->getLine(),
+                    // 'short' => true,
+                ],
+                [
+                    'title' => 'Trace',
+                    'value' => $e->getTraceAsString(),
+                    // 'short' => true,
+                ],
+                [
+                    'title' => 'Input',
+                    'value' => $request ? json_encode($request->all()) : '',
+                    // 'short' => true,
+                ],
+            ],
+        ];
+
+        Slack::attach($attachment)->send('Videouri Error');
+    }
 }

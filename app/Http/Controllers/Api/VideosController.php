@@ -25,6 +25,8 @@ class VideosController extends Controller
 
     public function __construct(ApiProcessing $apiprocessing)
     {
+        $this->middleware('auth', ['only' => ['getWatchLater', 'getFavorites']]);
+
         $this->apiprocessing = $apiprocessing;
         $this->apiprocessing->timestamp = date('Y-m-d');
     }
@@ -64,12 +66,13 @@ class VideosController extends Controller
 
                 $viewsCount = [];
                 // $ratings = [];
-                foreach ($videos['data'] as $k => $v) {
+
+                foreach ($videos as $k => $v) {
                     $viewsCount[$k] = $v['views'];
                     // $ratings[$k] = $v['rating'];
                 }
 
-                array_multisort($viewsCount, SORT_DESC, $videos['data']);
+                array_multisort($viewsCount, SORT_DESC, $videos);
             }
             // $sortData as $api => $apiData
             // array_multisort($viewData['data'][$content], SORT_DESC, $viewData['data'][$content]);
@@ -81,6 +84,42 @@ class VideosController extends Controller
 
         } // $api_response as $sortName => $sortData
 
-        return $videos;
+        return response()->success($videos);
+    }
+
+    public function getFavorites()
+    {
+        $user = Auth::user();
+        $records = $user->favorites()
+                        ->distinct()
+                        // ->select(['title', 'thumbnail', 'description', 'custom_id'])
+                        ->limit(50)
+                        ->get();
+
+        return $this->parseResponse($records);
+    }
+
+    public function getWatchLater()
+    {
+        $user = Auth::user();
+
+        $records = $user->watchLater()
+                        ->distinct()
+                        // ->select(['title', 'thumbnail', 'description', 'custom_id'])
+                        ->limit(50)
+                        ->get();
+
+        return $this->parseResponse($records);
+    }
+
+    private function parseResponse($records)
+    {
+        $records = $records->all();
+
+        if (count($records) > 0) {
+            $records = $this->apiprocessing->transformVideos($records);
+        }
+
+        return response()->success($records);
     }
 }

@@ -9,7 +9,7 @@
   "dependencies": {
     "linkifyjs": "^2.0.0-beta.5",
     "readmore-js": "^2.1.0",
-    "vue": "^1.0.7",
+    "vue": "^1.0.12",
     "vue-resource": "^0.1.17",
     "vue-router": "^0.7.7"
   }

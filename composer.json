@@ -14,7 +14,10 @@
 		"vinkla/vimeo": "^3.2",
 		"pda/pheanstalk": "^3.1",
 		"tymon/jwt-auth": "^0.5.6",
-		"league/fractal": "^0.13.0"
+		"league/fractal": "^0.13.0",
+		"maknz/slack": "^1.7",
+		"cocur/slugify": "^1.4",
+		"nesbot/carbon": "^1.21"
 	},
 	"require-dev": {
 		"barryvdh/laravel-debugbar": "~2.0",

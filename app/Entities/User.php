@@ -45,14 +45,18 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     protected $hidden = ['password', 'remember_token'];
 
 
+    ////////////////
+    // FUNCTIONAL //
+    ////////////////
+
     public function favorites()
     {
-        return $this->hasMany('App\Entities\Favorite');
+        return $this->belongsToMany(Video::class, 'favorites');
     }
 
-    public function later()
+    public function watchLater()
     {
-        return $this->hasMany('App\Entities\Later');
+        return $this->belongsToMany(Video::class, 'watch_later');
     }
 
 
@@ -60,13 +64,13 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     // HISTORY //
     /////////////
 
-    public function watched()
+    public function videosWatched()
     {
-        return $this->hasMany('App\Entities\View');
+        return $this->belongsToMany(Video::class, 'views')->orderBy('registered_at', 'desc');
     }
 
     public function searches()
     {
-        return $this->hasMany('App\Entities\Search');
+        return $this->hasMany(Search::class)->orderBy('registered_at', 'desc');
     }
 }

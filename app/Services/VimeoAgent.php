@@ -3,21 +3,11 @@
 namespace App\Services;
 
 use App\Interfaces\ApiAgentInterface;
-use Session;
 use Vinkla\Vimeo\Facades\Vimeo;
+use Session;
 
 class VimeoAgent implements ApiAgentInterface
 {
-    /**
-     * @var Vimeo
-     */
-    protected $vimeo;
-
-    public function __construct(Vimeo $vimeo)
-    {
-        $this->vimeo = $vimeo;
-    }
-
     /**
      * The function that interacts with Vimeo API Library to retrieve data
      *
@@ -27,13 +17,13 @@ class VimeoAgent implements ApiAgentInterface
     // public function data(array $parameters = array())
     // {
 
-    //     // $data = $this->vimeo->buildAuthorizationEndpoint('http://local.videouri.com/', ['public', 'private'], '12QWGAEg1235!');
-    //     // $token = $this->vimeo->clientCredentials(['public', 'private']);
+    //     // $data = Vimeo::buildAuthorizationEndpoint('http://local.videouri.com/', ['public', 'private'], '12QWGAEg1235!');
+    //     // $token = Vimeo::clientCredentials(['public', 'private']);
     //     // dd($token);
 
     //     switch ($parameters['content']) {
     //         case 'tag':
-    //             $results = $this->vimeo->request('/videos/getByTag', [
+    //             $results = Vimeo::request('/videos/getByTag', [
     //                 'page'     => $parameters['page'],
     //                 'per_page' => $parameters['maxResults'],
     //                 'sort'     => $sort,
@@ -74,7 +64,7 @@ class VimeoAgent implements ApiAgentInterface
             }
         }
 
-        $results = $this->vimeo->request('/videos', [
+        $results = Vimeo::request('/videos', [
             'page'     => $parameters['page'],
             'per_page' => $parameters['maxResults'],
             'sort'     => $sort,
@@ -86,12 +76,12 @@ class VimeoAgent implements ApiAgentInterface
 
     public function getVideoInfo($videoId)
     {
-        return $this->vimeo->request("/videos/{$videoId}");
+        return Vimeo::request("/videos/{$videoId}");
     }
 
     public function getRelatedVideos($videoId, $maxResults = 10)
     {
-        return $this->vimeo->request("/videos/{$videoId}/videos", [
+        return Vimeo::request("/videos/{$videoId}/videos", [
             // 'page'     => $parameters['page'],
             'per_page' => $maxResults,
             'filter'   => 'related'

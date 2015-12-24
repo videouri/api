@@ -5,10 +5,6 @@ namespace App\Http\Controllers\User;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-use Auth;
-
-use App\Entities\Video;
-use App\Entities\Search;
 
 class HistoryController extends Controller
 {
@@ -27,22 +23,11 @@ class HistoryController extends Controller
      */
     public function show($user, $type)
     {
-        if (!in_array($type, ['videos', 'search'])) {
+        // if (!in_array($type, ['videos', 'search'])) {
+        if (!in_array($type, ['videos'])) {
             return redirect('/');
         }
 
-        $user = Auth::user();
-
-        switch ($type) {
-            case 'videos':
-                $records = $user->watched;
-                break;
-
-            case 'search':
-                $records = $user->searches;
-                break;
-        }
-
-        return view('videouri.user.history.' . $type, compact('records'));
+        return view('videouri.user.history.' . $type);
     }
 }

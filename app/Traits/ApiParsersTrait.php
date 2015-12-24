@@ -3,11 +3,6 @@
 namespace App\Traits;
 
 use App\Entities\Video;
-use App\Transformers\VideoTransformer;
-
-use League\Fractal\Manager as FractalManager;
-use League\Fractal\Resource\Collection;
-use League\Fractal\Serializer\ArraySerializer;
 use Exception;
 use Log;
 
@@ -42,20 +37,17 @@ trait ApiParsersTrait
 
         try {
             $videos = $this->$apiParser($videos);
+            if (count($videos) === 1) {
+                $videos = $videos[0];
+            }
 
-            $resource = new Collection($videos, new VideoTransformer());
-
-            // Create a top level instance somewhere
-            $fractalManager = new FractalManager();
-            // $fractalManager->setSerializer(new ArraySerializer());
-
-            $videos = $fractalManager->createData($resource)->toArray();
-
-            return $videos;
+            $videos = $this->transformVideos($videos);
         } catch (Exception $e) {
             dump('parseApiResult');
             dump($e);
         }
+
+        return $videos;
     }
 
     private function youtubeParser($videos)
@@ -116,6 +108,15 @@ trait ApiParsersTrait
         $index = 0;
         $results = array();
 
+        // This is because of getVideoInfor
+        if (!isset($data['list'])) {
+            $data = [
+                'list' => [
+                    $data
+                ]
+            ];
+        }
+
         foreach ($data['list'] as $video) {
             preg_match('@video/([^_]+)_([^/]+)@', $video['url'], $match);
 
@@ -128,7 +129,7 @@ trait ApiParsersTrait
             // $url = url('video/' . $customId);
 
             $thumbnailUrl = preg_replace("/^http:/i", "https:", $video['thumbnail_360_url']);
-            $originalUrl = preg_replace("/^http:/i", "https:", $data['url']);
+            $originalUrl = preg_replace("/^http:/i", "https:", $video['url']);
 
             $videoObject = new Video;
 
@@ -146,9 +147,10 @@ trait ApiParsersTrait
             $videoObject->rating = $video['rating'];
             $videoObject->duration = $video['duration'];
             $videoObject->views = $video['views_total'];
-            $videoObject->tags = $video['tags'];
+            $videoObject->tags = isset($video['tags']) ? $video['tags'] : [];
 
             $results[$index] = $videoObject;
+
 
             if ($this->videoContent) {
                 $results[$index]['content'] = $this->videoContent;
@@ -203,16 +205,32 @@ trait ApiParsersTrait
         return $results;
     }
 
-    private function vimeoParser($data)
+    private function vimeoParser($videos)
     {
         $index = 0;
-        $results = array();
+        $results = [];
 
-        if (empty($data) || isset($data['body']['error'])) {
+        if (empty($videos) || isset($videos['body']['error'])) {
             return $results;
         }
 
-        foreach ($data['body']['data'] as $video) {
+        // $videos = $videos['body'];
+
+        // if (isset($videos['data'])) {
+        //     $videos = $videos['data'];
+        // }
+
+
+        // This is for getVideoInfo function
+        if (!empty($videos['body']) && !isset($videos['body']['data'])) {
+            $videos['body'] = [
+                'data' => [
+                    $videos['body']
+                ]
+            ];
+        }
+
+        foreach ($videos['body']['data'] as $video) {
             $originalId = explode('/', $video['uri'])[2];
             $customId = substr($originalId, 0, 1) . 'v' . substr($originalId, 1);
 
@@ -254,7 +272,6 @@ trait ApiParsersTrait
             }
 
             $index++;
-
         }
 
         return $results;

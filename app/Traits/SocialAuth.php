@@ -3,7 +3,7 @@
 namespace App\Traits;
 
 use Socialite;
-use App\Repositories\UserRepository as Users;
+use Auth;
 
 trait SocialAuth
 {
@@ -19,23 +19,20 @@ trait SocialAuth
             return Socialite::driver($provider)->redirect();
         }
 
-        return redirect(url('login'));
+        return redirect('login');
     }
 
     public function handleProviderCallback($provider)
     {
-        $user = Socialite::driver($provider)->user();
+        $userData = Socialite::driver($provider)->user();
 
-        // try {
-        //     $userData = $this->getSocialUser($provider);
-        //     $user = $this->users->findOrCreateSocial($userData, $provider);
+        try {
+            $user = $this->userRepository->findOrCreateSocial($userData, $provider);
 
-        //     $this->auth->login($user, true);
-        //     return redirect('/');
-        // } catch (Exception $e) {
-        //     return redirect('/login')->with('session', $e->getMessage());
-        // }
-
-        dd($user);
+            Auth::login($user, true);
+            return redirect('/');
+        } catch (Exception $e) {
+            return redirect('/login')->with('session', $e->getMessage());
+        }
     }
 }

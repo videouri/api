@@ -35,10 +35,9 @@ elixir(
                 '../../bower_components/isotope/dist/isotope.pkgd.js',
 
                 '../../bower_components/video.js/dist/video-js/video.js',
-                '../../bower_components/videojs-youtube/dist/vjs.youtube.js',
-                '../../bower_components/videojs-vimeo/vjs.vimeo.js',
+                '../../bower_components/videojs-youtube/src/youtube.js',
+                '../../bower_components/videojs-vimeo/src/media.vimeo.js',
                 '../../bower_components/videojs-dailymotion/src/dailymotion.js',
-                // 'js/vendor/video.js-dailymotion/vjs.dailymotion.js',
 
                 '../../bower_components/Readmore.js/readmore.js',
             ], 'public/js/vendor.js', 'resources/assets/')

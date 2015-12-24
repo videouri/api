@@ -84,29 +84,39 @@ class VideoController extends Controller
          *       No more!
          *   '
          */
-        if (!$video = Video::where('original_id', '=', $originalId)->first()) {
-            try {
-                $video = $this->apiprocessing->getVideoInfo($api, $originalId)['data'][0];
-            } catch (\Exception $e) {
-                dd($e->getMessage());
-                // abort(404);
-            }
+        // $video = Video::where('original_id', '=', $originalId)->first();
+        // // dump($video);
+        // dump($video->favorited()->whereUserId(Auth::user()->id)->get());
+        // // dump($video->watchLater);
 
-            // Save Video data
-            // $this->dispatch(new SaveVideo($video, $api));
-
-            // $video = Video::where('original_id', $originalId)->first();
-            // $video['related'] = $this->relatedVideos($api, $originalId);
+        // die;
+        try {
+            $video = $this->apiprocessing->getVideoInfo($api, $originalId);
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+            // abort(404);
         }
 
-        // If there's a user logged, register
-        // the video view
+        $this->dispatch(new SaveVideo($video, $api));
+
+        // dd($video);
+
+        // $video = Video::where('original_id', $originalId)->first();
+        // $video['related'] = $this->relatedVideos($api, $originalId);
+
+        // If there's a user logged, register the video view
         if ($user = Auth::user()) {
-            $this->dispatch(new RegisterView($video['originalId'], $user));
+            $delay = 30; // seconds
+            $originalId = $video['original_id'];
+
+            $job = (new RegisterView($originalId, $user))->delay($delay);
+
+            $this->dispatch($job);
         }
 
-        $data['video'] = json_encode($video);
         $data['thumbnail'] = $video['thumbnail'];
+        $data['video'] = json_encode($video);
+        $data['relatedVideos'] = [];
         // $data['source'] = $api;
 
         // Metadata

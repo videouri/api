@@ -1,4 +1,4 @@
-<div class="col s4 video {{ video.source }}">
+<div class="col s4 video {{ video.provider }}">
     <div class="card hoverable">
         <div class="card-image">
             <a href="{{ video.custom_url }}">
@@ -6,8 +6,8 @@
             </a>
             <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.custom_url }}"></span>
 
-            <span class="video-source {{ video.source }}">
-                {{ video.source }}
+            <span class="video-source {{ video.provider }}">
+                {{ video.provider }}
             </span>
         </div>
         <div class="card-content">

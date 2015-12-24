@@ -46,10 +46,11 @@ return [
 
     'connections' => [
 
+
         'sqlite' => [
             'driver'   => 'sqlite',
             'database' => database_path('database.sqlite'),
-            'prefix'   => ''
+            'prefix'   => '',
         ],
 
         'mysql' => [
@@ -61,7 +62,7 @@ return [
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix'    => '',
-            'strict'    => false
+            'strict'    => false,
         ],
 
         'pgsql' => [
@@ -72,7 +73,7 @@ return [
             'password' => env('DB_PASSWORD', ''),
             'charset'  => 'utf8',
             'prefix'   => '',
-            'schema'   => 'public'
+            'schema'   => 'public',
         ],
 
         'sqlsrv' => [
@@ -82,8 +83,8 @@ return [
             'username' => env('DB_USERNAME', 'forge'),
             'password' => env('DB_PASSWORD', ''),
             'charset'  => 'utf8',
-            'prefix'   => ''
-        ]
+            'prefix'   => '',
+        ],
 
     ],
 
@@ -116,10 +117,11 @@ return [
         'cluster' => false,
 
         'default' => [
-            'host'     => '127.0.0.1',
-            'port'     => 6379,
-            'database' => 0
-        ]
+            'host'     => env('REDIS_HOST', 'localhost'),
+            'password' => env('REDIS_PASSWORD', null),
+            'port'     => env('REDIS_PORT', 6379),
+            'database' => 0,
+        ],
 
     ]
 

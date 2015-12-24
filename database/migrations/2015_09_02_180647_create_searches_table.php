@@ -20,7 +20,7 @@ class CreateSearchesTable extends Migration
             $table->integer('user_id')->unsigned()->nullable();
             $table->foreign('user_id')->references('id')->on('users');
 
-            $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('registered_at')->default(DB::raw('CURRENT_TIMESTAMP'));
         });
     }
 

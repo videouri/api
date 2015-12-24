@@ -3,17 +3,18 @@
 @section('content')
 <div class="container">
     @include('videouri.user.history.menu')
-    <div class="row">
+    <videos-list content="videosWatched"></videos-list>
+    {{-- <div class="row">
         <div class="col s12">
             <ul class="collection">
-            @foreach ($records as $record)
+                @foreach ($records as $record)
                 <li class="collection-item avatar">
-                    <img src="{{ $record->video->thumbnail }}" alt="">
-                    <span class="title">{{ $record->video->title }}</span
+                    <img src="{{ $record['thumbnail'] }}" alt="{{ $record['title'] }}" class="circle">
+                    <span class="title">{{ $record['title'] }}</span
                 </li>
-            @endforeach
+                @endforeach
             </ul>
         </div>
-    </div>
+    </div> --}}
 </div>
 @endsection

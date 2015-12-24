@@ -1,5 +1,5 @@
 @extends('app')
 
 @section('content')
-    <video-page :video="{{ $video }}"> </video-page>
+    <video-page :video="{{ $video }}" :user="{{ Auth::user() }}"> </video-page>
 @endsection

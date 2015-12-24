@@ -50,6 +50,13 @@ app = new Vue({
         //     });
         // }
 
+        $('.custom-dropdown-button').dropdown({
+            // constrain_width: true, // Constrains width of dropdown to the activator
+            // hover: false,
+            // gutter: 0, // Spacing from edge
+            belowOrigin: true
+        });
+
         // Detect touch screen and enable scrollbar if necessary
         function is_touch_device() {
             try {

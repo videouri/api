@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 
 use App\Entities\User;
 use App\Traits\SocialAuth;
+use App\Repositories\UserRepository;
 
 class AuthController extends Controller
 {
@@ -16,14 +17,20 @@ class AuthController extends Controller
 
     protected $redirectPath = '/';
 
+    protected $loginPath = '/login';
+
+    protected $userRepository;
+
     /**
      * Create a new authentication controller instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(UserRepository $userRepository)
     {
         $this->middleware('guest', ['except' => 'getLogout']);
+
+        $this->userRepository = $userRepository;
     }
 
     /**

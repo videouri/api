@@ -6,10 +6,10 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class FavoritesController extends Controller
+class WatchLaterController extends Controller
 {
     public function index()
     {
-        return view('videouri.user.favorites');
+        return view('videouri.user.watch-later');
     }
 }

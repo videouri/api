@@ -2,12 +2,22 @@
 
 namespace App\Services;
 
-use Cache;
 use Exception;
+
+use Cache;
+use Auth;
+
 use App\Services\DailymotionAgent;
 use App\Services\VimeoAgent;
 use App\Services\YoutubeAgent;
 use App\Traits\ApiParsersTrait;
+use App\Entities\Video;
+use App\Transformers\VideoTransformer;
+
+use League\Fractal\Manager as FractalManager;
+use League\Fractal\Resource\Collection;
+use League\Fractal\Resource\Item;
+use League\Fractal\Serializer\ArraySerializer;
 
 /**
  * ApiProcessing Class
@@ -33,7 +43,7 @@ class ApiProcessing
         'youtube',
         // 'metacafe',
         'dailymotion',
-        'vimeo'
+        'vimeo',
     ];
 
     /**
@@ -48,9 +58,8 @@ class ApiProcessing
     );
 
     private $individualContents = array(
-        'getVideoEntry',
         'getRelatedVideos',
-        'tag'
+        'tag',
     );
 
     /**
@@ -122,7 +131,7 @@ class ApiProcessing
      * To cache or not to cache
      * @var boolean
      */
-    public $cacheDeactivated = true;
+    public $cacheDeactivated = false;
 
     /**
      * Caching time span and timeout
@@ -152,14 +161,16 @@ class ApiProcessing
         if (!in_array($this->period, $this->validPeriods)) {
             $this->period = 'today';
         }
+
+        $this->cacheDeactivated = env('DEACTIVATE_CACHING', false);
     }
 
     public function mixedCalls($content)
     {
         $apiParameters = [
-            'apis'        => $this->apis,
-            'content'     => $content,
-            'period'      => $this->period,
+            'apis'    => $this->apis,
+            'content' => $content,
+            'period'  => $this->period,
             // 'searchQuery' => $this->searchQuery,
             // 'page'        => $this->page,
             // 'sort'        => $this->sort
@@ -208,9 +219,27 @@ class ApiProcessing
      * @param  [type] $sort  [description]
      * @return [type]        [description]
      */
-    public function searchVideos($query, $page, $sort)
+    public function searchVideos($searchQuery, $page, $sort, $period, $maxResults = 10)
     {
+        $parameters = [
+            'searchQuery' => $searchQuery,
+            'page'        => $page,
+            'sort'        => $sort,
+            'period'      => $period,
+            'maxResults'  => $maxResults,
+        ];
 
+        $results = [];
+
+        $apis = $this->apis;
+        foreach ($apis as $api) {
+            $apiToRun = $this->{$api};
+            $videos = $apiToRun->searchVideos($parameters);
+            $videos = $this->parseApiResult($api, $videos);
+            $results[$api] = $videos;
+        }
+
+        return $results;
     }
 
     /**
@@ -225,14 +254,20 @@ class ApiProcessing
     {
         $apiToRun = $this->{$api};
 
-        $videoData = $apiToRun->getVideoInfo($videoId);
+        // If it exists in the database, get the info from there and transform it
+        // via VideoTransformer
+        if ($video = Video::where('original_id', '=', $videoId)->first()) {
 
-        if ($parseResult) {
-            $videoData = $this->parseApiResult($api, $videoData);
-            // $videoData = $this->parseIndividualResult($api, $videoData);
+            $video = $this->transformVideos($video);
+        } else {
+            $video = $apiToRun->getVideoInfo($videoId);
+
+            if ($parseResult) {
+                $video = $this->parseApiResult($api, $video);
+            }
         }
 
-        return $videoData;
+        return $video;
     }
 
     /**
@@ -245,7 +280,7 @@ class ApiProcessing
     {
         $parameters = [
             'period'     => $this->period,
-            'maxResults' => $this->maxResults
+            'maxResults' => $this->maxResults,
         ];
 
         $apiToRun = $this->{$api};
@@ -257,5 +292,28 @@ class ApiProcessing
             dump('getContent');
             dump($e);
         }
+    }
+
+    /**
+     * [transformVideos description]
+     * @return [type] [description]
+     */
+    public function transformVideos($videos)
+    {
+        // dd($videos);
+
+        if (is_array($videos) && count($videos) > 0) {
+            $resource = new Collection($videos, new VideoTransformer());
+        } else {
+            $resource = new Item($videos, new VideoTransformer());
+        }
+
+        // Create a top level instance somewhere
+        $fractalManager = new FractalManager();
+        // $fractalManager->setSerializer(new ArraySerializer());
+
+        $videos = $fractalManager->createData($resource)->toArray();
+
+        return $videos['data'];
     }
 }

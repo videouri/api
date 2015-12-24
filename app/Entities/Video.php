@@ -29,27 +29,71 @@ class Video extends Model
         'provider', 'original_id', 'custom_id',
         'original_url', 'slug',
         'author', 'title', 'description',
-        'thumbnail', 'views',
+        'thumbnail', 'views', 'duration',
         'categories', 'tags'
     ];
+
+    // protected $casts = [
+    // ];
+
+    //////////////
+    // Mutators //
+    //////////////
+
+    public function getTagsAttribute()
+    {
+        $tags = $this->attributes['tags'];
+
+        if (!is_array($this->attributes['tags'])) {
+            $tags = json_decode($this->attributes['tags']);
+        }
+
+        return $tags;
+    }
 
     public function getCustomUrlAttribute()
     {
         return url('/video/' . $this->custom_id);
     }
 
+    /////////////
+    // Helpers //
+    /////////////
+
+    public function savedForLater($userId)
+    {
+        if (is_numeric($userId) && $this->watchLater()->whereUserId($userId)->first()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isFavorited($userId)
+    {
+        if (is_numeric($userId) && $this->favorited()->whereUserId($userId)->first()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    ///////////////
+    // Relations //
+    ///////////////
+
     public function watchers()
     {
-        return $this->belongsToMany('App\Entities\User', 'views');
+        return $this->belongsToMany(User::class, 'views');
     }
 
     public function favorited()
     {
-        return $this->belongsToMany('App\Entities\Favorite', 'favorites');
+        return $this->belongsToMany(User::class, 'favorites');
     }
 
-    public function latered()
+    public function watchLater()
     {
-        return $this->belongsToMany('App\Entities\Later', 'watch_later');
+        return $this->belongsToMany(User::class, 'watch_later');
     }
 }

@@ -30,7 +30,7 @@ class SearchController extends Controller
         $this->apiprocessing->timestamp = date('Y-m-d');
     }
 
-    public function getVideos(Request $request)
+    public function getIndex(Request $request)
     {
         /**
          * Check that search query is not empty
@@ -63,16 +63,28 @@ class SearchController extends Controller
 
         $page = $request->get('page', 1);
         $sort = $request->get('sort', 'relevance');
+        $period = '';
 
         // Queue to save search term
         $this->dispatch(new RegisterSearch($searchQuery, Auth::user()));
 
-        $videos = array();
+        $videos = [];
         try {
-            $videosRaw = $this->apiprocessing->searchVideos($query, $page, $sort);
+            $parameters = [
+                'searchQuery' => $searchQuery,
+                'page'        => $page,
+                'sort'        => $sort,
+            ];
 
-            foreach ($videosRaw as $api => $apiData) {
-                $videos = array_merge($videos, $this->apiprocessing->parseApiResult($api, $apiData));
+            $results = $this->apiprocessing->searchVideos(
+                $searchQuery,
+                $page,
+                $sort,
+                $period
+            );
+
+            foreach ($results as $api => $apiData) {
+                $videos = array_merge($apiData, $videos);
             }
 
             return response()->success($videos);

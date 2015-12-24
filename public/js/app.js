@@ -12,11 +12,11 @@ exports.__esModule = true;
 
 var _linkify = require('./linkify');
 
-function cleanText(text) {
+function escapeText(text) {
 	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function cleanAttr(href) {
+function escapeAttr(href) {
 	return href.replace(/"/g, '&quot;');
 }
 
@@ -27,7 +27,7 @@ function attributesToString(attributes) {
 
 	for (var attr in attributes) {
 		var val = (attributes[attr] + '').replace(/"/g, '&quot;');
-		result.push(attr + '="' + cleanAttr(val) + '"');
+		result.push(attr + '="' + escapeAttr(val) + '"');
 	}
 	return result.join(' ');
 }
@@ -52,16 +52,16 @@ function linkifyStr(str) {
 			    linkClass = _linkify.options.resolve(opts.linkClass, href, token.type),
 			    target = _linkify.options.resolve(opts.target, href, token.type);
 
-			var link = '<' + tagName + ' href="' + cleanAttr(formattedHref) + '" class="' + cleanAttr(linkClass) + '"';
+			var link = '<' + tagName + ' href="' + escapeAttr(formattedHref) + '" class="' + escapeAttr(linkClass) + '"';
 			if (target) {
-				link += ' target="' + cleanAttr(target) + '"';
+				link += ' target="' + escapeAttr(target) + '"';
 			}
 
 			if (attributesHash) {
 				link += ' ' + attributesToString(attributesHash);
 			}
 
-			link += '>' + cleanText(formatted) + '</' + tagName + '>';
+			link += '>' + escapeText(formatted) + '</' + tagName + '>';
 			result.push(link);
 		} else if (token.type === 'nl' && opts.nl2br) {
 			if (opts.newLine) {
@@ -70,7 +70,7 @@ function linkifyStr(str) {
 				result.push('<br>\n');
 			}
 		} else {
-			result.push(cleanText(token.toString()));
+			result.push(escapeText(token.toString()));
 		}
 	}
 
@@ -208,7 +208,14 @@ var TT_DOMAIN = _tokens.text.DOMAIN,
     TT_QUERY = _tokens.text.QUERY,
     TT_SLASH = _tokens.text.SLASH,
     TT_SYM = _tokens.text.SYM,
-    TT_TLD = _tokens.text.TLD;
+    TT_TLD = _tokens.text.TLD,
+    TT_OPENBRACE = _tokens.text.OPENBRACE,
+    TT_OPENBRACKET = _tokens.text.OPENBRACKET,
+    TT_OPENPAREN = _tokens.text.OPENPAREN,
+    TT_CLOSEBRACE = _tokens.text.CLOSEBRACE,
+    TT_CLOSEBRACKET = _tokens.text.CLOSEBRACKET,
+    TT_CLOSEPAREN = _tokens.text.CLOSEPAREN;
+
 // TT_WS 			= TEXT_TOKENS.WS;
 
 var T_EMAIL = _tokens.multi.EMAIL,
@@ -254,6 +261,24 @@ S_URL = makeState(T_URL),
     // Long URL with optional port and maybe query string
 S_URL_SYMS = makeState(),
     // URL followed by some symbols (will not be part of the final URL)
+S_URL_OPENBRACE = makeState(),
+    // URL followed by {
+S_URL_OPENBRACKET = makeState(),
+    // URL followed by [
+S_URL_OPENPAREN = makeState(),
+    // URL followed by (
+S_URL_OPENBRACE_Q = makeState(T_URL),
+    // URL followed by { and some symbols that the URL can end it
+S_URL_OPENBRACKET_Q = makeState(T_URL),
+    // URL followed by [ and some symbols that the URL can end it
+S_URL_OPENPAREN_Q = makeState(T_URL),
+    // URL followed by ( and some symbols that the URL can end it
+S_URL_OPENBRACE_SYMS = makeState(),
+    // S_URL_OPENBRACE_Q followed by some symbols it cannot end it
+S_URL_OPENBRACKET_SYMS = makeState(),
+    // S_URL_OPENBRACKET_Q followed by some symbols it cannot end it
+S_URL_OPENPAREN_SYMS = makeState(),
+    // S_URL_OPENPAREN_Q followed by some symbols it cannot end it
 S_EMAIL_DOMAIN = makeState(),
     // parsed string starts with local email info + @ with a potential domain name (C)
 S_EMAIL_DOMAIN_DOT = makeState(),
@@ -331,12 +356,61 @@ S_EMAIL.on(TT_COLON, S_EMAIL_COLON);
 S_EMAIL_COLON.on(TT_NUM, S_EMAIL_PORT);
 
 // Types of characters the URL can definitely end in
-var qsAccepting = [TT_DOMAIN, TT_AT, TT_LOCALHOST, TT_NUM, TT_PLUS, TT_POUND, TT_PROTOCOL, TT_SLASH, TT_TLD, TT_SYM];
+var qsAccepting = [TT_DOMAIN, TT_AT, TT_LOCALHOST, TT_NUM, TT_PLUS, TT_POUND, TT_PROTOCOL, TT_SLASH, TT_TLD];
 
 // Types of tokens that can follow a URL and be part of the query string
 // but cannot be the very last characters
 // Characters that cannot appear in the URL at all should be excluded
-var qsNonAccepting = [TT_COLON, TT_DOT, TT_QUERY, TT_PUNCTUATION];
+var qsNonAccepting = [TT_COLON, TT_DOT, TT_QUERY, TT_PUNCTUATION, TT_CLOSEBRACE, TT_CLOSEBRACKET, TT_CLOSEPAREN, TT_OPENBRACE, TT_OPENBRACKET, TT_OPENPAREN, TT_SYM];
+
+// These states are responsible primarily for determining whether or not to
+// include the final round bracket.
+
+// URL, followed by an opening bracket
+S_URL.on(TT_OPENBRACE, S_URL_OPENBRACE);
+S_URL.on(TT_OPENBRACKET, S_URL_OPENBRACKET);
+S_URL.on(TT_OPENPAREN, S_URL_OPENPAREN);
+
+// URL with extra symbols at the end, followed by an opening bracket
+S_URL_SYMS.on(TT_OPENBRACE, S_URL_OPENBRACE);
+S_URL_SYMS.on(TT_OPENBRACKET, S_URL_OPENBRACKET);
+S_URL_SYMS.on(TT_OPENPAREN, S_URL_OPENPAREN);
+
+// Closing bracket component. This character WILL be included in the URL
+S_URL_OPENBRACE.on(TT_CLOSEBRACE, S_URL);
+S_URL_OPENBRACKET.on(TT_CLOSEBRACKET, S_URL);
+S_URL_OPENPAREN.on(TT_CLOSEPAREN, S_URL);
+S_URL_OPENBRACE_Q.on(TT_CLOSEBRACE, S_URL);
+S_URL_OPENBRACKET_Q.on(TT_CLOSEBRACKET, S_URL);
+S_URL_OPENPAREN_Q.on(TT_CLOSEPAREN, S_URL);
+S_URL_OPENBRACE_SYMS.on(TT_CLOSEBRACE, S_URL);
+S_URL_OPENBRACKET_SYMS.on(TT_CLOSEBRACKET, S_URL);
+S_URL_OPENPAREN_SYMS.on(TT_CLOSEPAREN, S_URL);
+
+// URL that beings with an opening bracket, followed by a symbols.
+// Note that the final state can still be `S_URL_OPENBRACE_Q` (if the URL only
+// has a single opening bracket for some reason).
+S_URL_OPENBRACE.on(qsAccepting, S_URL_OPENBRACE_Q);
+S_URL_OPENBRACKET.on(qsAccepting, S_URL_OPENBRACKET_Q);
+S_URL_OPENPAREN.on(qsAccepting, S_URL_OPENPAREN_Q);
+S_URL_OPENBRACE.on(qsNonAccepting, S_URL_OPENBRACE_SYMS);
+S_URL_OPENBRACKET.on(qsNonAccepting, S_URL_OPENBRACKET_SYMS);
+S_URL_OPENPAREN.on(qsNonAccepting, S_URL_OPENPAREN_SYMS);
+
+// URL that begins with an opening bracket, followed by some symbols
+S_URL_OPENBRACE_Q.on(qsAccepting, S_URL_OPENBRACE_Q);
+S_URL_OPENBRACKET_Q.on(qsAccepting, S_URL_OPENBRACKET_Q);
+S_URL_OPENPAREN_Q.on(qsAccepting, S_URL_OPENPAREN_Q);
+S_URL_OPENBRACE_Q.on(qsNonAccepting, S_URL_OPENBRACE_Q);
+S_URL_OPENBRACKET_Q.on(qsNonAccepting, S_URL_OPENBRACKET_Q);
+S_URL_OPENPAREN_Q.on(qsNonAccepting, S_URL_OPENPAREN_Q);
+
+S_URL_OPENBRACE_SYMS.on(qsAccepting, S_URL_OPENBRACE_Q);
+S_URL_OPENBRACKET_SYMS.on(qsAccepting, S_URL_OPENBRACKET_Q);
+S_URL_OPENPAREN_SYMS.on(qsAccepting, S_URL_OPENPAREN_Q);
+S_URL_OPENBRACE_SYMS.on(qsNonAccepting, S_URL_OPENBRACE_SYMS);
+S_URL_OPENBRACKET_SYMS.on(qsNonAccepting, S_URL_OPENBRACKET_SYMS);
+S_URL_OPENPAREN_SYMS.on(qsNonAccepting, S_URL_OPENPAREN_SYMS);
 
 // Account for the query string
 S_URL.on(qsAccepting, S_URL);
@@ -506,6 +580,12 @@ S_START.on('#', makeState(_tokens.text.POUND));
 S_START.on('?', makeState(_tokens.text.QUERY));
 S_START.on('/', makeState(_tokens.text.SLASH));
 S_START.on(COLON, makeState(_tokens.text.COLON));
+S_START.on('{', makeState(_tokens.text.OPENBRACE));
+S_START.on('[', makeState(_tokens.text.OPENBRACKET));
+S_START.on('(', makeState(_tokens.text.OPENPAREN));
+S_START.on('}', makeState(_tokens.text.CLOSEBRACE));
+S_START.on(']', makeState(_tokens.text.CLOSEBRACKET));
+S_START.on(')', makeState(_tokens.text.CLOSEPAREN));
 S_START.on(/[,;!]/, makeState(_tokens.text.PUNCTUATION));
 
 // Whitespace jumps
@@ -1209,7 +1289,83 @@ var WS = (function (_TextToken16) {
 		_TextToken16.apply(this, arguments);
 	}
 
+	/**
+ 	Opening/closing bracket classes
+ */
+
 	return WS;
+})(TextToken);
+
+var OPENBRACE = (function (_TextToken17) {
+	_inherits(OPENBRACE, _TextToken17);
+
+	function OPENBRACE() {
+		_classCallCheck(this, OPENBRACE);
+
+		_TextToken17.call(this, '{');
+	}
+
+	return OPENBRACE;
+})(TextToken);
+
+var OPENBRACKET = (function (_TextToken18) {
+	_inherits(OPENBRACKET, _TextToken18);
+
+	function OPENBRACKET() {
+		_classCallCheck(this, OPENBRACKET);
+
+		_TextToken18.call(this, '[');
+	}
+
+	return OPENBRACKET;
+})(TextToken);
+
+var OPENPAREN = (function (_TextToken19) {
+	_inherits(OPENPAREN, _TextToken19);
+
+	function OPENPAREN() {
+		_classCallCheck(this, OPENPAREN);
+
+		_TextToken19.call(this, '(');
+	}
+
+	return OPENPAREN;
+})(TextToken);
+
+var CLOSEBRACE = (function (_TextToken20) {
+	_inherits(CLOSEBRACE, _TextToken20);
+
+	function CLOSEBRACE() {
+		_classCallCheck(this, CLOSEBRACE);
+
+		_TextToken20.call(this, '}');
+	}
+
+	return CLOSEBRACE;
+})(TextToken);
+
+var CLOSEBRACKET = (function (_TextToken21) {
+	_inherits(CLOSEBRACKET, _TextToken21);
+
+	function CLOSEBRACKET() {
+		_classCallCheck(this, CLOSEBRACKET);
+
+		_TextToken21.call(this, ']');
+	}
+
+	return CLOSEBRACKET;
+})(TextToken);
+
+var CLOSEPAREN = (function (_TextToken22) {
+	_inherits(CLOSEPAREN, _TextToken22);
+
+	function CLOSEPAREN() {
+		_classCallCheck(this, CLOSEPAREN);
+
+		_TextToken22.call(this, ')');
+	}
+
+	return CLOSEPAREN;
 })(TextToken);
 
 var text = {
@@ -1229,7 +1385,13 @@ var text = {
 	SLASH: SLASH,
 	SYM: SYM,
 	TLD: TLD,
-	WS: WS
+	WS: WS,
+	OPENBRACE: OPENBRACE,
+	OPENBRACKET: OPENBRACKET,
+	OPENPAREN: OPENPAREN,
+	CLOSEBRACE: CLOSEBRACE,
+	CLOSEBRACKET: CLOSEBRACKET,
+	CLOSEPAREN: CLOSEPAREN
 };
 
 /******************************************************************************
@@ -2490,7 +2652,7 @@ module.exports = function (_) {
 },{}],19:[function(require,module,exports){
 (function (process){
 /*!
- * Vue.js v1.0.10
+ * Vue.js v1.0.12
  * (c) 2015 Evan You
  * Released under the MIT License.
  */
@@ -2520,6 +2682,7 @@ function set(obj, key, val) {
       vm._digest();
     }
   }
+  return val;
 }
 
 /**
@@ -3051,6 +3214,7 @@ var reservedArgRE = /^in$|^-?\d+/;
 var str;
 var dir;
 var c;
+var prev;
 var i;
 var l;
 var lastFilterIndex;
@@ -3136,13 +3300,14 @@ function parseDirective(s) {
   dir = {};
 
   for (i = 0, l = str.length; i < l; i++) {
+    prev = c;
     c = str.charCodeAt(i);
     if (inSingle) {
       // check single quote
-      if (c === 0x27) inSingle = !inSingle;
+      if (c === 0x27 && prev !== 0x5C) inSingle = !inSingle;
     } else if (inDouble) {
       // check double quote
-      if (c === 0x22) inDouble = !inDouble;
+      if (c === 0x22 && prev !== 0x5C) inDouble = !inDouble;
     } else if (c === 0x7C && // pipe
     str.charCodeAt(i + 1) !== 0x7C && str.charCodeAt(i - 1) !== 0x7C) {
       if (dir.expression == null) {
@@ -3335,10 +3500,22 @@ function inlineFilters(exp, single) {
   }
 }
 
+/**
+ * Replace all interpolation tags in a piece of text.
+ *
+ * @param {String} text
+ * @return {String}
+ */
+
+function removeTags(text) {
+  return text.replace(tagRE, '');
+}
+
 var text$1 = Object.freeze({
   compileRegex: compileRegex,
   parseText: parseText,
-  tokensToExp: tokensToExp
+  tokensToExp: tokensToExp,
+  removeTags: removeTags
 });
 
 var delimiters = ['{{', '}}'];
@@ -3613,6 +3790,18 @@ function getBindAttr(node, name) {
 }
 
 /**
+ * Check the presence of a bind attribute.
+ *
+ * @param {Node} node
+ * @param {String} name
+ * @return {Boolean}
+ */
+
+function hasBindAttr(node, name) {
+  return node.hasAttribute(name) || node.hasAttribute(':' + name) || node.hasAttribute('v-bind:' + name);
+}
+
+/**
  * Insert el before target
  *
  * @param {Element} el
@@ -3702,10 +3891,29 @@ function off(el, event, cb) {
 }
 
 /**
+ * In IE9, setAttribute('class') will result in empty class
+ * if the element also has the :class attribute; However in
+ * PhantomJS, setting `className` does not work on SVG elements...
+ * So we have to do a conditional check here.
+ *
+ * @param {Element} el
+ * @param {String} cls
+ */
+
+function setClass(el, cls) {
+  /* istanbul ignore if */
+  if (isIE9 && !(el instanceof SVGElement)) {
+    el.className = cls;
+  } else {
+    el.setAttribute('class', cls);
+  }
+}
+
+/**
  * Add class with compatibility for IE & SVG
  *
  * @param {Element} el
- * @param {Strong} cls
+ * @param {String} cls
  */
 
 function addClass(el, cls) {
@@ -3714,7 +3922,7 @@ function addClass(el, cls) {
   } else {
     var cur = ' ' + (el.getAttribute('class') || '') + ' ';
     if (cur.indexOf(' ' + cls + ' ') < 0) {
-      el.setAttribute('class', (cur + cls).trim());
+      setClass(el, (cur + cls).trim());
     }
   }
 }
@@ -3723,7 +3931,7 @@ function addClass(el, cls) {
  * Remove class with compatibility for IE & SVG
  *
  * @param {Element} el
- * @param {Strong} cls
+ * @param {String} cls
  */
 
 function removeClass(el, cls) {
@@ -3735,7 +3943,7 @@ function removeClass(el, cls) {
     while (cur.indexOf(tar) >= 0) {
       cur = cur.replace(tar, ' ');
     }
-    el.setAttribute('class', cur.trim());
+    setClass(el, cur.trim());
   }
   if (!el.className) {
     el.removeAttribute('class');
@@ -3895,6 +4103,7 @@ function removeNodeRange(start, end, vm, frag, cb) {
 }
 
 var commonTagRE = /^(div|p|span|img|a|b|i|br|ul|ol|li|h1|h2|h3|h4|h5|h6|code|pre|table|th|td|tr|form|label|input|select|option|nav|article|section|header|footer)$/;
+var reservedTagRE = /^(slot|partial|component)$/;
 
 /**
  * Check if an element is a component, if yes return its
@@ -3908,7 +4117,7 @@ var commonTagRE = /^(div|p|span|img|a|b|i|br|ul|ol|li|h1|h2|h3|h4|h5|h6|code|pre
 function checkComponentAttr(el, options) {
   var tag = el.tagName.toLowerCase();
   var hasAttrs = el.hasAttributes();
-  if (!commonTagRE.test(tag) && tag !== 'component') {
+  if (!commonTagRE.test(tag) && !reservedTagRE.test(tag)) {
     if (resolveAsset(options, 'components', tag)) {
       return { id: tag };
     } else {
@@ -3959,6 +4168,7 @@ function getIsBinding(el) {
 
 function initProp(vm, prop, value) {
   var key = prop.path;
+  value = coerceProp(prop, value);
   vm[key] = vm._data[key] = assertProp(prop, value) ? value : undefined;
 }
 
@@ -4014,6 +4224,23 @@ function assertProp(prop, value) {
     }
   }
   return true;
+}
+
+/**
+ * Force parsing value with coerce option.
+ *
+ * @param {*} value
+ * @param {Object} options
+ * @return {*}
+ */
+
+function coerceProp(prop, value) {
+  var coerce = prop.options.coerce;
+  if (!coerce) {
+    return value;
+  }
+  // coerce is a function
+  return coerce(value);
 }
 
 function formatType(val) {
@@ -4201,8 +4428,8 @@ function guardComponents(options) {
     var ids = Object.keys(components);
     for (var i = 0, l = ids.length; i < l; i++) {
       var key = ids[i];
-      if (commonTagRE.test(key)) {
-        process.env.NODE_ENV !== 'production' && warn('Do not use built-in HTML elements as component ' + 'id: ' + key);
+      if (commonTagRE.test(key) || reservedTagRE.test(key)) {
+        process.env.NODE_ENV !== 'production' && warn('Do not use built-in or reserved HTML elements as component ' + 'id: ' + key);
         continue;
       }
       def = components[key];
@@ -4609,7 +4836,7 @@ function observe(value, vm) {
   var ob;
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__;
-  } else if ((isArray(value) || isPlainObject(value)) && !Object.isFrozen(value) && !value._isVue) {
+  } else if ((isArray(value) || isPlainObject(value)) && Object.isExtensible(value) && !value._isVue) {
     ob = new Observer(value);
   }
   if (ob && vm) {
@@ -4714,6 +4941,7 @@ var util = Object.freeze({
 	inDoc: inDoc,
 	getAttr: getAttr,
 	getBindAttr: getBindAttr,
+	hasBindAttr: hasBindAttr,
 	before: before,
 	after: after,
 	remove: remove,
@@ -4721,6 +4949,7 @@ var util = Object.freeze({
 	replace: replace,
 	on: on$1,
 	off: off,
+	setClass: setClass,
 	addClass: addClass,
 	removeClass: removeClass,
 	extractContent: extractContent,
@@ -4736,7 +4965,9 @@ var util = Object.freeze({
 	checkComponentAttr: checkComponentAttr,
 	initProp: initProp,
 	assertProp: assertProp,
+	coerceProp: coerceProp,
 	commonTagRE: commonTagRE,
+	reservedTagRE: reservedTagRE,
 	get warn () { return warn; }
 });
 
@@ -5187,11 +5418,11 @@ var improperKeywordsRE = new RegExp('^(' + improperKeywords.replace(/,/g, '\\b|'
 
 var wsRE = /\s/g;
 var newlineRE = /\n/g;
-var saveRE = /[\{,]\s*[\w\$_]+\s*:|('[^']*'|"[^"]*")|new |typeof |void /g;
+var saveRE = /[\{,]\s*[\w\$_]+\s*:|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|new |typeof |void /g;
 var restoreRE = /"(\d+)"/g;
-var pathTestRE = /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*|\['.*?'\]|\[".*?"\]|\[\d+\]|\[[A-Za-z_$][\w$]*\])*$/;
-var pathReplaceRE = /[^\w$\.]([A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*|\['.*?'\]|\[".*?"\])*)/g;
-var booleanLiteralRE = /^(true|false)$/;
+var pathTestRE = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\['.*?'\]|\[".*?"\]|\[\d+\]|\[[A-Za-z_$][\w$]*\])*$/;
+var identRE = /[^\w$\.](?:[A-Za-z_$][\w$]*)/g;
+var booleanLiteralRE = /^(?:true|false)$/;
 
 /**
  * Save / Rewrite / Restore
@@ -5274,7 +5505,7 @@ function compileGetter(exp) {
   var body = exp.replace(saveRE, save).replace(wsRE, '');
   // rewrite all paths
   // pad 1 space here becaue the regex matches 1 extra char
-  body = (' ' + body).replace(pathReplaceRE, rewrite).replace(restoreRE, restore);
+  body = (' ' + body).replace(identRE, rewrite).replace(restoreRE, restore);
   return makeGetterFn(body);
 }
 
@@ -5664,11 +5895,11 @@ Watcher.prototype.run = function () {
   if (this.active) {
     var value = this.get();
     if (value !== this.value ||
-    // Deep watchers and Array watchers should fire even
+    // Deep watchers and watchers on Object/Arrays should fire even
     // when the value is the same, because the value may
     // have mutated; but only do so if this is a
     // non-shallow update (caused by a vm digest).
-    (isArray(value) || this.deep) && !this.shallow) {
+    (isObject(value) || this.deep) && !this.shallow) {
       // set new value
       var oldValue = this.value;
       this.value = value;
@@ -5914,13 +6145,12 @@ function prefix(prop) {
 var xlinkNS = 'http://www.w3.org/1999/xlink';
 var xlinkRE = /^xlink:/;
 
-// these input element attributes should also set their
-// corresponding properties
-var inputProps = {
-  value: 1,
-  checked: 1,
-  selected: 1
-};
+// check for attributes that prohibit interpolations
+var disallowedInterpAttrRE = /^v-|^:|^@|^(is|transition|transition-mode|debounce|track-by|stagger|enter-stagger|leave-stagger)$/;
+
+// these attributes should also set their corresponding properties
+// because they only affect the initial state of the element
+var attrWithPropsRE = /^(value|checked|selected|muted)$/;
 
 // these attributes should set a hidden property for
 // binding v-model to object values
@@ -5929,9 +6159,6 @@ var modelProps = {
   'true-value': '_trueValue',
   'false-value': '_falseValue'
 };
-
-// check for attributes that prohibit interpolations
-var disallowedInterpAttrRE = /^v-|^:|^@|^(is|transition|transition-mode|debounce|track-by|stagger|enter-stagger|leave-stagger)$/;
 
 var bind = {
 
@@ -5985,9 +6212,9 @@ var bind = {
   handleObject: style.handleObject,
 
   handleSingle: function handleSingle(attr, value) {
-    if (inputProps[attr] && attr in this.el) {
-      this.el[attr] = attr === 'value' ? value || '' : // IE9 will set input.value to "null" for null...
-      value;
+    if (!this.descriptor.interp && attrWithPropsRE.test(attr) && attr in this.el) {
+      this.el[attr] = attr === 'value' ? value == null // IE9 will set input.value to "null" for null...
+      ? '' : value : value;
     }
     // set model props
     var modelProp = modelProps[attr];
@@ -6168,7 +6395,7 @@ var checkbox = {
     };
 
     this.on('change', this.listener);
-    if (el.checked) {
+    if (el.hasAttribute('checked')) {
       this.afterBind = this.listener;
     }
   },
@@ -6314,7 +6541,7 @@ var radio = {
     };
     this.on('change', this.listener);
 
-    if (el.checked) {
+    if (el.hasAttribute('checked')) {
       this.afterBind = this.listener;
     }
   },
@@ -6368,13 +6595,18 @@ var text$2 = {
       });
       this.on('blur', function () {
         self.focused = false;
-        self.listener();
+        // do not sync value after fragment removal (#2017)
+        if (!self._frag || self._frag.inserted) {
+          self.rawListener();
+        }
       });
     }
 
     // Now attach the main listener
-    this.listener = function () {
-      if (composing) return;
+    this.listener = this.rawListener = function () {
+      if (composing || !self._bound) {
+        return;
+      }
       var val = number || isRange ? toNumber(el.value) : el.value;
       self.set(val);
       // force update on next tick to avoid lock & same value
@@ -6538,9 +6770,14 @@ var show = {
   },
 
   apply: function apply(el, value) {
-    applyTransition(el, value ? 1 : -1, function () {
+    if (inDoc(el)) {
+      applyTransition(el, value ? 1 : -1, toggle, this.vm);
+    } else {
+      toggle();
+    }
+    function toggle() {
       el.style.display = value ? '' : 'none';
-    }, this.vm);
+    }
   }
 };
 
@@ -6575,7 +6812,7 @@ function isRealTemplate(node) {
 }
 
 var tagRE$1 = /<([\w:]+)/;
-var entityRE = /&\w+;|&#\d+;|&#x[\dA-F]+;/;
+var entityRE = /&#?\w+?;/;
 
 /**
  * Convert a string template to a DocumentFragment.
@@ -8110,6 +8347,7 @@ var propDef = {
     var twoWay = prop.mode === bindingModes.TWO_WAY;
 
     var parentWatcher = this.parentWatcher = new Watcher(parent, parentKey, function (val) {
+      val = coerceProp(prop, val);
       if (assertProp(prop, val)) {
         child[childKey] = val;
       }
@@ -8277,6 +8515,9 @@ var component = {
     if (activateHook && !cached) {
       this.waitingFor = newComponent;
       activateHook.call(newComponent, function () {
+        if (self.waitingFor !== newComponent) {
+          return;
+        }
         self.waitingFor = null;
         self.transition(newComponent, cb);
       });
@@ -8561,7 +8802,7 @@ var propBindingModes = config._propBindingModes;
 var empty = {};
 
 // regexes
-var identRE = /^[$_a-zA-Z]+[\w$]*$/;
+var identRE$1 = /^[$_a-zA-Z]+[\w$]*$/;
 var settablePathRE = /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*|\[[^\[\]]+\])*$/;
 
 /**
@@ -8591,7 +8832,7 @@ function compileProps(el, propOptions) {
     // interpreted as minus calculations by the parser
     // so we need to camelize the path here
     path = camelize(name);
-    if (!identRE.test(path)) {
+    if (!identRE$1.test(path)) {
       process.env.NODE_ENV !== 'production' && warn('Invalid prop key: "' + name + '". Prop keys ' + 'must be valid identifiers.');
       continue;
     }
@@ -9199,6 +9440,11 @@ function makeChildLinkFn(linkFns) {
 function checkElementDirectives(el, options) {
   var tag = el.tagName.toLowerCase();
   if (commonTagRE.test(tag)) return;
+  // special case: give named slot a higher priority
+  // than unnamed slots
+  if (tag === 'slot' && hasBindAttr(el, 'name')) {
+    tag = '_namedSlot';
+  }
   var def = resolveAsset(options, 'elementDirectives', tag);
   if (def) {
     return makeTerminalNodeLinkFn(el, tag, '', options, def);
@@ -9337,8 +9583,12 @@ function compileDirectives(attrs, options) {
     // attribute interpolations
     if (tokens) {
       value = tokensToExp(tokens);
-      arg = name;
-      pushDir('bind', publicDirectives.bind, true);
+      if (name === 'class') {
+        pushDir('class', internalDirectives['class'], true);
+      } else {
+        arg = name;
+        pushDir('bind', publicDirectives.bind, true);
+      }
       // warn against mixing mustaches with v-bind
       if (process.env.NODE_ENV !== 'production') {
         if (name === 'class' && Array.prototype.some.call(attrs, function (attr) {
@@ -9539,7 +9789,7 @@ function transcludeTemplate(el, options) {
       // non-element template
       replacer.nodeType !== 1 ||
       // single nested component
-      tag === 'component' || resolveAsset(options, 'components', tag) || replacer.hasAttribute('is') || replacer.hasAttribute(':is') || replacer.hasAttribute('v-bind:is') ||
+      tag === 'component' || resolveAsset(options, 'components', tag) || hasBindAttr(replacer, 'is') ||
       // element directive
       resolveAsset(options, 'elementDirectives', tag) ||
       // for block
@@ -10075,7 +10325,13 @@ Directive.prototype._bind = function () {
   // remove attribute
   if ((name !== 'cloak' || this.vm._isCompiled) && this.el && this.el.removeAttribute) {
     var attr = descriptor.attr || 'v-' + name;
-    this.el.removeAttribute(attr);
+    if (attr !== 'class') {
+      this.el.removeAttribute(attr);
+    } else {
+      // for class interpolations, only remove the parts that
+      // need to be interpolated.
+      setClass(this.el, removeTags(this.el.getAttribute('class')).trim().replace(/\s+/g, ' '));
+    }
   }
 
   // copy def properties
@@ -10093,6 +10349,7 @@ Directive.prototype._bind = function () {
   if (this.bind) {
     this.bind();
   }
+  this._bound = true;
 
   if (this.literal) {
     this.update && this.update(descriptor.raw);
@@ -10128,7 +10385,6 @@ Directive.prototype._bind = function () {
       this.update(watcher.value);
     }
   }
-  this._bound = true;
 };
 
 /**
@@ -10349,6 +10605,11 @@ function lifecycleMixin (Vue) {
     el = transclude(el, options);
     this._initElement(el);
 
+    // handle v-pre on root node (#2026)
+    if (el.nodeType === 1 && getAttr(el, 'v-pre') !== null) {
+      return;
+    }
+
     // root is always compiled per-instance, because
     // container attrs and props can be different every time.
     var contextOptions = this._context && this._context.$options;
@@ -10446,6 +10707,30 @@ function lifecycleMixin (Vue) {
       }
       return;
     }
+
+    var destroyReady;
+    var pendingRemoval;
+
+    var self = this;
+    // Cleanup should be called either synchronously or asynchronoysly as
+    // callback of this.$remove(), or if remove and deferCleanup are false.
+    // In any case it should be called after all other removing, unbinding and
+    // turning of is done
+    var cleanupIfPossible = function cleanupIfPossible() {
+      if (destroyReady && !pendingRemoval && !deferCleanup) {
+        self._cleanup();
+      }
+    };
+
+    // remove DOM element
+    if (remove && this.$el) {
+      pendingRemoval = true;
+      this.$remove(function () {
+        pendingRemoval = false;
+        cleanupIfPossible();
+      });
+    }
+
     this._callHook('beforeDestroy');
     this._isBeingDestroyed = true;
     var i;
@@ -10479,15 +10764,9 @@ function lifecycleMixin (Vue) {
     if (this.$el) {
       this.$el.__vue__ = null;
     }
-    // remove DOM element
-    var self = this;
-    if (remove && this.$el) {
-      this.$remove(function () {
-        self._cleanup();
-      });
-    } else if (!deferCleanup) {
-      this._cleanup();
-    }
+
+    destroyReady = true;
+    cleanupIfPossible();
   };
 
   /**
@@ -10668,6 +10947,12 @@ function globalAPI (Vue) {
       return extendOptions._Ctor;
     }
     var name = extendOptions.name || Super.options.name;
+    if (process.env.NODE_ENV !== 'production') {
+      if (!/^[a-zA-Z][\w-]+$/.test(name)) {
+        warn('Invalid component name: ' + name);
+        name = null;
+      }
+    }
     var Sub = createClass(name || 'VueComponent');
     Sub.prototype = Object.create(Super.prototype);
     Sub.prototype.constructor = Sub;
@@ -10752,8 +11037,8 @@ function globalAPI (Vue) {
       } else {
         /* istanbul ignore if */
         if (process.env.NODE_ENV !== 'production') {
-          if (type === 'component' && commonTagRE.test(id)) {
-            warn('Do not use built-in HTML elements as component ' + 'id: ' + id);
+          if (type === 'component' && (commonTagRE.test(id) || reservedTagRE.test(id))) {
+            warn('Do not use built-in or reserved HTML elements as component ' + 'id: ' + id);
           }
         }
         if (type === 'component' && isPlainObject(definition)) {
@@ -10785,7 +11070,9 @@ function dataAPI (Vue) {
       if (asStatement && !isSimplePath(exp)) {
         var self = this;
         return function statementHandler() {
+          self.$arguments = toArray(arguments);
           res.get.call(self, self);
+          self.$arguments = null;
         };
       } else {
         try {
@@ -10842,6 +11129,7 @@ function dataAPI (Vue) {
     }
     var watcher = new Watcher(vm, expOrFn, cb, {
       deep: options && options.deep,
+      sync: options && options.sync,
       filters: parsed && parsed.filters
     });
     if (options && options.immediate) {
@@ -11649,55 +11937,46 @@ var partial = {
 // instance being stored as `$options._content` during
 // the transclude phase.
 
+// We are exporting two versions, one for named and one
+// for unnamed, because the unnamed slots must be compiled
+// AFTER all named slots have selected their content. So
+// we need to give them different priorities in the compilation
+// process. (See #1965)
+
 var slot = {
 
   priority: 1750,
 
-  params: ['name'],
-
   bind: function bind() {
     var host = this.vm;
     var raw = host.$options._content;
-    var content;
     if (!raw) {
       this.fallback();
       return;
     }
     var context = host._context;
-    var slotName = this.params.name;
+    var slotName = this.params && this.params.name;
     if (!slotName) {
-      // Default content
-      var self = this;
-      var compileDefaultContent = function compileDefaultContent() {
-        self.compile(extractFragment(raw.childNodes, raw, true), context, host);
-      };
-      if (!host._isCompiled) {
-        // defer until the end of instance compilation,
-        // because the default outlet must wait until all
-        // other possible outlets with selectors have picked
-        // out their contents.
-        host.$once('hook:compiled', compileDefaultContent);
-      } else {
-        compileDefaultContent();
-      }
+      // Default slot
+      this.tryCompile(extractFragment(raw.childNodes, raw, true), context, host);
     } else {
+      // Named slot
       var selector = '[slot="' + slotName + '"]';
       var nodes = raw.querySelectorAll(selector);
       if (nodes.length) {
-        content = extractFragment(nodes, raw);
-        if (content.hasChildNodes()) {
-          this.compile(content, context, host);
-        } else {
-          this.fallback();
-        }
+        this.tryCompile(extractFragment(nodes, raw), context, host);
       } else {
         this.fallback();
       }
     }
   },
 
-  fallback: function fallback() {
-    this.compile(extractContent(this.el, true), this.vm);
+  tryCompile: function tryCompile(content, context, host) {
+    if (content.hasChildNodes()) {
+      this.compile(content, context, host);
+    } else {
+      this.fallback();
+    }
   },
 
   compile: function compile(content, context, host) {
@@ -11712,12 +11991,21 @@ var slot = {
     }
   },
 
+  fallback: function fallback() {
+    this.compile(extractContent(this.el, true), this.vm);
+  },
+
   unbind: function unbind() {
     if (this.unlink) {
       this.unlink();
     }
   }
 };
+
+var namedSlot = extend(extend({}, slot), {
+  priority: slot.priority + 1,
+  params: ['name']
+});
 
 /**
  * Extract qualified content nodes from a node list.
@@ -11758,10 +12046,11 @@ function extractFragment(nodes, parent, main) {
 
 var elementDirectives = {
   slot: slot,
+  _namedSlot: namedSlot, // same as slot but with higher priority
   partial: partial
 };
 
-Vue.version = '1.0.10';
+Vue.version = '1.0.12';
 
 /**
  * Vue and every constructor that extends Vue has an
@@ -11784,9 +12073,11 @@ Vue.options = {
 
 // devtools global hook
 /* istanbul ignore if */
-if (process.env.NODE_ENV !== 'production') {
-  if (inBrowser && window.__VUE_DEVTOOLS_GLOBAL_HOOK__) {
+if (process.env.NODE_ENV !== 'production' && inBrowser) {
+  if (window.__VUE_DEVTOOLS_GLOBAL_HOOK__) {
     window.__VUE_DEVTOOLS_GLOBAL_HOOK__.emit('init', Vue);
+  } else if (/Chrome\/\d+/.test(navigator.userAgent)) {
+    console.log('Download the Vue Devtools for a better development experience:\n' + 'https://github.com/vuejs/vue-devtools');
   }
 }
 
@@ -11841,6 +12132,13 @@ app = new Vue({
         //         top: 0
         //     });
         // }
+
+        $('.custom-dropdown-button').dropdown({
+            // constrain_width: true, // Constrains width of dropdown to the activator
+            // hover: false,
+            // gutter: 0, // Spacing from edge
+            belowOrigin: true
+        });
 
         // Detect touch screen and enable scrollbar if necessary
         function is_touch_device() {
@@ -11940,43 +12238,47 @@ module.exports = {
 };
 
 },{"./VideoCard.template.html":22}],22:[function(require,module,exports){
-module.exports = '<div class="col s4 video {{ video.source }}">\n    <div class="card hoverable">\n        <div class="card-image">\n            <a href="{{ video.custom_url }}">\n                <img :src="video.thumbnail" alt="{{ video.title }}" />\n            </a>\n            <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.custom_url }}"></span>\n\n            <span class="video-source {{ video.source }}">\n                {{ video.source }}\n            </span>\n        </div>\n        <div class="card-content">\n            <!-- <h1 class="card-title"> -->\n            <!-- <p class="flow-text"> -->\n            <a href="{{ video.custom_url }}" class="black-text">\n                {{ video.title }}\n            </a>\n            <!-- </h1> -->\n        </div>\n        <!-- <div class="card-action">\n            <a href="{{ video.custom_url }}" title="{{ video.title }}">\n                Watch video\n            </a>\n            <a href="#" v-on:click="saveForLater()">\n                Watch later\n            </a>\n        </div> -->\n\n\n        <!-- <div class="tile-sidebar hidden">\n            <ul class="list-unstyled" style="position: relative;">\n                <li>\n                    <button class="close">\n                        <span class="fui-time text-muted"\n                              data-toggle="tooltip" title="5:30"></span>\n                    </button>\n                </li>\n                <?php if (isset($video[\'category\'])): ?>\n                <li>\n                    <button class="dropdown-toggle" data-toggle="dropdown">\n                        <span class="fui-list text-muted"></span>\n                    </button>\n                    <span class="dropdown-arrow dropdown-arrow-inverse"></span>\n                    <ul class="dropdown-menu dropdown-inverse">\n                        <?php foreach($video[\'category\'] as $category): ?>\n                        <li>\n                            <a href="/category/<?= $category ?>"> <?= $category ?> </a>\n                        </li>\n                        <?php endforeach; ?>\n                    </ul>\n                </li>\n                <?php endif; ?>\n            </ul>\n        </div> -->\n    </div>\n</div>\n';
+module.exports = '<div class="col s4 video {{ video.provider }}">\n    <div class="card hoverable">\n        <div class="card-image">\n            <a href="{{ video.custom_url }}">\n                <img :src="video.thumbnail" alt="{{ video.title }}" />\n            </a>\n            <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.custom_url }}"></span>\n\n            <span class="video-source {{ video.provider }}">\n                {{ video.provider }}\n            </span>\n        </div>\n        <div class="card-content">\n            <!-- <h1 class="card-title"> -->\n            <!-- <p class="flow-text"> -->\n            <a href="{{ video.custom_url }}" class="black-text">\n                {{ video.title }}\n            </a>\n            <!-- </h1> -->\n        </div>\n        <!-- <div class="card-action">\n            <a href="{{ video.custom_url }}" title="{{ video.title }}">\n                Watch video\n            </a>\n            <a href="#" v-on:click="saveForLater()">\n                Watch later\n            </a>\n        </div> -->\n\n\n        <!-- <div class="tile-sidebar hidden">\n            <ul class="list-unstyled" style="position: relative;">\n                <li>\n                    <button class="close">\n                        <span class="fui-time text-muted"\n                              data-toggle="tooltip" title="5:30"></span>\n                    </button>\n                </li>\n                <?php if (isset($video[\'category\'])): ?>\n                <li>\n                    <button class="dropdown-toggle" data-toggle="dropdown">\n                        <span class="fui-list text-muted"></span>\n                    </button>\n                    <span class="dropdown-arrow dropdown-arrow-inverse"></span>\n                    <ul class="dropdown-menu dropdown-inverse">\n                        <?php foreach($video[\'category\'] as $category): ?>\n                        <li>\n                            <a href="/category/<?= $category ?>"> <?= $category ?> </a>\n                        </li>\n                        <?php endforeach; ?>\n                    </ul>\n                </li>\n                <?php endif; ?>\n            </ul>\n        </div> -->\n    </div>\n</div>\n';
 },{}],23:[function(require,module,exports){
 'use strict';
 
 module.exports = {
     template: require('./VideoPage.template.html'),
 
-    props: ['video'],
+    props: ['video', 'user'],
 
     replace: true,
 
-    data: function data() {
-        return {
-            id: '',
-            url: '',
-            title: '',
-            duration: '',
-            views: '',
-            description: '',
-            tags: [],
-            related: []
-        };
-    },
+    // data: function() {
+    //     return {
+    //         video: {
+    //             id: '',
+    //             url: '',
+    //             title: '',
+    //             duration: '',
+    //             views: '',
+    //             description: '',
+    //             tags: [],
+    //             related: [],
+    //         }
+    //     };
+    // },
 
     ready: function ready() {
-        // var videoDetailsHeight = $('#video-details').height();
-
-        // function videoDetailsReadMore() {
-
-        // }
-
-        $('#video-details').readmore({
-            collapsedHeight: 150
+        $('.video-action').click(function (event) {
+            event.preventDefault();
+            event.stopPropagation();
         });
 
-        videojs.options.flash.swf = "/dist/misc/video-js.swf";
+        $('#video-details').readmore({
+            collapsedHeight: 150,
+            moreLink: '<a href="#" class="btn" style="margin: 10px 0 20px;">Read More</a>',
+            lessLink: '<a href="#" class="btn" style="margin: 10px 0 20px;">Close</a>'
+        });
 
+        ///////////////
+        // Socialize //
+        ///////////////
         var title = encodeURIComponent(document.title),
             url = encodeURI(window.location.href);
 
@@ -12002,12 +12304,19 @@ module.exports = {
             return false;
         });
 
+        /////////////
+        // VideoJS //
+        /////////////
         var videoContainer = $('#videoPlayer'),
-            videoSource = videoContainer.data('src'),
+            videoSource = videoContainer.data('src').toLowerCase(),
             videoUrl = videoContainer.data('url');
 
-        videojs('videoPlayer', { "techOrder": [videoSource], "src": videoUrl }).ready(function () {
+        videojs.options.flash.swf = "/misc/video-js.swf";
 
+        videojs('videoPlayer', {
+            'techOrder': [videoSource],
+            'src': videoUrl
+        }).ready(function (e) {
             // You can use the video.js events even though we use the vimeo controls
             // As you can see here, we change the background to red when the video is paused and set it back when unpaused
             // this.on('pause', function() {
@@ -12050,121 +12359,179 @@ module.exports = {
         if (window.location.hostname !== 'local.videouri.com') {
             initializeDisqus();
         }
+    },
+
+    methods: {
+        toggleAction: function toggleAction(action, videoId) {
+            jQuery('#loading-bar').removeClass('hide');
+            var endpoint = '/api/user',
+
+            /**
+             * Example:
+             *     message.success
+             *     message.failure
+             */
+            message = {},
+                parameters = {
+                'video_id': videoId
+            };
+
+            switch (action) {
+                case 'favorite':
+                    endpoint = endpoint + '/favorite';
+                    message = {
+                        success: 'Video has been added to your favorites.  ',
+                        failure: 'There was an error. Please try again.'
+                    };
+                    break;
+
+                case 'watch_later':
+                    endpoint = endpoint + '/watch-later';
+                    message = {
+                        success: 'Video has been added to your favorites!',
+                        failure: 'There was an error. Please try again. \n'
+                    };
+                    break;
+            };
+
+            this.$http.post(endpoint, parameters, function (response) {
+                console.log(response.data);
+                if (response.errors !== false) {
+                    Materialize.toast(response.errors.message, 3000, 'error');
+                } else {
+                    this.$set('video', response.data);
+                }
+
+                jQuery('#loading-bar').addClass('hide');
+            });
+
+            // Materialize.toast(message.success, 3000, 'success');
+        },
+        checkIfUserIsLogged: function checkIfUserIsLogged() {
+            if (typeof this.user === undefined) {
+                Materialize.toast('Please log in with your account if you want to use this feature!', 3000, 'error');
+                return false;
+            }
+
+            return true;
+        }
     }
 };
 
 },{"./VideoPage.template.html":24}],24:[function(require,module,exports){
-module.exports = '<div class="vbg">\n    <video id="videoPlayer" :src="video.original_url" class="video-js vjs-default-skin vjs-big-play-centered"\n           data-src="{{ video.provider }}" data-url="{{ video.original_url }}"\n           controls preload="auto" width="100%" height="530">\n        <p>Video Playback Not Supported</p>\n    </video>\n</div>\n\n<div id="video-info" class="container">\n    <div class="row">\n        <div class="col s12">\n            <h4 style="margin-bottom: 0">\n                {{ video.title }}\n            </h4>\n        </div>\n    </div>\n    <div class="row">\n        <div class="col s12">\n            <ul id="social-and-stats">\n                <li class="chip">\n                    <i class="fa fa-eye"></i>\n                    {{ video.views }}\n                </li>\n                <div class="right">\n                    <li>\n                        <a class="dropdown-button btn white black-text" href="#" data-activates="share-menu">\n                            <i class="fa fa-share-square-o"></i>\n                            Share\n                        </a>\n                        <ul id="share-menu" class="dropdown-content">\n                            <li>\n                                <a href="https://www.facebook.com/sharer.php" id="facebook-share" class="popup facebook-color" title="Share to Facebook">\n                                    <i class="fa fa-facebook-official"></i>\n                                    Facebook\n                                </a>\n                            </li>\n                            <li>\n                                <a href="https://twitter.com/share" id="twitter-share" class="popup twitter-color" title="Share to Twitter">\n                                    <i class="fa fa-twitter"></i>\n                                    Twitter\n                                </a>\n                            </li>\n                        </ul>\n                    </li>\n\n                    <li style="margin-left: 5px">\n                        <a class="dropdown-button btn white black-text" href="#" data-activates="add-to-menu">\n                            <i class="fa fa-plus"></i>\n                            Add to\n                        </a>\n                        <ul id="add-to-menu" class="dropdown-content">\n                            <li>\n                                <a href="#!favorite" id="favorite-video" class="valign" data-id="{{ video.original_id }}">\n                                    <i class="fa fa-star-o"></i>\n                                    Favorite\n                                </a>\n                            </li>\n                            <li>\n                                <a href="#!favorite" id="favorite-video" class="valign" data-id="{{ video.original_id }}">\n                                    <i class="fa fa-clock-o"></i>\n                                    Watch later\n                                </a>\n                            </li>\n                        </ul>\n                    </li>\n                </div>\n            </ul>\n        </div>\n    </div>\n\n    <hr style="border: 1px dotted #eee;"/>\n\n    <div id="video-details">\n        <div class="row">\n            <div class="col s12">\n                <h4>Description</h4>\n                <p class="flow-text">\n                    {{{ video.description |linkify }}}\n                </p>\n            </div>\n        </div>\n        <div class="row">\n            <div class="col s12" v-if="video.tags">\n                <h4>Tags</h4>\n                <div class="chip" style="margin: 5px;" v-for="tag in video.tags">\n                    <a title="{{ tag }}" href="/search?query={{ tag }}">\n                        {{ tag }}\n                    </a>\n                </div>\n            </div>\n        </div>\n    </div>\n\n    <hr style="border: 1px dotted #eee;"/>\n\n    <div class="row">\n        <div class="col s12">\n            <h4>Comments</h4>\n            <div id="disqus_thread"></div>\n            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>\n        </div>\n    </div>\n</div>\n';
+module.exports = '<div class="vbg">\n    <video id="videoPlayer" :src="video.original_url" class="video-js vjs-default-skin vjs-big-play-centered"\n           data-src="{{ video.provider.toLowerCase() }}" data-url="{{ video.original_url }}"\n           controls preload="auto" width="100%" height="530">\n        <p>Video Playback Not Supported</p>\n    </video>\n</div>\n\n<div id="video-info" class="container">\n    <div class="row">\n        <div class="col s12">\n            <h4 style="margin-bottom: 0">\n                {{ video.title }}\n            </h4>\n        </div>\n    </div>\n    <div class="row">\n        <div class="col s12">\n            <ul id="social-and-stats">\n                <li class="chip">\n                    <i class="fa fa-eye"></i>\n                    {{ video.views }}\n                </li>\n                <div class="right">\n                    <li>\n                        <a class="custom-dropdown-button btn white black-text" href="#" data-activates="social-share">\n                            <i class="fa fa-share-alt"></i>\n                            Share\n                        </a>\n                        <ul id="social-share" class="dropdown-content">\n                            <li>\n                                <a href="https://www.facebook.com/sharer.php" id="facebook-share" class="popup facebook-color" title="Share to Facebook">\n                                    <i class="fa fa-facebook-official"></i>\n                                    Facebook\n                                </a>\n                            </li>\n                            <li>\n                                <a href="https://twitter.com/share" id="twitter-share" class="popup twitter-color" title="Share to Twitter">\n                                    <i class="fa fa-twitter"></i>\n                                    Twitter\n                                </a>\n                            </li>\n                        </ul>\n                    </li>\n\n                    <li style="margin-left: 5px">\n                        <div v-if="user">\n                            <a class="custom-dropdown-button btn white black-text" href="#" data-activates="add-to-menu" >\n                                <i class="fa fa-plus"></i>\n                                Add to\n                            </a>\n                            <ul id="add-to-menu" class="dropdown-content" v-if="user">\n                                <div id="loading-bar" class="progress hide">\n                                    <div class="indeterminate"></div>\n                                </div>\n                                <li>\n                                    <a class="video-action" v-on:click="toggleAction(\'favorite\', video.id)">\n                                        <i class="fa fa-check-square-o" v-if="video.favorited"></i>\n                                        <i class="fa fa-square-o" v-else></i>\n                                        Favorite\n                                    </a>\n                                </li>\n                                <li>\n                                    <a class="video-action" v-on:click="toggleAction(\'watch_later\', video.id)">\n                                        <i class="fa fa-check-square-o" v-if="video.saved_for_later"></i>\n                                        <i class="fa fa-square-o" v-else></i>\n                                        Watch later\n                                    </a>\n                                </li>\n                            </ul>\n                        </div>\n                        <div v-else>\n                            <a class="btn white black-text tooltipped"\n                                data-position="bottom"\n                                data-delay="50"\n                                data-tooltip="You need to login in order to save this video!">\n                                <i class="fa fa-plus"></i>\n                                Add to\n                            </a>\n                        </div>\n                    </li>\n                </div>\n            </ul>\n        </div>\n    </div>\n\n    <hr style="border: 1px dotted #eee;"/>\n\n    <div id="video-details">\n        <div class="row">\n            <div class="col s12">\n                <h4>Description</h4>\n                <p class="flow-text">\n                    {{{ video.description |linkify }}}\n                </p>\n            </div>\n        </div>\n        <div class="row">\n            <div class="col s12" v-if="video.tags">\n                <h4>Tags</h4>\n                <div class="chip" style="margin: 5px;" v-for="tag in video.tags">\n                    <a title="{{ tag }}" href="/search?query={{ tag }}">\n                        {{ tag }}\n                    </a>\n                </div>\n            </div>\n        </div>\n    </div>\n\n    <hr style="border: 1px dotted #eee;"/>\n\n    <div class="row">\n        <div class="col s12">\n            <h4>Comments</h4>\n            <div id="disqus_thread"></div>\n            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>\n        </div>\n    </div>\n\n    <!-- Related Videos -->\n    <div id="related-videos" v-if="relatedVideos">\n        <div class="row">\n            <div class="col-md-12 text-center">\n                <h4 style="margin-bottom: 0">\n                    Related videos\n                </h4>\n            </div>\n        </div>\n        <!-- <videos-list :videos="relatedVideos"></videos-list> -->\n        <div id="related-videos" class="row">\n            <div class="col s4 video {{ relatedVideo.provider }}" v-for="relatedVideo in relatedVideos">\n                <div class="card hoverable">\n                    <div class="card-image">\n                        <a href="{{ relatedVideo.custom_url }}" title="{{ relatedVideo.title }}">\n                            <img :src="{{ relatedVideo.thumbnail }}" alt="{{ relatedVideo.title }}">\n                        </a>\n                        <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ relatedVideo.custom_url }}"></span>\n\n                        <span class="video-source {{ relatedVideo.provider }}">\n                            {{ relatedVideo.provider }}\n                        </span>\n                    </div>\n                    <div class="card-content">\n                        <p>\n                            {{ relatedVideo.title }}\n                        </p>\n                    </div>\n                    <div class="card-action">\n                        <a href="{{ relatedVideo.custom_url }}" title="{{ relatedVideo.title }}">\n                            Watch video\n                        </a>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n';
 },{}],25:[function(require,module,exports){
 'use strict';
 
 module.exports = {
     template: require('./VideosList.template.html'),
 
-    props: ['content', 'query'],
+    props: ['content', 'query', 'videos'],
 
-    data: function data() {
-        return {
-            videos: {}
-        };
-    },
+    // data: function() {
+    //     return {
+    //         videos: {}
+    //     };
+    // },
 
     components: {
         'video-card': require('./VideoCard')
     },
 
-    created: function created(e) {
-        // switch (this.content) {
-        //     case 'homeVideos':
-        //         jQuery.getJSON('/api/videos/home', function(homeVideos) {
-        //             // console.log(this.videos);
-        //             this.videos.$set('videos', homeVideos);
-        //             // console.log(this.setVideos);
-        //             // this.setVideos(homeVideos);
-        //             // console.log(this.videos);
-        //         });
-        //         break;
-        // }
-        // console.log('created,' this)
-        // this.$set('videos', 'plm');
-    },
-
     beforeCompile: function beforeCompile(e) {
         switch (this.content) {
+            ////////////
+            // Videos //
+            ////////////
             case 'homeVideos':
-                this.$http.get('/api/videos/home', function (homeVideos) {
-                    this.$set('videos', homeVideos.data);
+                this.$http.get('/api/videos/home', function (videos) {
+                    this.$set('videos', videos.data);
+                    this.initIsotope();
                 });
-
                 break;
+
+            case 'favorites':
+                this.$http.get('/api/videos/favorites', function (videos) {
+                    this.$set('videos', videos.data);
+                    this.initIsotope();
+                });
+                break;
+
+            case 'watchLater':
+                this.$http.get('/api/videos/watch-later', function (videos) {
+                    this.$set('videos', videos.data);
+                    this.initIsotope();
+                });
+                break;
+
+            /////////////
+            // History //
+            /////////////
+            case 'videosWatched':
+                this.$http.get('/api/history/videos', function (videos) {
+                    this.$set('videos', videos.data);
+                    this.initIsotope();
+                });
+                break;
+
+            ////////////
+            // Search //
+            ////////////
             case 'search':
                 var parameters = {
                     'query': this.query
                 };
 
-                this.$http.get('/api/search/videos', parameters, function (searchResults) {
+                this.$http.get('/api/search', parameters, function (searchResults) {
                     this.$set('videos', searchResults.data);
+                    this.initIsotope();
                 });
-
                 break;
         }
     },
 
-    // watch: {
-    //     videos: function (e) {
-    //         // console.log('new: %s, old: %s', val, oldVal)
-    //         console.log(e)
-    //     }
-    // },
+    watch: {
+        "videos": function videos(oldVal, newVal) {
+            jQuery('#preloader').fadeOut();
+        }
+    },
 
-    ready: function ready(e) {
-        // this.$nextTick(function () {
-        //     // DOM is now updated
-        //     // `this` is bound to the current instance
-        //     // this.doSomethingElse()
-        //     console.log('nextTick');
-        // });
+    methods: {
+        initIsotope: function initIsotope() {
+            this.$nextTick(function () {
+                var $grid = jQuery('#videos').isotope({
+                    // columnWidth: '.video',
+                    itemSelector: '.video',
+                    layoutMode: 'masonry'
+                });
 
-        var $grid = jQuery('#videos').isotope({
-            // columnWidth: '.video',
-            itemSelector: '.video',
-            layoutMode: 'fitRows',
-            // layoutMode: 'masonry',
-            // disable initial layout
-            isInitLayout: false,
-            gutter: 200
-        });
+                // isInitLayout: true,
+                // gutter: 200
+                $grid.imagesLoaded().progress(function () {
+                    $grid.isotope('layout');
+                });
 
-        // bind event
-        $grid.isotope('on', 'arrangeComplete', function () {
-            console.log('arrange is complete');
-        });
+                // // bind event
+                // $grid.isotope( 'on', 'arrangeComplete', function(ev, ve) {
+                //     console.log(ev);
+                //     console.log(ve);
+                //     console.log('arrange is complete');
+                // });
 
-        $grid.isotope();
+                // $grid.isotope();
 
-        $grid.on('layoutComplete', function (event, laidOutItems) {
-            console.log('Isotope layout completed on ' + laidOutItems.length + ' items');
-        });
-
-        console.log($grid);
-
-        // jQuery(window).on('resize', function(){
-        //     jQuery('#videos').isotope('layout');
-        // });
+                // $grid.on('layoutComplete', function(event, laidOutItems) {
+                //     console.log(laidOutItems);
+                //     console.log( 'Isotope layout completed on ' +
+                //                 laidOutItems.length + ' items' );
+                // });
+            });
+        }
     }
-
 };
-// methods: {
-//     setVideos: function(videos) {
-//         console.log(videos);
-//     },
-//     homeVideos: function(videos) {
-//         console.log(videos);
-//     }
-// }
 
 },{"./VideoCard":21,"./VideosList.template.html":26}],26:[function(require,module,exports){
-module.exports = '<div id="videos" class="row">\n    <video-card :video="data" v-for="data in videos"></video-card>\n</div>\n';
+module.exports = '<div id="preloader" class="row">\n    <br/>\n    <br/>\n    <div class="col s1 push-s5">\n        <div class="preloader-wrapper big active">\n            <div class="spinner-layer spinner-blue">\n                <div class="circle-clipper left">\n                    <div class="circle"></div>\n                </div>\n                <div class="gap-patch">\n                    <div class="circle"></div>\n                </div>\n                <div class="circle-clipper right">\n                    <div class="circle"></div>\n                </div>\n            </div>\n            <div class="spinner-layer spinner-red">\n                <div class="circle-clipper left">\n                    <div class="circle"></div>\n                </div>\n                <div class="gap-patch">\n                    <div class="circle"></div>\n                </div>\n                <div class="circle-clipper right">\n                    <div class="circle"></div>\n                </div>\n            </div>\n            <div class="spinner-layer spinner-yellow">\n                <div class="circle-clipper left">\n                    <div class="circle"></div>\n                </div>\n                <div class="gap-patch">\n                    <div class="circle"></div>\n                </div>\n                <div class="circle-clipper right">\n                    <div class="circle"></div>\n                </div>\n            </div>\n            <div class="spinner-layer spinner-green">\n                <div class="circle-clipper left">\n                    <div class="circle"></div>\n                </div>\n                <div class="gap-patch">\n                    <div class="circle"></div>\n                </div>\n                <div class="circle-clipper right">\n                    <div class="circle"></div>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n<div id="videos" class="row">\n    <video-card :video="video" v-for="video in videos"></video-card>\n</div>\n';
 },{}]},{},[20]);
 
 //# sourceMappingURL=app.js.map

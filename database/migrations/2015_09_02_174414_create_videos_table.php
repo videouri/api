@@ -19,7 +19,7 @@ class CreateVideosTable extends Migration
             $table->string('original_id')->unique();
             $table->string('custom_id')->unique()->nullable(); // TODO: remove nullable once populated on LIVE DB
 
-            $table->string('original_url');
+            $table->string('original_url')->unique();
             $table->string('slug')->nullable();
 
             $table->string('author')->nullable();

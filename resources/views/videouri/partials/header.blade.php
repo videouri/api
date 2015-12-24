@@ -1,12 +1,12 @@
 <header>
     <ul id="user-menu" class="dropdown-content">
-        <li>
+        {{-- <li>
             <a href="{{ route('user.{name}.profile.index', ['name' => $currentUser]) }}">Profile</a>
-        </li>
-        <li>
+        </li> --}}
+        {{-- <li>
             <a href="{{ route('user.{name}.settings.index', ['name' => $currentUser]) }}">Settings</a>
         </li>
-        <li class="divider"></li>
+        <li class="divider"></li> --}}
         <li>
             <a href="{{ url('/logout') }}">Logout</a>
         </li>
@@ -50,7 +50,7 @@
                             @else
                                 <a href="#!" class="dropdown-button" data-activates="user-menu">
                                     {{ Auth::user()->username }}
-                                    <i class="material-icons right">arrow_drop_down</i>
+                                    <i class="fa fa-angle-down" style="display: inherit; font-size: inherit;"></i>
                                 </a>
                             @endif
                         </div>

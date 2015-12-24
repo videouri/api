@@ -7,6 +7,8 @@ use App\Exceptions\CreateUserException;
 use App\Exceptions\SendMailException;
 use App\Exceptions\RegisterValidationException;
 
+use Cocur\Slugify\Slugify;
+
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Validator;
 use Mail;
@@ -19,50 +21,57 @@ class UserRepository
 
     public function findOrCreateSocial($userData, $provider)
     {
+        if ($user = User::where('provider_id', '=', $userData->getId())->first()) {
+            return $user;
+        }
+
         if (!isset($userData->email)) {
             $userData->email = rand(100, 9999) . '-' . time() . '@missingemail.com';
         }
 
-        $user = User::where('provider_id', '=', $userData->getId())->first();
         $emailExists = User::where('email', '=', $userData->getEmail())->first();
-
-        if ($user) {
-            return $user;
-        }
-
         if (!$user && $emailExists) {
-            throw new RegisterValidationException("Email is already in use.");
+            return redirect()->to('/login')->withErrors('Email is already in use.');
         }
 
+        /////////////////////////////
+        // Create the user process //
+        /////////////////////////////
 
         $rules = [
             'username' => 'required|max:255|unique:users',
             'email'    => 'required|email|max:255|unique:users',
         ];
 
+        $slugify = new Slugify();
+
+        if (!$username = $userData->nickname) {
+            $username = $slugify->slugify($userData->name);
+        }
+
         $inputToFilter = [
-            'username'        => $userData->nickname,
-            'email'           => $userData->email,
-            'avatar'          => $userData->avatar,
-            'provider'        => $provider,
-            'provider_id'     => $userData->id
+            'username'    => $username,
+            'email'       => $userData->email,
+            'avatar'      => $userData->avatar,
+            'provider'    => $provider,
+            'provider_id' => $userData->id,
         ];
 
         $validator = Validator::make($inputToFilter, $rules);
 
         if ($validator->fails()) {
-            throw new RegisterValidationException("Username or email already in use.");
+            return redirect()->to('login')->withErrors($validator)->send();
         }
 
-        $user = new User([
-            'username'        => $userData->nickname,
-            'email'           => $userData->email,
-            'avatar'          => $userData->avatar,
-            'provider'        => $provider,
-            'provider_id'     => $userData->id
+        return User::create([
+            'username'    => $username,
+            'email'       => $userData->email,
+            'avatar'      => $userData->avatar,
+            'provider'    => $provider,
+            'provider_id' => $userData->id,
         ]);
 
-        return $this->saveUser($user);
+        // return $this->saveUser($user);
     }
 
     public function findOrCreateRegular($request)
@@ -70,7 +79,7 @@ class UserRepository
         $rules = [
             'username' => 'required|max:255|unique:users',
             'email'    => 'required|email|max:255|unique:users',
-            'password' => 'required|confirmed|min:6'
+            'password' => 'required|confirmed|min:6',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -82,12 +91,12 @@ class UserRepository
         // $user = User::where('email', '=', $request->input('email'))->first();
 
         // if (!$user) {
-            $user = new User;
-            $user->username = $request->input('username');
-            $user->email    = $request->input('email');
-            $user->password = bcrypt($request->input('password'));
+        $user = new User;
+        $user->username = $request->input('username');
+        $user->email = $request->input('email');
+        $user->password = bcrypt($request->input('password'));
 
-            return $this->saveUser($user);
+        return $this->saveUser($user);
         // }
 
         // return true;
@@ -115,8 +124,8 @@ class UserRepository
         ];
 
         if (!empty(array_diff($userData, $dbData))) {
-            $user->avatar   = $userData->avatar;
-            $user->email    = $userData->email;
+            $user->avatar = $userData->avatar;
+            $user->email = $userData->email;
             $user->username = $userData->nickname;
             $user->save();
         }
@@ -127,8 +136,7 @@ class UserRepository
         if ($user->save()) {
             $this->generateActivationCodeAndMailIt($user);
             return true;
-        }
-        else {
+        } else {
             throw new CreateUserException("Your account couldn\'t be create please try again", 1);
         }
     }
@@ -149,7 +157,7 @@ class UserRepository
         //     $message->to($user->email, $user->username)->subject('Please activate your account.');
         // });
 
-        if (count(Mail::failures()) > 0){
+        if (count(Mail::failures()) > 0) {
             throw new SendMailException("Failed to send activation email.");
         }
     }

@@ -1,7 +1,7 @@
 <div class="row">
-    <div class="col-md-12">
-        <ul class="tabs">
-            {{-- URL is /history/videos => active --}}
+    <div class="col s-12">
+        <h1 class="flow-text"> Videos you have watched </h1>
+        {{-- <ul class="tabs">
             <li class="tab">
                 <a href="{{ route('user.{name}.history.show', ['name' => $currentUser, 'type' => 'videos']) }}">
                     Watched videos
@@ -12,6 +12,6 @@
                     Search terms
                 </a>
             </li>
-        </ul>
+        </ul> --}}
     </div>
 </div>
