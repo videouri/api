@@ -52,7 +52,7 @@
             </li>
         </ul>
         <p>
-            Send the infringement notice via email to <a href="mailto:contact@videouri.com">contact@videouri.com</a>.
+            Send the infringement notice via email to &#099;&#111;&#110;&#116;&#097;&#099;&#116;&#064;&#118;&#105;&#100;&#101;&#111;&#117;&#114;&#105;&#046;&#099;&#111;&#109;.
         </p>
     </div>
 </div>

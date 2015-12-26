@@ -37,10 +37,18 @@ section#register {
 .facebook-bg {
     background-color: #3b5998;
     color: white;
+
+    &:hover {
+        background-color: #3b5998;
+    }
 }
 .twitter-bg {
     background-color: #5ea9dd;
     color: white;
+
+    &:hover {
+        background-color: #5ea9dd;
+    }
 }
 
 .facebook-color {
@@ -103,25 +111,6 @@ div.or-container {
     }
 }
 
-.footer {
-    position: absolute;
-    bottom: 0;
-    z-index: 50;
-    width: 100%;
-    height: 60px;
-    margin-top: 60px;
-    background-color: #3c708d;
-    a:hover {
-        font-weight: bold;
-        color: #bec6cd;
-        text-decoration: none;
-        text-shadow: 5px 1px 1px #296281;
-    }
-    & > .container {
-        margin-top: 20px;
-        // margin-bottom: 20px;
-    }
-}
 
 @media only screen and (min-width: 993px) {
     .container {
@@ -135,16 +124,31 @@ div.or-container {
     margin: 0 auto;
 }
 
+////////////
+// Footer //
+////////////
+footer.page-footer {
+    // border-top: 1px solid #efefef;
+    // background: #f7f8fa;
+    background-color: transparent;
+
+    .footer-copyright {
+        background: transparent;
+        color: #444;
+
+        // a {
+        // }
+    }
+}
+
 header,
-main,
-footer {
+main {
     padding-left: 240px;
 }
 
 @media only screen and (max-width: 992px) {
     header,
-    main,
-    footer {
+    main {
         padding-left: 0;
     }
 }

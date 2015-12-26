@@ -104,38 +104,37 @@ class YoutubeAgent implements ApiAgentInterface
                 break;
         }
 
+        $country = Session::get('country');
+        if (isset($parameters['country'])) {
+            $country = $parameters['country'];
+        }
+
         $results = [];
 
         switch ($content) {
             case 'newest':
-                $results = json_decode(Youtube::getMostRecentVideoFeed(
-                    array(
-                        'max-results' => $parameters['maxResults'],
-                        'fields'      => 'entry(id,title,author,gd:rating,yt:rating,yt:statistics,media:group(media:category(),media:description(),media:thumbnail(@url),yt:duration(@seconds)))',
-                        'time'        => $period,
-                        'alt'         => 'json',
-                        // 'region'      => $this->session->userdata('country'),
-                    )
-                )
-                    , true);
+                $results = json_decode(Youtube::getMostRecentVideoFeed([
+                    'max-results' => $parameters['maxResults'],
+                    'fields'      => 'entry(id,title,author,gd:rating,yt:rating,yt:statistics,media:group(media:category(),media:description(),media:thumbnail(@url),yt:duration(@seconds)))',
+                    'time'        => $period,
+                    'alt'         => 'json',
+                    // 'region'      => $country,
+                ]), true);
                 break;
 
             case 'top_rated':
-                $results = json_decode(Youtube::getTopRatedVideoFeed(
-                    array(
-                        'max-results' => $parameters['maxResults'],
-                        //'fields'       => '*',
-                        'fields'      => 'entry(id,published,title,author,gd:rating,yt:rating,yt:statistics,media:group(media:category(),media:description(),media:thumbnail(@url),yt:duration(@seconds)))',
-                        'time'        => $period,
-                        'alt'         => 'json',
-                        // 'region'      => $this->session->userdata('country'),
-                    )
-                )
-                    , true);
+                $results = json_decode(Youtube::getTopRatedVideoFeed([
+                    'max-results' => $parameters['maxResults'],
+                    //'fields'       => '*',
+                    'fields'      => 'entry(id,published,title,author,gd:rating,yt:rating,yt:statistics,media:group(media:category(),media:description(),media:thumbnail(@url),yt:duration(@seconds)))',
+                    'time'        => $period,
+                    'alt'         => 'json',
+                    // 'region'      => $this->session->userdata('country'),
+                ]), true);
                 break;
 
             case 'most_viewed':
-                $results = Youtube::getPopularVideos(Session::get('country'));
+                $results = Youtube::getPopularVideos($country);
                 break;
         }
 

@@ -41,6 +41,7 @@ class VideosController extends Controller
         $this->apiprocessing->apis = ['youtube'];
         $this->apiprocessing->period = 'today';
         $this->apiprocessing->maxResults = 8;
+        $this->apiprocessing->country = 'us';
 
         $content = ['most_viewed'];
 

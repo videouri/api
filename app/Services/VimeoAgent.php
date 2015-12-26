@@ -64,6 +64,11 @@ class VimeoAgent implements ApiAgentInterface
             }
         }
 
+        $country = Session::get('country');
+        if (isset($parameters['country'])) {
+            $country = $parameters['country'];
+        }
+
         $results = Vimeo::request('/videos', [
             'page'     => $parameters['page'],
             'per_page' => $parameters['maxResults'],
