@@ -21,7 +21,7 @@ Route::get('search', [
     'uses' => 'PagesController@search',
 ]);
 
-Route::get('info/{view}/{part?}', 'PagesController@ifno');
+Route::get('info/{view}/{part?}', 'PagesController@info');
 
 Route::get('video', 'VideoController@index');
 Route::get('video/{id}/{videoSlug?}', 'VideoController@show');

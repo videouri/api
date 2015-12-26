@@ -144,6 +144,11 @@ class DailymotionAgent implements ApiAgentInterface
                 break;
         }
 
+        $country = Session::get('country');
+        if (isset($parameters['country'])) {
+            $country = $parameters['country'];
+        }
+
         $results = [];
 
         switch ($content) {
@@ -155,7 +160,7 @@ class DailymotionAgent implements ApiAgentInterface
                         'limit'         => $parameters['maxResults'],
                         'sort'          => "recent",
                         'family_filter' => Session::get('family_filter'),
-                        'country'       => Session::get('country'),
+                        'country'       => $country,
                     )
                 );
                 break;
@@ -168,7 +173,7 @@ class DailymotionAgent implements ApiAgentInterface
                         'limit'         => $parameters['maxResults'],
                         'sort'          => "rated{$period}",
                         'family_filter' => Session::get('family_filter'),
-                        'country'       => Session::get('country'),
+                        'country'       => $country,
                     )
                 );
                 break;
@@ -181,7 +186,7 @@ class DailymotionAgent implements ApiAgentInterface
                         'limit'         => $parameters['maxResults'],
                         'sort'          => "visited{$period}",
                         'family_filter' => Session::get('family_filter'),
-                        'country'       => Session::get('country'),
+                        'country'       => $country,
                     )
                 );
                 break;
@@ -225,6 +230,11 @@ class DailymotionAgent implements ApiAgentInterface
                 break;
         }
 
+        $country = Session::get('country');
+        if (isset($parameters['country'])) {
+            $country = $parameters['country'];
+        }
+
         $results = $this->dailymotion->call(
             '/videos',
             array(
@@ -234,7 +244,7 @@ class DailymotionAgent implements ApiAgentInterface
                 'limit'         => $parameters['maxResults'],
                 'sort'          => $parameters['sort'],
                 'family_filter' => Session::get('family_filter'),
-                'country'       => Session::get('country'),
+                'country'       => $country,
             )
         );
 

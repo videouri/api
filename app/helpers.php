@@ -2,10 +2,10 @@
 
 function videouri_asset($path)
 {
-    $path = asset($path);
-
     if (env('APP_SECURE') === true) {
         $path = secure_asset($path);
+    } else {
+        $path = asset($path);
     }
 
     return $path;

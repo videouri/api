@@ -13,7 +13,8 @@ class UpdateCustomId extends Command
      *
      * @var string
      */
-    protected $signature = 'videouri:refresh-custom-id';
+    protected $signature = 'videouri:refresh-custom-id
+                            {--limit=100}';
 
     /**
      * The console command description.
@@ -46,8 +47,13 @@ class UpdateCustomId extends Command
      */
     public function handle()
     {
+        $limit = 100;
+        if (is_numeric($this->options['limit'])) {
+            $limit = $this->options['limit'];
+        }
+
         $videos = Video::where('custom_id', null)
-            ->limit(100)
+            ->limit($limit)
             ->get(['provider', 'original_id', 'custom_id']);
 
         $videosCount = $videos->count();
