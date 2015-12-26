@@ -98,6 +98,11 @@ class ApiProcessing
     public $maxResults = 5;
 
     /**
+     * @var string
+     */
+    public $country = null;
+
+    /**
      * Can be used to force a content to be re-cached
      * by using the function date.
      *
@@ -175,6 +180,10 @@ class ApiProcessing
             // 'page'        => $this->page,
             // 'sort'        => $this->sort
         ];
+
+        if ($this->country) {
+            $apiParameters['country'] = $this->country;
+        }
 
         if ($this->timestamp) {
             $apiParameters['timestamp'] = $this->timestamp;
@@ -282,6 +291,10 @@ class ApiProcessing
             'period'     => $this->period,
             'maxResults' => $this->maxResults,
         ];
+
+        if ($this->country) {
+            $parameters['country'] = $this->country;
+        }
 
         $apiToRun = $this->{$api};
 

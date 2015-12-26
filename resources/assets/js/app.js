@@ -10,7 +10,7 @@ var
 
 // require('linkifyjs/plugin/hashtag')(linkify); // optional
 
-Vue.config.debug = true;
+Vue.config.debug = false;
 
 // Import vue-resource and configure to use the csrf token in all requests,
 // in which I put him in a meta tag in home.blade.php
@@ -49,6 +49,8 @@ app = new Vue({
         //         top: 0
         //     });
         // }
+
+        $('.button-collapse').sideNav();
 
         $('.custom-dropdown-button').dropdown({
             // constrain_width: true, // Constrains width of dropdown to the activator
