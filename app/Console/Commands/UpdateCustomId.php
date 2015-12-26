@@ -47,9 +47,11 @@ class UpdateCustomId extends Command
      */
     public function handle()
     {
+        $options = $this->option();
+
         $limit = 100;
-        if (is_numeric($this->options['limit'])) {
-            $limit = $this->options['limit'];
+        if (is_numeric($options['limit']) && $options['limit'] > 0) {
+            $limit = $options['limit'];
         }
 
         $videos = Video::where('custom_id', null)
