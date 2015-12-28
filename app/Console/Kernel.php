@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GenerateSitemap::class,
         \App\Console\Commands\RefreshVideosData::class,
         \App\Console\Commands\UpdateCustomId::class,
+        \App\Console\Commands\Dmca::class,
     ];
 
     /**

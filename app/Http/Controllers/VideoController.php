@@ -89,13 +89,13 @@ class VideoController extends Controller
         // dump($video->favorited()->whereUserId(Auth::user()->id)->get());
         // // dump($video->watchLater);
 
-        // die;
-        try {
-            $video = $this->apiprocessing->getVideoInfo($api, $originalId);
-        } catch (\Exception $e) {
-            dd($e->getMessage());
-            // abort(404);
-        }
+        // try {
+        $video = $this->apiprocessing->getVideoInfo($api, $originalId);
+        // } catch (\Exception $e) {
+        //     dump('VideoController');
+        //     dd($e);
+        //     // abort(404);
+        // }
 
         $this->dispatch(new SaveVideo($video, $api));
 

@@ -68,17 +68,49 @@ module.exports = {
         // VideoJS //
         /////////////
         var
-            videoContainer = $('#videoPlayer'),
+            videoContainer = $('#video-player'),
             videoSource = videoContainer.data('src').toLowerCase(),
             videoUrl = videoContainer.data('url')
         ;
 
         videojs.options.flash.swf = "/misc/video-js.swf";
 
-        videojs('videoPlayer', {
+        videojs('video-player', {
             'techOrder': [videoSource],
             'src': videoUrl
         }).ready(function(e) {
+            // Store the video object
+            var myPlayer = this;
+
+            // Make up an aspect ratio
+            var aspectRatio = 264 / 640;
+
+            function resizeVideoJS() {
+                var
+                    width = document.getElementById('video-player').parentElement.offsetWidth,
+                    height = width * aspectRatio
+                ;
+
+                console.log(height);
+
+                if (height > 530) {
+                    height = 530;
+                }
+
+                if (! height < 530) {
+                    myPlayer
+                        .width(width)
+                        .height(height)
+                    ;
+                }
+            }
+
+            // Initialize resizeVideoJS()
+            resizeVideoJS();
+
+            // Then on resize call resizeVideoJS()
+            window.onresize = resizeVideoJS;
+
             // You can use the video.js events even though we use the vimeo controls
             // As you can see here, we change the background to red when the video is paused and set it back when unpaused
             // this.on('pause', function() {

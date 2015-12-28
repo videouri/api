@@ -1,4 +1,4 @@
-<div class="col s4 video {{ video.provider }}">
+<div class="col s6 m4 video {{ video.provider }}">
     <div class="card hoverable">
         <div class="card-image">
             <a href="{{ video.custom_url }}">
@@ -11,11 +11,12 @@
             </span>
         </div>
         <div class="card-content">
-            <!-- <h1 class="card-title"> -->
+            <h1>
+                <a href="{{ video.custom_url }}" class="black-text">
+                    {{ video.title }}
+                </a>
+            </h1>
             <!-- <p class="flow-text"> -->
-            <a href="{{ video.custom_url }}" class="black-text">
-                {{ video.title }}
-            </a>
             <!-- </h1> -->
         </div>
         <!-- <div class="card-action">

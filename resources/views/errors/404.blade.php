@@ -2,25 +2,21 @@
 
 @section('content')
 <br/>
-<div class="container" id="content">
+<div class="container">
     <div class="row">
-        <div class="col-md-6 col-md-offset-3">
-            <div class="tile tile-padded">
+        <div class="col s6 push-s3">
+            <h1>404</h1>
+            <h4>Sorry - Page Not Found!</h4>
+            <p>
+                This page isn't available. Sorry about that.
+                Try searching for something else.
+            </p>
 
-                <h1>404</h1>
-                <h4>Sorry - Page Not Found!</h4>
-                <p>
-                    This page isn't available. Sorry about that.
-                    Try searching for something else.
-                </p>
+            <?php
 
-                <?php
+            // @TODO: List some videos
 
-                // @TODO: List some videos
-                
-                ?>
-
-            </div>
+            ?>
         </div>
     </div>
 </div>

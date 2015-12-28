@@ -31,6 +31,8 @@ class CreateVideosTable extends Migration
             $table->json('categories')->nullable();
             $table->json('tags')->nullable();
 
+            $table->boolean('dmca_claim')->default(false);
+
             $table->softDeletes();
             $table->timestamps();
         });

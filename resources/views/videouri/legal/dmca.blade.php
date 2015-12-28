@@ -24,7 +24,7 @@
             the owner of the copyright, and believe that your work is being accessible in a abusive way and constitutes your
             copyright infringement, please report the following information to Videouri support team:
         </p>
-        <ul>
+        <ul class="default-list">
             <li>
                 an electronic or physical signature of copyright owner or an authorized person which can act on behalf of the
                 owner of the copyright;

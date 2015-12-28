@@ -266,6 +266,9 @@ class ApiProcessing
         // If it exists in the database, get the info from there and transform it
         // via VideoTransformer
         if ($video = Video::where('original_id', '=', $videoId)->first()) {
+            if ($video->dmca_claim) {
+                return abort(404);
+            }
 
             $video = $this->transformVideos($video);
         } else {
@@ -313,8 +316,6 @@ class ApiProcessing
      */
     public function transformVideos($videos)
     {
-        // dd($videos);
-
         if (is_array($videos) && count($videos) > 0) {
             $resource = new Collection($videos, new VideoTransformer());
         } else {

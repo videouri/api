@@ -54,6 +54,7 @@ class VideosController extends Controller
         try {
             $apiResults = $this->apiprocessing->mixedCalls($content);
         } catch (Exception $e) {
+            dump('getHome');
             dump($e);
         }
         // dd($apiResults);
