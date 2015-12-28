@@ -54,7 +54,7 @@ class Video extends Model
 
     public function getCustomUrlAttribute()
     {
-        return url('/video/' . $this->custom_id);
+        return secure_url('/video/' . $this->custom_id);
     }
 
     /////////////

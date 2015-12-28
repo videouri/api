@@ -97,7 +97,7 @@ EOF;
             $filename = $sitemap->filename;
 
             $sitemap = $xml->addChild('sitemap');
-            $sitemap->addChild('loc', url('/sitemaps/' . $filename));
+            $sitemap->addChild('loc', secure_url('/sitemaps/' . $filename));
             $sitemap->addChild('lastmod', $updated_at);
         }
 
@@ -114,10 +114,21 @@ EOF;
         $this->info('Started processing videos into sitemap');
         ///
 
-        $fields = ['id', 'original_id', 'provider', 'title', 'description', 'thumbnail', 'duration', 'updated_at', 'created_at'];
+        $fields = [
+            'id', 'original_id', 'custom_id', 'provider',
+            'title', 'description',
+            'thumbnail', 'duration',
+            'updated_at', 'created_at',
+        ];
 
         // Initialize base Video eloquent query
-        $videos = $this->videos->whereNotNull('title')->where('duration', '>', 0);
+        $videos = $this->videos
+                       ->whereNotNull('title')
+                       ->where('duration', '>', 0)
+                       ->where(function ($query) {
+                           $query->where('provider', 'Youtube')
+                                 ->orWhere('provider', 'Vimeo');
+                       });
 
         // Default limit value
         $limit = 5000;
@@ -163,42 +174,31 @@ EOF;
         ///
 
         // Add videos to main xml
-        $videos = $videos->toArray();
+        // $videos = $videos->toArray();
         foreach ($videos as $video) {
             $xmlUrl = $xml->addChild('url');
 
-            if ($video['provider'] == 'Dailymotion') {
-                $key = 'd';
-            } elseif ($video['provider'] == 'Vimeo') {
-                $key = 'v';
-            } elseif ($video['provider'] == 'Youtube') {
-                $key = 'y';
-            }
+            $description = htmlspecialchars(str_limit($video->description, 1000));
 
-            $customId = substr($video['original_id'], 0, 1) . $key . substr($video['original_id'], 1);
-
-            $videoUrl = url('/video/' . $customId);
-            $description = htmlspecialchars(str_limit($video['description'], 2040));
-
-            $created_at = explode(' ', $video['created_at']);
+            $created_at = explode(' ', $video->created_at);
             $created_at = $created_at[0];
 
-            $updated_at = explode(' ', $video['updated_at']);
+            $updated_at = explode(' ', $video->updated_at);
             $updated_at = $updated_at[0];
 
-            $xmlUrl->addChild('loc', $videoUrl);
+            $xmlUrl->addChild('loc', $video->custom_url);
             $xmlUrl->addChild('lastmod', $updated_at);
             // $xmlUrl->addChild('changefreq', 'monthly');
             // $xmlUrl->addChild('priority', '1.0');
 
             $videoGroup = $xmlUrl->addChild('video:video', null, 'http://www.google.com/schemas/sitemap-video/1.1');
-            $videoGroup->addChild('video:thumbnail_loc', $video['thumbnail']);
-            $videoGroup->addChild('video:title', htmlspecialchars($video['title']));
+            $videoGroup->addChild('video:thumbnail_loc', $video->thumbnail);
+            $videoGroup->addChild('video:title', htmlspecialchars($video->title));
             $videoGroup->addChild('video:description', $description);
             // $videoGroup->addChild('video:player_loc', $videoUrl);
-            $videoGroup->addChild('video:duration', $video['duration']);
+            $videoGroup->addChild('video:duration', $video->duration);
             $videoGroup->addChild('video:publication_date', $created_at);
-            // $videoGroup->addChild('video:tag', $video['tags']);
+            // $videoGroup->addChild('video:tag', $video->tags);
         }
 
         // Dump last video information into a file
@@ -206,16 +206,13 @@ EOF;
         $lastVideo = $videos[$videosCount - 1];
 
         // Save report file
+        $sitemapId = 1;
+
         if ($lastSitemap && $lastSitemap->items_count < 50000) {
             $sitemapId = $lastSitemap->id;
         } elseif ($lastSitemap && $lastSitemap->items_count == 50000) {
             $sitemapId = $lastSitemap->id + 1;
-        } else {
-            $sitemapId = 1;
         }
-
-        // var_dump($sitemapId);
-        // die;
 
         ///
         $this->info('Sitemap videos count: ' . $xml->count());
@@ -233,7 +230,8 @@ EOF;
         // Save sitemap info into DB
         if ($lastSitemap &&
             File::exists($lastSitemap['path']) &&
-            $lastSitemap->items_count < 50000) {
+            $lastSitemap->items_count < 50000
+        ) {
             $lastSitemap->items_count = $xml->count();
             $lastSitemap->save();
         } else {

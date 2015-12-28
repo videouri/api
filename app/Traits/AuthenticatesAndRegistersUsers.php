@@ -56,7 +56,7 @@ trait AuthenticatesAndRegistersUsers
             if (in_array($provider, ['facebook', 'twitter'])) {
                 return $this->authentication->execute($request->all(), $provider);
             } else {
-                return redirect(url('login'));
+                return redirect(secure_url('login'));
             }
         }
 
