@@ -30,7 +30,8 @@ class Video extends Model
         'original_url', 'slug',
         'author', 'title', 'description',
         'thumbnail', 'views', 'duration',
-        'categories', 'tags'
+        'categories', 'tags',
+        'dmca_claim'
     ];
 
     // protected $casts = [
