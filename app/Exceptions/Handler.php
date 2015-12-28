@@ -5,7 +5,10 @@ namespace App\Exceptions;
 use Exception;
 use Slack;
 
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Foundation\Validation\ValidationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 use App\Exceptions\CreateUserException;
@@ -21,8 +24,10 @@ class Handler extends ExceptionHandler
      * @var array
      */
     protected $dontReport = [
-        \Symfony\Component\HttpKernel\Exception\HttpException::class,
-        \Illuminate\Database\Eloquent\ModelNotFoundException::class
+        AuthorizationException::class,
+        HttpException::class,
+        ModelNotFoundException::class,
+        ValidationException::class,
     ];
 
     /**
@@ -35,8 +40,8 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $e)
     {
-        // if (env('APP_ENV') === 'local' && $e->getCode() >= 500) {
-        if (env('APP_ENV') === 'local') {
+        // if (env('APP_ENV') === 'local') {
+        if (env('APP_ENV') === 'local' && $e->getCode() >= 500) {
             $this->sendNotification($request = null, $e);
         }
 
@@ -56,9 +61,9 @@ class Handler extends ExceptionHandler
             $this->sendNotification($request, $e);
         }
 
-        if ($e instanceof ModelNotFoundException) {
-            $e = new NotFoundHttpException($e->getMessage(), $e);
-        }
+        // if ($e instanceof ModelNotFoundException) {
+        //     $e = new NotFoundHttpException($e->getMessage(), $e);
+        // }
 
         // if ($e instanceof RegisterValidationException) {;
         //     return redirect('login')->withErrors([
@@ -68,7 +73,7 @@ class Handler extends ExceptionHandler
 
         if ($e instanceof CreateUserException) {
             return redirect('login')->withErrors([
-                'Your account couldn\'t be create please try again'
+                'Your account couldn\'t be create please try again',
             ]);
         }
 

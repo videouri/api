@@ -1,12 +1,6 @@
 .card {
     .card-image {
         // Extends .card-title
-        .card-title {
-            background: rgba(0, 0, 0, 0.7);
-            width: 100%;
-            margin: 0;
-            font-size: 18px;
-        }
 
         .video-source {
             position: absolute;
@@ -35,4 +29,64 @@
         }
     }
 
+    .card-content {
+        h1 {
+            margin: 0;
+            font-size: 18px;
+
+            a {
+                font-size: 18px;
+            }
+        }
+    }
+}
+
+////////////////
+// Responsive //
+////////////////
+
+@media (max-width: 400px) {
+    .card {
+        .card-image {
+            .video-source {
+                padding: 5px;
+                font-size: 5px
+            }
+        }
+
+        .card-content {
+            padding: 10px;
+
+            h1 {
+                font-size: 10px;
+
+                a {
+                    font-size: 10px;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 700px) {
+    .card {
+        .card-image {
+            .video-source {
+                padding: 7px;
+                font-size: 7px
+            }
+        }
+
+        .card-content {
+            padding: 15px;
+
+            h1 {
+                font-size: 14px;
+
+                a {
+                    font-size: 14px;
+                }
+            }
+        }
+    }
 }

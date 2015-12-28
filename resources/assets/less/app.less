@@ -1,7 +1,6 @@
 /**
  * Vendors
  */
-@import 'fonts.less';
 @import 'vendor/materialize.less';
 @import 'vendor/font-awesome.less';
 @import 'vendor/video-js.less';
@@ -9,11 +8,14 @@
 /**
  * Custom shit
  */
+@import 'fonts.less';
 @import 'helpers.less';
 
 body {
     background-color: #fff;
+    font-size: 16px;
     text-rendering: optimizeLegibility;
+    // letter-spacing: 1.2em;
 
     /**
      * Branding
@@ -65,27 +67,6 @@ ul#social-and-stats {
 }
 
 
-div.or-container {
-    text-align: center;
-    margin-top: 20px;
-    color: #808080;
-    font-variant: small-caps;
-    margin: 50px 0 10px 0;
-
-    hr.or-hr {
-        margin-bottom: -20px;
-        height: 0;
-        border: 0;
-        border-top: 1px solid #e6e6e6;
-    }
-
-    div#or {
-        display: inline-block;
-        position: relative;
-        padding: 10px;
-        background-color: #fff;
-    }
-}
 
 @import 'module/header';
 // @import 'module/home';

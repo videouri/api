@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     @if (isset($title))
         <title><?= $title ?></title>
@@ -19,8 +18,7 @@
         <meta name="description" content="<?= config('videouri.default.description') ?>" />
     @endif
 
-
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta property="og:site_name" content="Videouri"/>
     <meta property="og:url" content="http://<?= $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ?>"/>
@@ -46,7 +44,7 @@
     <![endif]-->
 
     @if (isset($canonical))
-    <link rel="canonical" href="<?= url($canonical) ?>" />
+        <link rel="canonical" href="<?= url($canonical) ?>" />
     @endif
 
     @if (env('APP_ENV') !== 'local')
