@@ -35,6 +35,8 @@ class CreateVideosTable extends Migration
 
             $table->softDeletes();
             $table->timestamps();
+
+            $table->index(['original_id']);
         });
     }
 
