@@ -17,10 +17,9 @@ INSPIRATION
     http://onreplaytv.com/
     http://demo.touchsize.com/videotouch/homepage-6-2/
 
+Sitemap
+    - http://www.phpwact.org/php/i18n/charsets#common_problem_areas_with_utf-8
+
 TODO:
-    - SQL Upgrade
-        ALTER TABLE `videos` ADD COLUMN `dmca_claim` TINYINT(1) DEFAULT 0 NOT NULL AFTER `tags`;
-
-
     - Slugs
         https://github.com/jbroadway/urlify

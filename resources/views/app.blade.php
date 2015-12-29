@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-us">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -19,6 +19,7 @@
     @endif
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" href="https://videouri.com" hreflang="en-us" />
 
     <meta property="og:site_name" content="Videouri"/>
     <meta property="og:url" content="http://<?= $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ?>"/>
@@ -113,6 +114,9 @@
                     <a href="//www.iubenda.com/privacy-policy/863528" class="iubenda-nostyle no-brand iubenda-embed grey-text right" title="Privacy Policy">
                         Privacy Policy &nbsp; &nbsp;
                     </a>
+                    <a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#ffffff" data-uv-link-color="#444444" data-uv-default-mode="support" data-uv-forum-id="151817" class="grey-text right">
+                        Feedback &amp; Support &nbsp; &nbsp;
+                    </a>
 
                     {{-- @if (false)
                         <a href="" class="family-filter">
@@ -139,6 +143,18 @@
             var loader = function () { var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src = "//cdn.iubenda.com/cookie_solution/iubenda_cs.js"; tag.parentNode.insertBefore(s, tag); };
             if (w.addEventListener) { w.addEventListener("load", loader, false); } else if (w.attachEvent) { w.attachEvent("onload", loader); } else { w.onload = loader; }
         })(window, document);
+    </script>
+
+    <!-- UserVoice JavaScript SDK (only needed once on a page) -->
+    <script>
+        (function() {
+            var uv = document.createElement('script');
+            uv.type = 'text/javascript';
+            uv.async = true;
+            uv.src = '//widget.uservoice.com/RZAtJbQpNQqb9I2zEDpg.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(uv,s)
+        })()
     </script>
 
     <!-- Scripts -->
