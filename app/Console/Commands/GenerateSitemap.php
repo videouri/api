@@ -178,7 +178,9 @@ EOF;
         foreach ($videos as $video) {
             $xmlUrl = $xml->addChild('url');
 
-            $description = htmlspecialchars(str_limit($video->description, 1000));
+            $description = str_limit($video->description, 1020);
+            $description = $this->utf8ForXml($description);
+            $description = htmlspecialchars($description);
 
             $created_at = explode(' ', $video->created_at);
             $created_at = $created_at[0];
@@ -244,5 +246,10 @@ EOF;
 
         // $this->info('Sitemap create at $this->videoSitemapPath');
         // $this->error('Couldn't save sitemap at $this->videoSitemapPath');
+    }
+
+    private function utf8ForXml($string)
+    {
+        return preg_replace ('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
     }
 }
