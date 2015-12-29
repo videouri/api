@@ -37,8 +37,7 @@ class VideosController extends Controller
          * Default parameters for homepage
          */
         // $this->apiprocessing->apis       = ['Youtube', 'Dailymotion'];
-        // $this->apiprocessing->apis = ['dailymotion', 'youtube'];
-        $this->apiprocessing->apis = ['youtube'];
+        $this->apiprocessing->apis = ['Youtube'];
         $this->apiprocessing->period = 'today';
         $this->apiprocessing->maxResults = 8;
         $this->apiprocessing->country = 'us';

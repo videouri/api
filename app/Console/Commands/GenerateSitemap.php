@@ -97,7 +97,7 @@ EOF;
             $filename = $sitemap->filename;
 
             $sitemap = $xml->addChild('sitemap');
-            $sitemap->addChild('loc', secure_url('/sitemaps/' . $filename));
+            $sitemap->addChild('loc', videouri_url('/sitemaps/' . $filename));
             $sitemap->addChild('lastmod', $updated_at);
         }
 

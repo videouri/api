@@ -5,6 +5,8 @@ namespace App\Traits;
 use App\Entities\Video;
 use Exception;
 use Log;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Dailymotion\DailymotionException;
 
 trait ApiParsersTrait
 {
@@ -23,6 +25,8 @@ trait ApiParsersTrait
             return [];
         }
 
+        $api = strtolower($api);
+
         $apiParser = "{$api}Parser";
 
         if (!is_null($content)) {
@@ -35,17 +39,12 @@ trait ApiParsersTrait
             ];
         }
 
-        try {
-            $videos = $this->$apiParser($videos);
-            if (count($videos) === 1) {
-                $videos = $videos[0];
-            }
-
-            $videos = $this->transformVideos($videos);
-        } catch (Exception $e) {
-            dump('parseApiResult');
-            dump($e);
+        $videos = $this->$apiParser($videos);
+        if (count($videos) === 1) {
+            $videos = $videos[0];
         }
+
+        $videos = $this->transformVideos($videos);
 
         return $videos;
     }
@@ -56,7 +55,7 @@ trait ApiParsersTrait
         $results = array();
 
         if (empty($videos) && is_null($videos)) {
-            return $results;
+            throw new NotFoundHttpException('Video not found');
         }
 
         foreach ($videos as $video) {
@@ -175,7 +174,7 @@ trait ApiParsersTrait
             $video = (array) $video;
             preg_match('/http:\/\/[w\.]*metacafe\.com\/watch\/([^?&#"\']*)/is', $video['link'], $match);
             $id = substr($match[1], 0, -1);
-            $url = url('video/' . substr($id, 0, 1) . 'M' . substr($id, 1));
+            $url = videouri_url('video/' . substr($id, 0, 1) . 'M' . substr($id, 1));
 
             $results['Metacafe'][$index] = array(
                 'url'         => $url,
@@ -211,7 +210,7 @@ trait ApiParsersTrait
         $results = [];
 
         if (empty($videos) || isset($videos['body']['error'])) {
-            return $results;
+            throw new NotFoundHttpException('Video not found');
         }
 
         // $videos = $videos['body'];

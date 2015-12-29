@@ -11,6 +11,17 @@ function videouri_asset($path)
     return $path;
 }
 
+function videouri_url($url)
+{
+    if (env('APP_SECURE') === true) {
+        $url = secure_url($url);
+    } else {
+        $url = url($url);
+    }
+
+    return $url;
+}
+
 /**
  * Recursive in_array function
  *

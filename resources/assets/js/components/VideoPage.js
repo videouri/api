@@ -91,8 +91,6 @@ module.exports = {
                     height = width * aspectRatio
                 ;
 
-                console.log(height);
-
                 if (height > 530) {
                     height = 530;
                 }
@@ -191,7 +189,6 @@ module.exports = {
             };
 
             this.$http.post(endpoint, parameters, function(response) {
-                console.log(response.data);
                 if (response.errors !== false) {
                     Materialize.toast(response.errors.message, 3000, 'error');
                 } else {

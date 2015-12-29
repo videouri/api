@@ -21,8 +21,6 @@ module.exports = {
                 original_id: this.video.original_id
             };
 
-            console.log(parameters);
-
             this.$http.post('/api/user/watch-later', parameters, function(homeVideos) {
                 alert('success bitches')
             });

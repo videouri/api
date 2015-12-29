@@ -83,8 +83,9 @@ class SearchController extends Controller
                 $period
             );
 
+
             foreach ($results as $api => $apiData) {
-                $videos = array_merge($apiData, $videos);
+                $videos = array_merge_recursive($videos, $apiData);
             }
 
             return response()->success($videos);

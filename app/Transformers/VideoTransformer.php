@@ -13,7 +13,7 @@ class VideoTransformer extends TransformerAbstract
     {
         $response = [
             'id'           => (int) $video->id,
-            'provider'     => ucfirst($video->provider),
+            'provider'     => $video->provider,
 
             'original_id'  => $video->original_id,
             'custom_id'    => $video->custom_id,

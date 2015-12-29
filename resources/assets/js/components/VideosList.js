@@ -3,7 +3,12 @@
 module.exports = {
     template: require('./VideosList.template.html'),
 
-    props: ['content', 'query', 'videos'],
+    props: [
+        'filter_apis',
+        'content',
+        'query',
+        'videos',
+    ],
 
     // data: function() {
     //     return {
@@ -70,6 +75,7 @@ module.exports = {
     watch: {
         "videos": function(oldVal, newVal) {
             jQuery('#preloader').fadeOut();
+            jQuery('#filter-apis').removeClass('hide');
         }
     },
 
@@ -87,6 +93,18 @@ module.exports = {
                 $grid.imagesLoaded().progress( function() {
                     $grid.isotope('layout');
                 });
+
+
+                if (this.filter_apis == 'enabled') {
+                    $('.video-source').on('click', function() {
+                        var filterValue = $(this).data('filter');
+                        $('.choosen-source').html('Source: '  + $(this).text());
+
+                        $grid.isotope({
+                            filter: filterValue
+                        });
+                    });
+                }
 
                 // // bind event
                 // $grid.isotope( 'on', 'arrangeComplete', function(ev, ve) {

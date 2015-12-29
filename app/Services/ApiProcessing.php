@@ -19,6 +19,9 @@ use League\Fractal\Resource\Collection;
 use League\Fractal\Resource\Item;
 use League\Fractal\Serializer\ArraySerializer;
 
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use DailymotionApiException;
+
 /**
  * ApiProcessing Class
  *
@@ -40,10 +43,10 @@ class ApiProcessing
      * @var array
      */
     public $apis = [
-        'youtube',
-        // 'metacafe',
-        'dailymotion',
-        'vimeo',
+        'Youtube',
+        'Vimeo',
+        'Dailymotion',
+        // 'Metacafe',
     ];
 
     /**
@@ -193,7 +196,7 @@ class ApiProcessing
 
         if (!$apiResponse = Cache::get($apiParametersHash)) {
             if (!in_array_r($content, $this->availableContents)) {
-                throw new Exception("Error Processing Request.", 1);
+                throw new Exception('What is this? Exception');
             }
 
             $this->maxResults = (int) $this->maxResults;
@@ -242,6 +245,7 @@ class ApiProcessing
 
         $apis = $this->apis;
         foreach ($apis as $api) {
+            $api = strtolower($api);
             $apiToRun = $this->{$api};
             $videos = $apiToRun->searchVideos($parameters);
             $videos = $this->parseApiResult($api, $videos);
@@ -261,6 +265,8 @@ class ApiProcessing
      */
     public function getVideoInfo($api, $videoId, $parseResult = true)
     {
+        $api = strtolower($api);
+
         $apiToRun = $this->{$api};
 
         // If it exists in the database, get the info from there and transform it
@@ -272,10 +278,22 @@ class ApiProcessing
 
             $video = $this->transformVideos($video);
         } else {
-            $video = $apiToRun->getVideoInfo($videoId);
+            try {
+                $video = $apiToRun->getVideoInfo($videoId);
 
-            if ($parseResult) {
-                $video = $this->parseApiResult($api, $video);
+                if ($parseResult) {
+                    $video = $this->parseApiResult($api, $video);
+                }
+            } catch (NotFoundHttpException $e) {
+                abort(404);
+            } catch (DailymotionApiException $e) {
+                abort(404);
+
+                // Todo
+                //      Log $e->getCode() > 404
+            } catch (Exception $e) {
+                dump('parseApiResult');
+                dump($e);
             }
         }
 
@@ -299,6 +317,7 @@ class ApiProcessing
             $parameters['country'] = $this->country;
         }
 
+        $api = strtolower($api);
         $apiToRun = $this->{$api};
 
         try {

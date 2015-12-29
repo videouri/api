@@ -53,19 +53,19 @@ class VideoController extends Controller
 
         switch ($api) {
             case 'd':
-                $api = 'dailymotion';
+                $api = 'Dailymotion';
                 break;
 
             case 'v':
-                $api = 'vimeo';
+                $api = 'Vimeo';
                 break;
 
             case 'y':
-                $api = 'youtube';
+                $api = 'Youtube';
                 break;
 
             case 'm':
-                $api = 'metacafe';
+                $api = 'Metacafe';
                 $long_id = $originalId . '/' . $slug;
                 break;
 
@@ -89,13 +89,9 @@ class VideoController extends Controller
         // dump($video->favorited()->whereUserId(Auth::user()->id)->get());
         // // dump($video->watchLater);
 
-        // try {
-        $video = $this->apiprocessing->getVideoInfo($api, $originalId);
-        // } catch (\Exception $e) {
-        //     dump('VideoController');
-        //     dd($e);
-        //     // abort(404);
-        // }
+        if (!$video = $this->apiprocessing->getVideoInfo($api, $originalId)) {
+            return abort(404);
+        }
 
         $this->dispatch(new SaveVideo($video, $api));
 

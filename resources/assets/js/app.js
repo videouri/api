@@ -19,7 +19,11 @@ Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('#_token').getA
 
 
 Vue.filter('linkify', function(text) {
-    return linkifyStr(text);
+    if (text) {
+        return linkifyStr(text);
+    }
+
+    return 'Empty';
 });
 
 /**
