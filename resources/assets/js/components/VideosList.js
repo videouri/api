@@ -8,6 +8,12 @@ module.exports = {
         'content',
         'query',
         'videos',
+
+        ////////////////
+        // Video page //
+        ////////////////
+        'api',
+        'original_id',
     ],
 
     // data: function() {
@@ -66,6 +72,21 @@ module.exports = {
 
                 this.$http.get('/api/search', parameters, function(searchResults) {
                     this.$set('videos', searchResults.data);
+                    this.initIsotope();
+                });
+                break;
+
+            ////////////////
+            // Video page //
+            ////////////////
+            case 'recommended':
+                var parameters = {
+                    'api': this.api,
+                    'original_id': this.original_id
+                };
+
+                this.$http.get('/api/videos/recommended', parameters, function(results) {
+                    this.$set('videos', results);
                     this.initIsotope();
                 });
                 break;

@@ -1,9 +1,16 @@
 module.exports = {
     template: require('./VideoPage.template.html'),
 
-    props: ['video', 'user'],
+    props: [
+        'video',
+        'user',
+    ],
 
-    replace: true,
+    components: {
+        'videos-list': require('./VideosList')
+    },
+
+    // replace: true,
 
     // data: function() {
     //     return {
@@ -147,9 +154,9 @@ module.exports = {
             })();
         }
 
-        if (window.location.hostname !== 'local.videouri.com') {
-            initializeDisqus();
-        }
+        // if (window.location.hostname !== 'local.videouri.com') {
+        //     initializeDisqus();
+        // }
     },
 
     methods: {

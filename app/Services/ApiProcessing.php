@@ -60,11 +60,6 @@ class ApiProcessing
         'top_rated',
     );
 
-    private $individualContents = array(
-        'getRelatedVideos',
-        'tag',
-    );
-
     /**
      * Array containing available time periods.
      *
@@ -90,7 +85,6 @@ class ApiProcessing
 
     /**
      * @uses $availableContents
-     * @uses $individualContents
      * @var boolean
      */
     public $content = null;
@@ -298,6 +292,29 @@ class ApiProcessing
         }
 
         return $video;
+    }
+
+    /**
+     * Retrieve related videos for a given video
+     *
+     * @param  string $api
+     * @param  string $videoId
+     * @return array
+     */
+    public function getRelatedVideos($api, $videoId)
+    {
+        $api = strtolower($api);
+        $apiToRun = $this->{$api};
+
+        $videos = $apiToRun->getRelatedVideos($videoId, $maxResults = 6);
+
+        if (empty($videos)) {
+            return [];
+        }
+
+        $videos = $this->parseApiResult($api, $videos);
+
+        return $videos;
     }
 
     /**

@@ -112,7 +112,14 @@ class VideoController extends Controller
 
         $data['thumbnail'] = $video['thumbnail'];
         $data['video'] = json_encode($video);
-        $data['relatedVideos'] = [];
+
+        $relatedVideos = $this->apiprocessing->getRelatedVideos($api, $video['original_id']);
+        if (!empty($relatedVideos)) {
+            $relatedVideos = json_encode($relatedVideos);
+        }
+
+        $data['recommended'] = $relatedVideos;
+
         // $data['source'] = $api;
 
         // Metadata

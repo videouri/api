@@ -111,11 +111,18 @@
 
     <div class="row">
         <div class="col s12">
+            <h4>Recommended videos</h4>
+        </div>
+    </div>
+    <videos-list content="recommended" :api="video.provider" :original_id="video.original_id"></videos-list>
+
+    <!-- <div class="row">
+        <div class="col s12">
             <h4>Comments</h4>
             <div id="disqus_thread"></div>
             <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
         </div>
-    </div>
+    </div> -->
 
     <!-- Related Videos -->
     <div id="related-videos" v-if="relatedVideos">

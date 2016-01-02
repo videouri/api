@@ -88,6 +88,30 @@ class VideosController extends Controller
         return response()->success($videos);
     }
 
+    ////////////////
+    // Video page //
+    ////////////////
+
+    /**
+     * Recommended
+     *
+     * @return array
+     */
+    public function getRecommended(Request $request)
+    {
+        $api = $request->get('api');
+        $originalId = $request->get('original_id');
+
+        $videos = $this->apiprocessing->getRelatedVideos($api, $originalId);
+
+        return $videos;
+    }
+
+    /**
+     * Favorites
+     *
+     * @return array
+     */
     public function getFavorites()
     {
         $user = Auth::user();
@@ -100,6 +124,11 @@ class VideosController extends Controller
         return $this->parseResponse($records);
     }
 
+    /**
+     * Watch later
+     *
+     * @return array
+     */
     public function getWatchLater()
     {
         $user = Auth::user();
@@ -113,6 +142,12 @@ class VideosController extends Controller
         return $this->parseResponse($records);
     }
 
+    /**
+     * DRY for favorites and watch later
+     *
+     * @param  array $records
+     * @return array
+     */
     private function parseResponse($records)
     {
         $records = $records->all();

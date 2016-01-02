@@ -40,6 +40,11 @@ trait ApiParsersTrait
         }
 
         $videos = $this->$apiParser($videos);
+
+        if (empty($videos)) {
+            return [];
+        }
+
         if (count($videos) === 1) {
             $videos = $videos[0];
         }
@@ -212,6 +217,11 @@ trait ApiParsersTrait
         if (empty($videos) || isset($videos['body']['error'])) {
             throw new NotFoundHttpException('Video not found');
         }
+
+        // // No results returned
+        // if (isset($videos['body']['data']) && empty($videos['body']['data'])) {
+        //     return [];
+        // }
 
         // $videos = $videos['body'];
 

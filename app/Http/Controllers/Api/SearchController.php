@@ -68,29 +68,24 @@ class SearchController extends Controller
         // Queue to save search term
         $this->dispatch(new RegisterSearch($searchQuery, Auth::user()));
 
+        $parameters = [
+            'searchQuery' => $searchQuery,
+            'page'        => $page,
+            'sort'        => $sort,
+        ];
+
+        $results = $this->apiprocessing->searchVideos(
+            $searchQuery,
+            $page,
+            $sort,
+            $period
+        );
+
         $videos = [];
-        try {
-            $parameters = [
-                'searchQuery' => $searchQuery,
-                'page'        => $page,
-                'sort'        => $sort,
-            ];
-
-            $results = $this->apiprocessing->searchVideos(
-                $searchQuery,
-                $page,
-                $sort,
-                $period
-            );
-
-
-            foreach ($results as $api => $apiData) {
-                $videos = array_merge_recursive($videos, $apiData);
-            }
-
-            return response()->success($videos);
-        } catch (Exception $e) {
-            dd($e);
+        foreach ($results as $api => $apiData) {
+            $videos = array_merge_recursive($videos, $apiData);
         }
+
+        return response()->success($videos);
     }
 }
