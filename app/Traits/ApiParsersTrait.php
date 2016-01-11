@@ -229,6 +229,9 @@ trait ApiParsersTrait
         //     $videos = $videos['data'];
         // }
 
+        if (empty($videos['body'])) {
+            return [];
+        }
 
         // This is for getVideoInfo function
         if (!empty($videos['body']) && !isset($videos['body']['data'])) {
@@ -238,6 +241,7 @@ trait ApiParsersTrait
                 ]
             ];
         }
+
 
         foreach ($videos['body']['data'] as $video) {
             $originalId = explode('/', $video['uri'])[2];
@@ -285,125 +289,6 @@ trait ApiParsersTrait
 
         return $results;
     }
-
-    // /**
-    //  * [parseIndividualResult description]
-    //  * @param  [type] $data [description]
-    //  * @return [type]       [description]
-    //  */
-    // public function parseIndividualResult($api, $data)
-    // {
-    //     if (!$data) {
-    //         throw new \Exception("Error parsing result from $api. Video might've been deleted");
-    //     }
-
-    //     if ($api === 'Vimeo' && isset($data['body']['error'])) {
-    //         throw new \Exception("$api: " . $data['body']['error']);
-    //     }
-
-    //     $video = [];
-
-    //     if ($api === "dailymotion") {
-    //         $httpsUrl = preg_replace("/^http:/i", "https:", $data['url']);
-    //         $thumbnailUrl = preg_replace("/^http:/i", "https:", $data['thumbnail_360_url']);
-
-    //         // $video['original_id'] = $data['id'];
-    //         $video['url'] = $httpsUrl;
-    //         $video['title'] = $data['title'];
-    //         $video['description'] = $data['description'];
-    //         $video['thumbnail'] = $thumbnailUrl;
-
-    //         // $video['ratings']  = $data['ratings'];
-    //         $video['views'] = $data['views_total'];
-    //         $video['duration'] = $data['duration'];
-
-    //         $video['tags'] = $data['tags'];
-    //     }
-
-    //     // elseif ($api === "Metacafe") {
-    //     //     // if (preg_match('/http:\/\/[w\.]*metacafe\.com\/fplayer\/(.*).swf/is', $data['embed'], $match)) {
-    //     //     //     $video['swf']['url'] = $data['embed'];
-    //     //     //     $video['swf']['api'] = 'mcapiplayer';
-    //     //     // }
-
-    //     //     // else {
-    //     //     //     $video['embed_html'] = $data['embed'];
-    //     //     // }
-
-    //     //     $video['title'] = $data->title;
-    //     //     $video['thumbnail'] = 'http://www.metacafe.com/thumb/'.$originalId.'.jpg';
-
-    //     //     $dom = new DOMDocument();
-    //     //     $dom->loadHTML($data->description);
-
-    //     //     $xml = simplexml_import_dom($dom);
-    //     //     $p   = (string)$xml->body->p;
-
-    //     //     $video['description'] = strstr($p, 'Ranked', true);
-
-    //     //     $tags  = array();
-    //     //     $count = count((object)$xml->body->p[1]->a) - 2;
-    //     //     for ($index = 2; $index <= $count; $index++) {
-    //     //         $tag = (object)$xml->body->p[1]->a[$index];
-    //     //         $tag = str_replace(array('News & Events'), '', $tag);
-    //     //         $tags[] = $tag;
-    //     //     }
-
-    //     //     $video['tags']        = $tags;
-    //     //     // $video['related']     = $this->relatedVideos(array('api'=>$api,'id'=>$originalId));
-    //     // }
-
-    //     if ($api == "vimeo") {
-    //         $data = $data['body'];
-
-    //         $originalId = explode('/', $data['uri'])[2];
-
-    //         $video['url'] = "https://vimeo.com/" . $originalId;
-    //         $video['title'] = $data['name'];
-    //         $video['description'] = $data['description'];
-    //         $video['thumbnail'] = $data['pictures']['sizes'][2]['link'];
-
-    //         // $video['ratings']  = $data['ratings'];
-    //         $video['views'] = $data['stats']['plays'];
-    //         $video['duration'] = $data['duration'];
-
-    //         $tags = array();
-    //         if (!empty($data['tags'])) {
-    //             foreach ($data['tags'] as $tag) {
-    //                 $tags[] = $tag['name'];
-    //             }
-    //         }
-
-    //         $video['tags'] = $tags;
-    //     }
-
-    //     if ($api == "youtube") {
-    //         $seconds = $data->contentDetails->duration;
-    //         $totalSeconds = ISO8601ToSeconds($seconds);
-
-    //         $video['url'] = "https://www.youtube.com/watch?v=" . $data->id;
-    //         $video['title'] = $data->snippet->title;
-    //         $video['description'] = $data->snippet->description;
-    //         $video['thumbnail'] = $data->snippet->thumbnails->medium->url;
-
-    //         // $video['ratings']     = $data['gd$rating']['average'];
-    //         $video['views'] = $data->statistics->viewCount;
-    //         $video['duration'] = $totalSeconds;
-
-    //         $video['tags'] = isset($data->snippet->tags) ? $data->snippet->tags : [];
-    //     }
-
-    //     $videoObject = new Video;
-    //     foreach ($video as $field => $value) {
-    //         $videoObject->$field = $value;
-    //     }
-
-    //     dump($video);
-    //     dump($videoObject);
-    //     die;
-
-    //     return $video;
-    // }
 
     /**
      * [parseDescription description]
