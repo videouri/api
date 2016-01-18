@@ -9,7 +9,7 @@
 		"laravel/socialite": "^2.0",
 		"alaouy/youtube": "^1.2",
 		"dailymotion/sdk": "^1.6",
-		"dingo/api": "^1.0@dev",
+		"dingo/api": "1.0.*@dev",
 		"barryvdh/laravel-cors": "^0.7.2",
 		"vinkla/vimeo": "^3.2",
 		"pda/pheanstalk": "^3.1",

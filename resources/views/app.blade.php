@@ -33,6 +33,7 @@
       rel="stylesheet"> --}}
     <link href="{{ videouri_asset('/css/app.css') }}" rel="stylesheet">
 
+    <meta name="alexaVerifyID" content="jcuPoQKjF9UOXxPKulzeux8w7g4"/>
     <meta name="msvalidate.01" content="48B0A933360DDEC6CF1775D7C7E28FD3" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta id="_token" value="{{ csrf_token() }}">
