@@ -72,7 +72,11 @@ function getUserCountry($ip = null)
     if (empty($ip)) {
         $ip = getUserIPAdress();
         if ($ip !== '127.0.0.1') {
-            return geoip_country_code_by_name($ip);
+            try {
+                geoip_country_code_by_name($ip);
+            } catch (\Exception $e) {
+                return 'GB';
+            }
         }
 
         return 'GB';

@@ -3,7 +3,6 @@
 namespace App\Traits;
 
 use App\Entities\Video;
-use Exception;
 use Log;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Dailymotion\DailymotionException;
@@ -116,8 +115,8 @@ trait ApiParsersTrait
         if (!isset($data['list'])) {
             $data = [
                 'list' => [
-                    $data
-                ]
+                    $data,
+                ],
             ];
         }
 
@@ -154,7 +153,6 @@ trait ApiParsersTrait
             $videoObject->tags = isset($video['tags']) ? $video['tags'] : [];
 
             $results[$index] = $videoObject;
-
 
             if ($this->videoContent) {
                 $results[$index]['content'] = $this->videoContent;
@@ -237,11 +235,10 @@ trait ApiParsersTrait
         if (!empty($videos['body']) && !isset($videos['body']['data'])) {
             $videos['body'] = [
                 'data' => [
-                    $videos['body']
-                ]
+                    $videos['body'],
+                ],
             ];
         }
-
 
         foreach ($videos['body']['data'] as $video) {
             $originalId = explode('/', $video['uri'])[2];
