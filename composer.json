@@ -10,15 +10,14 @@
 		"laravel/socialite": "^2.0",
 		"alaouy/youtube": "dev-master",
 		"dailymotion/sdk": "^1.6",
-		"dingo/api": "1.0.*@dev",
 		"barryvdh/laravel-cors": "^0.8.0",
 		"vinkla/vimeo": "^3.2",
 		"nesbot/carbon": "^1.21",
 		"league/fractal": "^0.13.0",
 		"tymon/jwt-auth": "^0.5.9",
 		"pda/pheanstalk": "^3.1",
-		"maknz/slack": "^1.7",
-		"cocur/slugify": "^2.0"
+		"cocur/slugify": "^2.0",
+		"dingo/api": "1.0.x@dev"
 	},
 	"require-dev": {
 		"codeception/codeception": "^2.1",
