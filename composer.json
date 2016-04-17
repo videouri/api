@@ -10,7 +10,7 @@
   "license": "propietary",
   "type": "project",
   "require": {
-    "php": ">=7.0",
+    "php": ">=5.5.9",
     "laravel/framework": "5.2.*",
     "laravel/socialite": "^2.0",
     "alaouy/youtube": "dev-master",
