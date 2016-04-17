@@ -28,7 +28,7 @@ class CreateViewsTable extends Migration
 
             // @TODO: track like/dislike
 
-            $table->timestamp('registered_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('registered_at')->useCurrent();
         });
     }
 

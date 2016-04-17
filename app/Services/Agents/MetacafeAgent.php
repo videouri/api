@@ -1,18 +1,20 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php
 
-class MetacafeController extends MX_Controller {
+namespace App\Services\Agents;
 
-    function __construct()
+/**
+ * Class MetacafeController
+ * @package App\Services\Agents
+ */
+class MetacafeController
+{
+    /**
+     * MetacafeController constructor.
+     * @TODO figure Metacafe connection out
+     */
+    public function __construct()
     {
-        parent::__construct();
-
-        $this->load->library('API/metacafe');
-
-        if (!class_exists('CI_CACHE')) {
-            $this->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file', 'key_prefix' => 'videouri_'));
-        }
-
-        #$this->_debug['on'] = true;
+        $this->metacafe = new Metacafe();
     }
 
     /**
@@ -21,7 +23,7 @@ class MetacafeController extends MX_Controller {
     * @param array $parameters containing the data to be sent when querying the api
     * @return the json_decoded array data.
     */
-	function data(array $parameters = array())
+    function data(array $parameters = array())
     {
         $page = isset($parameters['page']) ? 1 + ($parameters['page']-1) * 10 : 1;
 
@@ -84,8 +86,51 @@ class MetacafeController extends MX_Controller {
         $result = $this->metacafe->getRelatedVideos($id);
         return simplexml_load_string($result);
     }
-    
-}
 
-/* End of file c_metacafe.php */
-/* Location: ./application/modules/apis/controllers/c_metacafe.php */
+    /**
+     * @param $videos
+     * @return array|bool
+     */
+    public function parseVideos($videos)
+    {
+        $index = 1;
+        $results = array();
+
+        if (!$data) {
+            return false;
+        }
+
+        foreach ($data->channel->item as $video) {
+            $video = (array) $video;
+            preg_match('/http:\/\/[w\.]*metacafe\.com\/watch\/([^?&#"\']*)/is', $video['link'], $match);
+            $id = substr($match[1], 0, -1);
+            $url = videouri_url('video/' . substr($id, 0, 1) . 'M' . substr($id, 1));
+
+            $results['Metacafe'][$index] = array(
+                'url'         => $url,
+                'title'       => $video['title'],
+                'description' => $this->parseDescription($video['title']),
+                // 'author'      => $video['author'],
+                // 'category'    => $video['category'],
+                'thumbnail'   => "http://www.metacafe.com/thumb/{$video['id']}.jpg",
+
+                'rating'      => isset($video['rank']) ? $video['rank'] : 0,
+                'views'       => 0,
+
+                'source'      => 'Metacafe',
+            );
+
+            if ($this->videoContent) {
+                $results[$index]['content'] = $this->videoContent;
+            }
+
+            if ($index === $this->maxResults) {
+                break;
+            }
+
+            $index++;
+        }
+
+        return $results;
+    }
+}

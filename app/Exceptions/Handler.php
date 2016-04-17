@@ -2,19 +2,12 @@
 
 namespace App\Exceptions;
 
-use Exception;
-use Slack;
-
+use App\Exceptions\SocialAuthException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Illuminate\Foundation\Validation\ValidationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-
-use App\Exceptions\CreateUserException;
-use App\Exceptions\RegisterValidationException;
-use App\Exceptions\SearchQueryEmpty;
-use App\Exceptions\SendMailException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -38,13 +31,8 @@ class Handler extends ExceptionHandler
      * @param  \Exception  $e
      * @return void
      */
-    public function report(Exception $e)
+    public function report(\Exception $e)
     {
-        // if (env('APP_ENV') === 'local') {
-        if (env('APP_ENV') === 'local' && $e->getCode() >= 500) {
-            $this->sendNotification($request = null, $e);
-        }
-
         return parent::report($e);
     }
 
@@ -55,81 +43,24 @@ class Handler extends ExceptionHandler
      * @param  \Exception  $e
      * @return \Illuminate\Http\Response
      */
-    public function render($request, Exception $e)
+    public function render($request, \Exception $e)
     {
-        if ($e->getCode() >= 500) {
-            $this->sendNotification($request, $e);
-        }
-
-        // if ($e instanceof ModelNotFoundException) {
-        //     $e = new NotFoundHttpException($e->getMessage(), $e);
-        // }
-
-        // if ($e instanceof RegisterValidationException) {;
-        //     return redirect('login')->withErrors([
-        //         $e->getMessage()
-        //     ]);
-        // }
-
-        if ($e instanceof CreateUserException) {
+        if ($e instanceof SocialAuthException) {
             return redirect('login')->withErrors([
-                'Your account couldn\'t be create please try again',
+                'There was an error registering your account. Please try again',
             ]);
         }
 
-        if ($e instanceof SendMailException) {
-            return redirect('login')->with('status', 'Failed to send activation email.');
+        if ($this->isHttpException($e)) {
+            return $this->toIlluminateResponse($this->renderHttpException($e), $e);
+        } else {
+            // return $this->toIlluminateResponse($this->convertExceptionToResponse($e), $e);
+
+            if (app()->environment() === 'production') {
+                $e = new \Symfony\Component\HttpKernel\Exception\HttpException(500);
+            }
         }
 
         return parent::render($request, $e);
-    }
-
-    /**
-     * [sendNotification description]
-     * @param  [type] $request [description]
-     * @param  [type] $e       [description]
-     * @return [type]          [description]
-     */
-    private function sendNotification($request = null, $e)
-    {
-        $attachment = [
-            'fallback' => 'Videouri Error',
-            'text'     => 'Videouri Error',
-            'color'    => '#c0392b',
-            'fields'   => [
-                [
-                    'title' => 'Requested URL',
-                    'value' => $request ? $request->url() : '',
-                    // 'short' => true,
-                ],
-                [
-                    'title' => 'HTTP Code',
-                    'value' => $e->getCode(),
-                    // 'short' => true,
-                ],
-                [
-                    'title' => 'Exception',
-                    'value' => $e->getMessage(),
-                    // 'short' => true,
-                ],
-                [
-                    'title' => 'File',
-                    'value' => $e->getFile() . ': ' . $e->getLine(),
-                    // 'short' => true,
-                ],
-                [
-                    'title' => 'Trace',
-                    'value' => $e->getTraceAsString(),
-                    // 'short' => true,
-                ],
-                [
-                    'title' => 'Input',
-                    'value' => $request ? json_encode($request->all()) : '',
-                    // 'short' => true,
-                ],
-            ],
-        ];
-
-        Slack::attach($attachment)->send('Videouri Error');
     }
 }

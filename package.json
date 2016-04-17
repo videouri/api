@@ -1,14 +1,14 @@
 {
   "private": true,
-  "devDependencies": {
+  "dependencies": {
     "gulp": "^3.8.8",
-    "gulp-autoprefixer": "^3.0.2",
-    "laravel-elixir": "^3.3.1",
-    "laravel-elixir-livereload": "^1.1.3",
-    "linkifyjs": "^2.0.0-beta.5",
+    "laravel-elixir": "^4.0.0",
+    "gulp-autoprefixer": "^3.1.0",
+    "laravel-elixir-livereload": "^1.1.4",
+    "linkifyjs": "^2.0.0-beta.9",
     "readmore-js": "^2.1.0",
-    "vue": "^1.0.12",
-    "vue-resource": "^0.1.17",
-    "vue-router": "^0.7.7"
+    "vue": "^1.0.17",
+    "vue-resource": "^0.7.0",
+    "vue-router": "^0.7.11"
   }
 }

@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
+/**
+ * Class TopicsController
+ * @package App\Http\Controllers
+ */
 class TopicsController extends Controller
 {
     public function music()

@@ -4,8 +4,11 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Entities\Video;
-use App\Services\ApiProcessing;
 
+/**
+ * Class RefreshVideosData
+ * @package App\Console\Commands
+ */
 class RefreshVideosData extends Command
 {
     /**
@@ -33,24 +36,6 @@ class RefreshVideosData extends Command
      */
     // private $canRefresh = ['title', 'description', 'views', 'duration', 'all'];
     private $canRefresh = ['views', 'duration'];
-
-    /**
-     * [$apiprocessing description]
-     * @var [type]
-     */
-    private $apiprocessing;
-
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct(ApiProcessing $apiprocessing)
-    {
-        parent::__construct();
-
-        $this->apiprocessing = $apiprocessing;
-    }
 
     /**
      * Execute the console command.
@@ -110,7 +95,8 @@ class RefreshVideosData extends Command
             $this->info("\n - Processing video $i out of $limit, from $video->provider and with id $video->original_id");
 
             try {
-                $videoData = $this->apiprocessing->getVideoInfo($video->provider, $video->original_id);
+                $apiManager = $this->app['ApiManager'];
+                $videoData = $apiManager->getVideoInfo($video->provider, $video->original_id);
 
                 $videoToUpdate = Video::where('original_id', '=', $video->original_id)->first();
 

@@ -3,105 +3,14 @@
 namespace App\Repositories;
 
 use App\Entities\User;
-use App\Exceptions\CreateUserException;
-use App\Exceptions\SendMailException;
-use App\Exceptions\RegisterValidationException;
-
 use Cocur\Slugify\Slugify;
-
 use Illuminate\Foundation\Validation\ValidatesRequests;
-use Validator;
-use Mail;
 use Redirect;
-use Session;
+use Validator;
 
 class UserRepository
 {
     use ValidatesRequests;
-
-    public function findOrCreateSocial($userData, $provider)
-    {
-        if ($user = User::where('provider_id', '=', $userData->getId())->first()) {
-            return $user;
-        }
-
-        if (!isset($userData->email)) {
-            $userData->email = rand(100, 9999) . '-' . time() . '@missingemail.com';
-        }
-
-        $emailExists = User::where('email', '=', $userData->getEmail())->first();
-        if (!$user && $emailExists) {
-            return redirect()->to('/login')->withErrors('Email is already in use.');
-        }
-
-        /////////////////////////////
-        // Create the user process //
-        /////////////////////////////
-
-        $rules = [
-            'username' => 'required|max:255|unique:users',
-            'email'    => 'required|email|max:255|unique:users',
-        ];
-
-        $slugify = new Slugify();
-
-        if (!$username = $userData->nickname) {
-            $username = $slugify->slugify($userData->name);
-        }
-
-        $inputToFilter = [
-            'username'    => $username,
-            'email'       => $userData->email,
-            'avatar'      => $userData->avatar,
-            'provider'    => $provider,
-            'provider_id' => $userData->id,
-        ];
-
-        $validator = Validator::make($inputToFilter, $rules);
-
-        if ($validator->fails()) {
-            return redirect()->to('login')->withErrors($validator)->send();
-        }
-
-        return User::create([
-            'username'    => $username,
-            'email'       => $userData->email,
-            'avatar'      => $userData->avatar,
-            'provider'    => $provider,
-            'provider_id' => $userData->id,
-        ]);
-
-        // return $this->saveUser($user);
-    }
-
-    public function findOrCreateRegular($request)
-    {
-        $rules = [
-            'username' => 'required|max:255|unique:users',
-            'email'    => 'required|email|max:255|unique:users',
-            'password' => 'required|confirmed|min:6',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            $this->throwValidationException($request, $validator);
-        }
-
-        // $user = User::where('email', '=', $request->input('email'))->first();
-
-        // if (!$user) {
-        $user = new User;
-        $user->username = $request->input('username');
-        $user->email = $request->input('email');
-        $user->password = bcrypt($request->input('password'));
-
-        return $this->saveUser($user);
-        // }
-
-        // return true;
-
-    }
 
     /**
      * [checkIfUserNeedsUpdating description]
@@ -131,34 +40,35 @@ class UserRepository
         }
     }
 
-    private function saveUser(User $user)
-    {
-        if ($user->save()) {
-            $this->generateActivationCodeAndMailIt($user);
-            return true;
-        } else {
-            throw new CreateUserException("Your account couldn\'t be create please try again", 1);
-        }
-    }
+    // private function saveUser(User $user)
+    // {
+    //     if ($user->save()) {
+    //         $this->generateActivationCodeAndMailIt($user);
+    //         return true;
+    //     } else {
+    //         throw new CreateUserException("Your account couldn\'t be create please try again", 1);
+    //     }
+    // }
 
-    private function generateActivationCodeAndMailIt(User $user)
-    {
-        $activation_code = str_random(60) . $user->email;
+    // private function generateActivationCodeAndMailIt(User $user)
+    // {
+    //     // $generatedKey = sha1(mt_rand(10000, 99999) . time() . $email);
+    //     $activation_code = str_random(60) . $user->email;
 
-        $user->activation_code = $activation_code;
-        $user->save();
+    //     $user->activation_code = $activation_code;
+    //     $user->save();
 
-        $data = array(
-            'name' => $user->username,
-            'code' => $activation_code,
-        );
+    //     $data = array(
+    //         'name' => $user->username,
+    //         'code' => $activation_code,
+    //     );
 
-        // Mail::queue('emails.activateAccount', $data, function($message) use ($user) {
-        //     $message->to($user->email, $user->username)->subject('Please activate your account.');
-        // });
+    //     // Mail::queue('emails.activateAccount', $data, function($message) use ($user) {
+    //     //     $message->to($user->email, $user->username)->subject('Please activate your account.');
+    //     // });
 
-        if (count(Mail::failures()) > 0) {
-            throw new SendMailException("Failed to send activation email.");
-        }
-    }
+    //     if (count(Mail::failures()) > 0) {
+    //         throw new SendMailException("Failed to send activation email.");
+    //     }
+    // }
 }

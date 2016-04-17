@@ -1,13 +1,26 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Agents;
 
-use Alaouy\Youtube\Facades\Youtube;
+use Alaouy\Youtube\Youtube;
 use App\Interfaces\ApiAgentInterface;
+use App\Entities\Video;
 use Session;
 
+/**
+ * Class YoutubeAgent
+ * @package App\Services\Agents
+ */
 class YoutubeAgent implements ApiAgentInterface
 {
+    /**
+     * YoutubeAgent constructor.
+     */
+    public function __construct()
+    {
+        $this->youtube = new Youtube(config('youtube.KEY'));
+    }
+
     /**
      * The function that will retrieve Youtube's api response data
      *
@@ -44,7 +57,7 @@ class YoutubeAgent implements ApiAgentInterface
         // switch ($parameters['content']) {
         /* Home content */
         // case 'newest':
-        //     $results = json_decode(Youtube::getMostRecentVideoFeed(
+        //     $results = json_decode($this->youtube->getMostRecentVideoFeed(
         //         array(
         //             'max-results' => $parameters['maxResults'],
         //             'fields'      => 'entry(id,title,author,gd:rating,yt:rating,yt:statistics,media:group(media:category(),media:description(),media:thumbnail(@url),yt:duration(@seconds)))',
@@ -57,7 +70,7 @@ class YoutubeAgent implements ApiAgentInterface
         //     break;
 
         // case 'top_rated':
-        //     $results = json_decode(Youtube::getTopRatedVideoFeed(
+        //     $results = json_decode($this->youtube->getTopRatedVideoFeed(
         //         array(
         //             'max-results' => $parameters['maxResults'],
         //             //'fields'       => '*',
@@ -71,7 +84,7 @@ class YoutubeAgent implements ApiAgentInterface
         //     break;
 
         //     case 'most_viewed':
-        //         $results = Youtube::getPopularVideos(Session::get('country'));
+        //         $results = $this->youtube->getPopularVideos(Session::get('country'));
         //         break;
 
         // }
@@ -113,7 +126,7 @@ class YoutubeAgent implements ApiAgentInterface
 
         switch ($content) {
             case 'newest':
-                $results = json_decode(Youtube::getMostRecentVideoFeed([
+                $results = json_decode($this->youtube->getMostRecentVideoFeed([
                     'max-results' => $parameters['maxResults'],
                     'fields'      => 'entry(id,title,author,gd:rating,yt:rating,yt:statistics,media:group(media:category(),media:description(),media:thumbnail(@url),yt:duration(@seconds)))',
                     'time'        => $period,
@@ -123,7 +136,7 @@ class YoutubeAgent implements ApiAgentInterface
                 break;
 
             case 'top_rated':
-                $results = json_decode(Youtube::getTopRatedVideoFeed([
+                $results = json_decode($this->youtube->getTopRatedVideoFeed([
                     'max-results' => $parameters['maxResults'],
                     //'fields'       => '*',
                     'fields'      => 'entry(id,published,title,author,gd:rating,yt:rating,yt:statistics,media:group(media:category(),media:description(),media:thumbnail(@url),yt:duration(@seconds)))',
@@ -134,16 +147,20 @@ class YoutubeAgent implements ApiAgentInterface
                 break;
 
             case 'most_viewed':
-                $results = Youtube::getPopularVideos($country);
+                $results = $this->youtube->getPopularVideos($country);
                 break;
         }
 
         return $results;
     }
 
+    /**
+     * @param $parameters
+     * @return \StdClass
+     */
     public function searchVideos($parameters)
     {
-        $results = Youtube::searchVideos(
+        $results = $this->youtube->searchVideos(
             $parameters['searchQuery'],
             $parameters['maxResults'],
             $parameters['sort'],
@@ -153,13 +170,84 @@ class YoutubeAgent implements ApiAgentInterface
         return $results;
     }
 
+    /**
+     * @param $videoId
+     * @return \StdClass
+     */
     public function getVideoInfo($videoId)
     {
-        return Youtube::getVideoInfo($videoId);
+        return $this->youtube->getVideoInfo($videoId);
     }
 
+    /**
+     * @param $videoId
+     * @param int $maxResults
+     * @return array
+     */
     public function getRelatedVideos($videoId, $maxResults = 10)
     {
-        return Youtube::getRelatedVideos($videoId, $maxResults);
+        return $this->youtube->getRelatedVideos($videoId, $maxResults);
+    }
+
+    /**
+     * Parse data from source
+     *
+     * @param $videos
+     * @param null|string $videoContent
+     * @throws NotFoundHttpException
+     *
+     * @return array
+     */
+    public function parseVideos($videos, $videoContent = null)
+    {
+        $index = 0;
+        $results = array();
+
+        if (empty($videos) && is_null($videos)) {
+            throw new NotFoundHttpException('Video not found');
+        }
+
+        foreach ($videos as $video) {
+            $originalId = is_object($video->id) ? $video->id->videoId : $video->id;
+            $customId = substr($originalId, 0, 1) . 'y' . substr($originalId, 1);
+
+            $duration = $views = 0;
+            if (isset($video->statistics) && isset($video->statistics->viewCount)) {
+                $views = $video->statistics->viewCount;
+            }
+
+            if (isset($video->contentDetails) && isset($video->contentDetails->duration)) {
+                $seconds = $video->contentDetails->duration;
+                $duration = ISO8601ToSeconds($seconds);
+            }
+
+            $videoObject = new Video;
+
+            $videoObject->provider = 'Youtube';
+            $videoObject->original_id = $originalId;
+            $videoObject->custom_id = $customId;
+            $videoObject->original_url = 'https://www.youtube.com/watch?v=' . $originalId;
+
+            $videoObject->title = $video->snippet->title;
+            $videoObject->description = $video->snippet->description;
+            // $videoObject->author   = $video['author'][0]['name']['$t'];
+            // $videoObject->category  = [];
+            $videoObject->thumbnail = $video->snippet->thumbnails->medium->url;
+
+            $videoObject->rating = isset($video->rating) ? $video->rating : 0;
+            $videoObject->views = $views;
+            $videoObject->duration = $duration;
+            $videoObject->tags = isset($video->snippet->tags) ? $video->snippet->tags : [];
+
+            $results[$index] = $videoObject;
+
+            if ($videoContent !== null) {
+                $results[$index]['content'] = $videoContent;
+            }
+
+            $index++;
+        }
+
+        return $results;
     }
 }

@@ -5,15 +5,20 @@ oracle.sqlite-journal
 /stats
 
 # Don't ignore composer.lock, to make sure live version has no compatibility issue
-##composer.lock
+#composer.lock
 
 /vendor
 /node_modules
 /bower_components
 .env
+Homestead.yaml
+Homestead.json
 
 ###
 ## Custom Videouri stuff
 ###
 /storage/app/videoDump.json
 /public/sitemaps/*.xml
+/public/storage
+
+tests/_output/*

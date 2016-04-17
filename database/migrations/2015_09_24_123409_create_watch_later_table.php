@@ -19,7 +19,7 @@ class CreateWatchLaterTable extends Migration
             $table->integer('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users');
 
-            $table->timestamp('registered_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('registered_at')->useCurrent();
         });
     }
 

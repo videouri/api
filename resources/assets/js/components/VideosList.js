@@ -70,7 +70,7 @@ module.exports = {
                     'query': this.query
                 };
 
-                this.$http.get('/api/search', parameters, function(searchResults) {
+                this.$http.get('/api/videos/search', parameters, function(searchResults) {
                     this.$set('videos', searchResults.data);
                     this.initIsotope();
                 });

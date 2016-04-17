@@ -8,6 +8,10 @@ use App\Entities\Search;
 use App\Entities\Sitemap;
 use App\Entities\Video;
 
+/**
+ * Class GenerateSitemap
+ * @package App\Console\Commands
+ */
 class GenerateSitemap extends Command
 {
     /**
