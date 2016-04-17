@@ -2,27 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
-use Auth;
-
-use App\Http\Controllers\Controller;
 use App\Entities\Video;
-use App\Services\ApiProcessing;
+use Illuminate\Http\Request;
 
-class UserController extends Controller
+/**
+ * Class UserController
+ * @package App\Http\Controllers\Api
+ */
+class UserController extends ApiController
 {
-    protected $user;
-
-    // protected $apiprocessing;
-
-    public function __construct(ApiProcessing $apiprocessing)
-    {
-        $this->middleware('auth');
-
-        // $this->apiprocessing = $apiprocessing;
-        $this->user = Auth::user();
-    }
-
+    /**
+     * @param Request $request
+     * @return mixed
+     */
     public function postWatchLater(Request $request)
     {
         $id = $request->input('video_id');
@@ -45,6 +37,12 @@ class UserController extends Controller
         return response()->error('There was an error saving your video for later. Please try again!');
     }
 
+    /**
+     * [postFavorite description]
+     *
+     * @param  Request $request [description]
+     * @return [type]           [description]
+     */
     public function postFavorite(Request $request)
     {
         $id = $request->input('video_id');
@@ -67,6 +65,12 @@ class UserController extends Controller
         return response()->error('There was add video to your favorites. Please try again!');
     }
 
+    /**
+     * [returnSuccessfullVideoAction description]
+     *
+     * @param  Video  $video [description]
+     * @return [type]        [description]
+     */
     private function returnSuccessfullVideoAction(Video $video)
     {
         $video['saved_for_later'] = $video->savedForLater($this->user->id);

@@ -5,7 +5,8 @@ var
     Vue = require('vue'),
     Resource = require('vue-resource'),
     linkify = require('linkifyjs'),
-    linkifyStr = require('linkifyjs/string')
+    linkifyStr = require('linkifyjs/string'),
+    csrfToken = document.querySelector('meta[name=csrf-token]').getAttribute('content')
 ;
 
 // require('linkifyjs/plugin/hashtag')(linkify); // optional
@@ -15,8 +16,7 @@ Vue.config.debug = false;
 // Import vue-resource and configure to use the csrf token in all requests,
 // in which I put him in a meta tag in home.blade.php
 Vue.use(Resource);
-Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('#_token').getAttribute('value');
-
+Vue.http.headers.common['X-CSRF-TOKEN'] = csrfToken;
 
 Vue.filter('linkify', function(text) {
     if (text) {

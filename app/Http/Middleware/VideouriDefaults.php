@@ -23,7 +23,8 @@ class VideouriDefaults
 
         // Set user's country value based on his IP
         if (!Session::get('country')) {
-            Session::put('country', getUserCountry());
+            $ip = getUserIPAdress();
+            Session::put('country', getUserCountry($ip));
         }
 
         // Have the family_filter by default set to ON

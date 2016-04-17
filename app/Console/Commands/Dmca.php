@@ -6,6 +6,10 @@ use Illuminate\Console\Command;
 
 use App\Entities\Video;
 
+/**
+ * Class Dmca
+ * @package App\Console\Commands
+ */
 class Dmca extends Command
 {
     /**

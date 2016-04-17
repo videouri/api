@@ -2,44 +2,25 @@
 
 namespace App\Services;
 
-use Exception;
-
 use Cache;
-use Auth;
+use Session;
 
-use App\Services\DailymotionAgent;
-use App\Services\VimeoAgent;
-use App\Services\YoutubeAgent;
-use App\Traits\ApiParsersTrait;
 use App\Entities\Video;
-use App\Transformers\VideoTransformer;
-
-use League\Fractal\Manager as FractalManager;
-use League\Fractal\Resource\Collection;
-use League\Fractal\Resource\Item;
-use League\Fractal\Serializer\ArraySerializer;
+use App\Services\Agents\YoutubeAgent;
+use App\Services\Agents\DailymotionAgent;
+use App\Services\Agents\VimeoAgent;
 
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use DailymotionApiException;
 
 /**
- * ApiProcessing Class
- *
- * Class containing commons and usefull function to
- * interact with the API used in Videouri APP
- *
- * @category    Libraries
- * @author      Alexandru Budurovici
- * @version     1.0
+ * Class ApiFetcher
+ * @package App\Services
  */
-
-class ApiProcessing
+final class ApiFetcher extends ApiManager
 {
-    use ApiParsersTrait;
-
     /**
      * List of available apis to process
-     *
      * @var array
      */
     public $apis = [
@@ -51,21 +32,15 @@ class ApiProcessing
 
     /**
      * Available contents
-     *
      * @var array
      */
-    private $availableContents = array(
-        'most_viewed',
-        'newest',
-        'top_rated',
-    );
+    protected static $availableContents = ['most_viewed', 'newest', 'top_rated'];
 
     /**
      * Array containing available time periods.
-     *
      * @var array
      */
-    private $validPeriods = ['ever', 'today', 'week', 'month'];
+    protected static $validPeriods = ['ever', 'today', 'week', 'month'];
 
     //////////////////////////////
     // Parameters for Api calls //
@@ -74,7 +49,12 @@ class ApiProcessing
     /**
      * @var string
      */
-    public $sort = null;
+    public $sort;
+
+    /**
+     * @var int
+     */
+    public $page = 1;
 
     /**
      * Sort period
@@ -87,7 +67,7 @@ class ApiProcessing
      * @uses $availableContents
      * @var boolean
      */
-    public $content = null;
+    public $content;
 
     /**
      * @var int
@@ -97,43 +77,34 @@ class ApiProcessing
     /**
      * @var string
      */
-    public $country = null;
+    public $country;
 
     /**
-     * Can be used to force a content to be re-cached
-     * by using the function date.
+     * Variable that alters the parameters hash,
+     * to ensure the retrieval of data for a specific period.
      *
-     *  For example:
+     * For example, it can be used to ensure the retrieval of
+     * daily most_viewed videos
+     *
+     *  Usage
      *      date('Y-m')   -> Expires in a month
      *      date('Y-m-d') -> Expires in a day
      *
-     *  Used in HomeController, to ensure the retrieval of
-     *  daily most_viewed videos
+     *  Default value = Y-m-d
      *
-     * @var int
+     * @var string
      */
-    public $timestamp = null;
+    public $timestamp;
 
     //////////////////////////
     // Behavioural settings //
     //////////////////////////
-    /**
-     * @uses $avialableContents
-     * @var string
-     */
-    private $videoContent = null;
 
     /**
      * Don't execute a real call to the APIs if set to true
      * @var boolean
      */
     public $fakeContent = false;
-
-    /**
-     * To cache or not to cache
-     * @var boolean
-     */
-    public $cacheDeactivated = false;
 
     /**
      * Caching time span and timeout
@@ -147,24 +118,40 @@ class ApiProcessing
     // ],
     // $_cacheTimeout = 10800;
 
-    /////////////////
-    // API Globals //
-    /////////////////
+    ////////////////
+    // API Agents //
+    ////////////////
+
+    /**
+     * @var DailymotionAgent
+     */
     private $dailymotion;
+
+    /**
+     * @var VimeoAgent
+     */
     private $vimeo;
+
+    /**
+     * @var YoutubeAgent
+     */
     private $youtube;
 
-    public function __construct(DailymotionAgent $dailymotion, VimeoAgent $vimeo, YoutubeAgent $youtube)
+    /**
+     * ApiManager constructor.
+     */
+    public function __construct()
     {
-        $this->dailymotion = $dailymotion;
-        $this->vimeo = $vimeo;
-        $this->youtube = $youtube;
+        $this->dailymotion = new DailymotionAgent();
+        $this->vimeo = new VimeoAgent();
+        $this->youtube = new YoutubeAgent();
 
-        if (!in_array($this->period, $this->validPeriods)) {
+        if (!in_array($this->period, self::$validPeriods)) {
             $this->period = 'today';
         }
 
-        $this->cacheDeactivated = env('DEACTIVATE_CACHING', false);
+        $this->country = Session::get('country');
+        $this->timestamp = date('Y-m-d');
     }
 
     public function mixedCalls($content)
@@ -189,7 +176,7 @@ class ApiProcessing
         $apiParametersHash = md5(serialize($apiParameters));
 
         if (!$apiResponse = Cache::get($apiParametersHash)) {
-            if (!in_array_r($content, $this->availableContents)) {
+            if (!in_array_r($content, self::$availableContents)) {
                 throw new Exception('What is this? Exception');
             }
 
@@ -208,10 +195,8 @@ class ApiProcessing
                 // Caching results
                 // Cache::put($apiParametersHash, $apiResponse, $this->_periodCachingTime[$this->period]);
 
-                if (!$this->cacheDeactivated) {
-                    // Set cache to expire in 24 hours
-                    Cache::put($apiParametersHash, $apiResponse, 1440);
-                }
+                // Set cache to expire in 24 hours
+                Cache::put($apiParametersHash, $apiResponse, env('API_CACHE_EXPIRY_TIME'));
             }
         }
 
@@ -219,30 +204,37 @@ class ApiProcessing
     }
 
     /**
-     * [searchVideos description]
-     * @param  [type] $query [description]
-     * @param  [type] $page  [description]
-     * @param  [type] $sort  [description]
-     * @return [type]        [description]
+     * Meta search for video content
+     *
+     * @param  string $searchQuery
+     * @return array
      */
-    public function searchVideos($searchQuery, $page, $sort, $period, $maxResults = 10)
+    public function searchVideos($searchQuery)
     {
         $parameters = [
             'searchQuery' => $searchQuery,
-            'page'        => $page,
-            'sort'        => $sort,
-            'period'      => $period,
-            'maxResults'  => $maxResults,
         ];
+
+        $parameters['page'] = $this->page;
+
+        if ($this->sort !== null) {
+            $parameters['sort'] = $this->sort;
+        }
+
+        if ($this->period !== null) {
+            $parameters['period'] = $this->period;
+        }
+
+        $parameters['maxResults'] = $this->maxResults;
 
         $results = [];
 
-        $apis = $this->apis;
-        foreach ($apis as $api) {
-            $api = strtolower($api);
-            $apiToRun = $this->{$api};
-            $videos = $apiToRun->searchVideos($parameters);
-            $videos = $this->parseApiResult($api, $videos);
+        foreach ($this->apis as $api) {
+            $apiAgent = $this->getAgent($api);
+
+            $videos = $apiAgent->searchVideos($parameters);
+            $videos = $this->parseResults($api, $videos);
+
             $results[$api] = $videos;
         }
 
@@ -252,17 +244,13 @@ class ApiProcessing
     /**
      * [getVideoInfo description]
      *
-     * @param  string  $api
-     * @param  string  $videoId
-     * @param  boolean $parseResult
-     * @return array|object
+     * @param  string $api
+     * @param  string $videoId
+     * @param  bool $parseResult
+     * @return mixed
      */
     public function getVideoInfo($api, $videoId, $parseResult = true)
     {
-        $api = strtolower($api);
-
-        $apiToRun = $this->{$api};
-
         // If it exists in the database, get the info from there and transform it
         // via VideoTransformer
         if ($video = Video::where('original_id', '=', $videoId)->first()) {
@@ -273,20 +261,20 @@ class ApiProcessing
             $video = $this->transformVideos($video);
         } else {
             try {
-                $video = $apiToRun->getVideoInfo($videoId);
+                $apiAgent = $this->getAgent($api);
+                $video = $apiAgent->getVideoInfo($videoId);
 
                 if ($parseResult) {
-                    $video = $this->parseApiResult($api, $video);
+                    $video = $this->parseResults($api, $video);
                 }
             } catch (NotFoundHttpException $e) {
                 abort(404);
             } catch (DailymotionApiException $e) {
                 abort(404);
 
-                // Todo
-                //      Log $e->getCode() > 404
-            } catch (Exception $e) {
-                dump('parseApiResult');
+                // @TODO Log $e->getCode() > 404
+            } catch (\Exception $e) {
+                dump('parseResults');
                 dump($e);
             }
         }
@@ -303,43 +291,79 @@ class ApiProcessing
      */
     public function getRelatedVideos($api, $videoId)
     {
-        $api = strtolower($api);
-        $apiToRun = $this->{$api};
-
-        $videos = $apiToRun->getRelatedVideos($videoId, $maxResults = 6);
+        $apiAgent = $this->getAgent($api);
+        $videos = $apiAgent->getRelatedVideos($videoId, $maxResults = 6);
 
         if (empty($videos)) {
             return [];
         }
 
-        $videos = $this->parseApiResult($api, $videos);
+        $videos = $apiAgent->parseVideos($videos, $content = 'related');
 
         return $videos;
     }
 
     /**
-     * [getContent description]
-     * @param  [type] $content [description]
-     * @param  [type] $api     [description]
-     * @return [type]          [description]
+     * @param $api
+     * @param $videos
+     * @param null $content
+     * @return array
+     */
+    public function parseResults($api, $videos, $content = null)
+    {
+        if (empty($videos)) {
+            Log::alert('parseResults: ' . $api . ' with empty $videos');
+            return [];
+        }
+
+        if (!is_null($content)) {
+            $this->videoContent = $content;
+        }
+
+        if (!is_array($videos)) {
+            $videos = [
+                $videos,
+            ];
+        }
+
+        $apiAgent = $this->getAgent($api);
+        $videos = $apiAgent->parseVideos($videos);
+
+        if (empty($videos)) {
+            return [];
+        }
+
+        if (count($videos) === 1) {
+            $videos = $videos[0];
+        }
+
+        $videos = $this->transformVideos($videos);
+
+        return $videos;
+    }
+
+    /**
+     * Get content for a specific keyword, like, most_viewed
+     *
+     * @param  string $content
+     * @param  string $api
+     * @return array
      */
     private function getContent($content, $api)
     {
         $parameters = [
-            'period'     => $this->period,
+            'period' => $this->period,
             'maxResults' => $this->maxResults,
         ];
 
-        if ($this->country) {
+        if ($this->country !== null) {
             $parameters['country'] = $this->country;
         }
 
-        $api = strtolower($api);
-        $apiToRun = $this->{$api};
-
         try {
-            return $apiToRun->getContent($content, $parameters);
-        } catch (Exception $e) {
+            $apiAgent = $this->getAgent($api);
+            return $apiAgent->getContent($content, $parameters);
+        } catch (\Exception $e) {
             // TODO: Mail the error
             dump('getContent');
             dump($e);
@@ -347,23 +371,14 @@ class ApiProcessing
     }
 
     /**
-     * [transformVideos description]
-     * @return [type] [description]
+     * Return required api agent
+     *
+     * @param  string $api
+     * @return object
      */
-    public function transformVideos($videos)
+    private function getAgent($api)
     {
-        if (is_array($videos) && count($videos) > 0) {
-            $resource = new Collection($videos, new VideoTransformer());
-        } else {
-            $resource = new Item($videos, new VideoTransformer());
-        }
-
-        // Create a top level instance somewhere
-        $fractalManager = new FractalManager();
-        // $fractalManager->setSerializer(new ArraySerializer());
-
-        $videos = $fractalManager->createData($resource)->toArray();
-
-        return $videos['data'];
+        $api = strtolower($api);
+        return $this->{$api};
     }
 }

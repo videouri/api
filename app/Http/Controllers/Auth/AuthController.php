@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Validator;
-use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\ThrottlesLogins;
-use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
-
 use App\Entities\User;
+use App\Http\Controllers\Controller;
 use App\Traits\SocialAuth;
-use App\Repositories\UserRepository;
+use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
+use Illuminate\Foundation\Auth\ThrottlesLogins;
+use Validator;
 
 class AuthController extends Controller
 {
@@ -17,20 +15,12 @@ class AuthController extends Controller
 
     protected $redirectPath = '/';
 
-    protected $loginPath = '/login';
-
-    protected $userRepository;
-
     /**
      * Create a new authentication controller instance.
-     *
-     * @return void
      */
-    public function __construct(UserRepository $userRepository)
+    public function __construct()
     {
-        $this->middleware('guest', ['except' => 'getLogout']);
-
-        $this->userRepository = $userRepository;
+        $this->middleware($this->guestMiddleware(), ['except' => 'logout']);
     }
 
     /**
@@ -43,8 +33,8 @@ class AuthController extends Controller
     {
         return Validator::make($data, [
             'username' => 'required|max:255',
-            'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|confirmed|min:6',
+            'email'    => 'required|email|max:255|unique:users',
+            'password' => 'required|min:6|confirmed',
         ]);
     }
 
@@ -58,8 +48,23 @@ class AuthController extends Controller
     {
         return User::create([
             'username' => $data['username'],
-            'email' => $data['email'],
+            'email'    => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
     }
+
+    /**
+     * Handle a registration request for the application.
+     *
+     * @param  \Illuminate\Foundation\Http\FormRequest  $request
+     * @return \Illuminate\Http\Response
+     */
+    // public function postRegister(Request $request)
+    // {
+    //     $users = new UserRepository;
+
+    //     $users->findOrCreateRegular($request);
+
+    //     return redirect('login')->with('status', 'An email with your activation code has been sent.');
+    // }
 }

@@ -4,8 +4,11 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Entities\Video;
-use App\Services\ApiProcessing;
 
+/**
+ * Class UpdateCustomId
+ * @package App\Console\Commands
+ */
 class UpdateCustomId extends Command
 {
     /**
@@ -24,20 +27,13 @@ class UpdateCustomId extends Command
     protected $description = 'refresh those empty custom_id';
 
     /**
-     * @var App\Services\ApiProcessing
-     */
-    private $apiprocessing;
-
-    /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct(ApiProcessing $apiprocessing)
+    public function __construct()
     {
         parent::__construct();
-
-        $this->apiprocessing = $apiprocessing;
     }
 
     /**

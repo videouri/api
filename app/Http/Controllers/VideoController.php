@@ -2,39 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests;
 use App\Jobs\SaveVideo;
 use App\Jobs\RegisterView;
-use App\Transformers\VideoTransformer;
+use App\Services\ApiFetcher;
 
-use App\Entities\Video;
-use App\Services\ApiProcessing;
-
-use League\Fractal\Resource\Item as FractalItem;
-use League\Fractal\Manager as FractalManager;
-use League\Fractal\Serializer\ArraySerializer;
-use Illuminate\Http\Request;
 use Auth;
 
+/**
+ * Class VideoController
+ * @package App\Http\Controllers
+ */
 class VideoController extends Controller
 {
     /**
-     * @var App\Services\ApiProcessing
+     * @var ApiFetcher
      */
-    protected $apiprocessing;
+    protected $fetcher;
 
     /**
-     * @var League\Fractal\Resource\Item
+     * VideoController constructor.
      */
-    protected $fractalItem;
-
-    public function __construct(ApiProcessing $apiprocessing)
+    public function __construct()
     {
-        $this->apiprocessing = $apiprocessing;
-        // $this->fractalItem = $item;
+        $this->fetcher = app('api.fetcher');
     }
 
+    /**
+     * @return mixed
+     */
     public function index()
     {
         return redirect('/');
@@ -43,7 +39,9 @@ class VideoController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @var int    $id
+     * @var string $slug
+     *
      * @return Response
      */
     public function show($customId, $slug = null)
@@ -89,16 +87,13 @@ class VideoController extends Controller
         // dump($video->favorited()->whereUserId(Auth::user()->id)->get());
         // // dump($video->watchLater);
 
-        if (!$video = $this->apiprocessing->getVideoInfo($api, $originalId)) {
+        if (!$video = $this->fetcher->getVideoInfo($api, $originalId)) {
             return abort(404);
         }
 
         $this->dispatch(new SaveVideo($video, $api));
 
         // dd($video);
-
-        // $video = Video::where('original_id', $originalId)->first();
-        // $video['related'] = $this->relatedVideos($api, $originalId);
 
         // If there's a user logged, register the video view
         if ($user = Auth::user()) {
@@ -113,7 +108,7 @@ class VideoController extends Controller
         $data['thumbnail'] = $video['thumbnail'];
         $data['video'] = json_encode($video);
 
-        $relatedVideos = $this->apiprocessing->getRelatedVideos($api, $video['original_id']);
+        $relatedVideos = $this->fetcher->getRelatedVideos($api, $video['original_id']);
         if (!empty($relatedVideos)) {
             $relatedVideos = json_encode($relatedVideos);
         }
@@ -130,26 +125,5 @@ class VideoController extends Controller
         $data['bodyId'] = 'videoPage';
 
         return view('videouri.public.video', $data);
-    }
-
-    /**
-     * This function will retrieve related videos according to its id or some of its tags
-     *
-     * @param string $originalId The id for which to look for data
-     * @return the php response from parsing the data.
-     */
-    private function relatedVideos($api, $originalId = null)
-    {
-        $this->apiprocessing->content = 'getRelatedVideos';
-        $this->apiprocessing->maxResults = 8;
-        // $this->apiprocessing->api = $api;
-        // $this->apiprocessing->videoId = $originalId;
-
-        $response = $this->apiprocessing->individualCall($api);
-        $response = $this->apiprocessing->parseApiResult($api, $response);
-
-        $related = $response;
-
-        return $related;
     }
 }

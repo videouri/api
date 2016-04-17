@@ -10,23 +10,6 @@ module.exports = {
         'videos-list': require('./VideosList')
     },
 
-    // replace: true,
-
-    // data: function() {
-    //     return {
-    //         video: {
-    //             id: '',
-    //             url: '',
-    //             title: '',
-    //             duration: '',
-    //             views: '',
-    //             description: '',
-    //             tags: [],
-    //             related: [],
-    //         }
-    //     };
-    // },
-
     ready: function() {
         $('.video-action').click(function(event) {
             event.preventDefault();

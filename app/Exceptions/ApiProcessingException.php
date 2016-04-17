@@ -2,7 +2,7 @@
 
 namespace App\Exceptions;
 
-class ApiProcessingException extends \Exception
+class ApiManagerException extends \Exception
 {
 
 }

@@ -44,14 +44,12 @@
                     </div>
                 </div>
 
-
                 <div class="or-container">
                     <hr class="or-hr">
                     <div id="or">
                         or
                     </div>
                 </div>
-
 
                 <div class="row">
                     <div class="col s12">

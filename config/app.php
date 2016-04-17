@@ -159,19 +159,14 @@ return [
          * 3rd party providers
          */
         // Barryvdh\Debugbar\ServiceProvider::class,
-        Alaouy\Youtube\YoutubeServiceProvider::class,
         Vinkla\Vimeo\VimeoServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
-        Dingo\Api\Provider\LaravelServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
-        Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
-        Maknz\Slack\SlackServiceProvider::class,
 
         /**
          * Custom Providers
          */
         App\Providers\ResponseMacroServiceProvider::class,
-        App\Providers\CommonViewVariablesProvider::class,
 
     ],
 
@@ -220,16 +215,17 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
         /**
+         * Application facades
+         */
+        'ApiFetcher' => App\Facades\ApiFetcher::class,
+
+        /**
          * 3rd party aliases
          */
         // 'Debugbar'  => 'Barryvdh\Debugbar\Facade::class,
         // 'Debugbar' => Barryvdh\Debugbar\Facade::class,
         'Socialite'  => Laravel\Socialite\Facades\Socialite::class,
         'Vimeo'      => Vinkla\Vimeo\Facades\Vimeo::class,
-        'JWTAuth'    => Tymon\JWTAuth\Facades\JWTAuth::class,
-        'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
-        'Slack'      => Maknz\Slack\Facades\Slack::class,
-
     ]
 
 ];

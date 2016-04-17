@@ -2,30 +2,17 @@
 
 namespace App\Entities;
 
-use Illuminate\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Auth\Passwords\CanResetPassword;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
-
 use App\Traits\PresentableTrait;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Model implements AuthenticatableContract, CanResetPasswordContract
+class User extends Authenticatable
 {
-    use Authenticatable, CanResetPassword, PresentableTrait;
+    use PresentableTrait;
 
     /**
-     * [$presenter description]
-     * @var string
+     * @var \App\Presenters\User
      */
     protected $presenter = 'App\Presenters\User';
-
-    /**
-     * The database table used by the model.
-     *
-     * @var string
-     */
-    protected $table = 'users';
 
     /**
      * The attributes that are mass assignable.
@@ -34,7 +21,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
      */
     protected $fillable = [
         'username', 'email', 'password',
-        'avatar', 'provider', 'provider_id'
+        'avatar', 'provider', 'provider_id',
     ];
 
     /**
@@ -43,7 +30,6 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
      * @var array
      */
     protected $hidden = ['password', 'remember_token'];
-
 
     ////////////////
     // FUNCTIONAL //
@@ -58,7 +44,6 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return $this->belongsToMany(Video::class, 'watch_later');
     }
-
 
     /////////////
     // HISTORY //

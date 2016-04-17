@@ -12,10 +12,10 @@ return [
     |
     */
     'supportsCredentials' => false,
-    'allowedOrigins'      => ['*'],
-    'allowedHeaders'      => ['*'],
+    'allowedOrigins'      => ['*.videouri.com'],
+    'allowedHeaders'      => ['Content-Type', 'Accept', 'Authorization', 'X-Requested-With', 'Origin'],
     'allowedMethods'      => ['GET', 'POST', 'PUT', 'DELETE'],
-    'exposedHeaders'      => [],
+    'exposedHeaders'      => ['Authorization'],
     'maxAge'              => 0,
-    'hosts'               => []
+    'hosts'               => [],
 ];

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     @if (isset($title))
         <title><?= $title ?></title>
@@ -18,7 +19,6 @@
         <meta name="description" content="<?= config('videouri.default.description') ?>" />
     @endif
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="alternate" href="https://videouri.com" hreflang="en-us" />
 
     <meta property="og:site_name" content="Videouri"/>
@@ -35,8 +35,8 @@
 
     <meta name="alexaVerifyID" content="jcuPoQKjF9UOXxPKulzeux8w7g4"/>
     <meta name="msvalidate.01" content="48B0A933360DDEC6CF1775D7C7E28FD3" />
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta id="_token" value="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <meta id="_token" name="_token" value="{{ csrf_token() }}" />
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->

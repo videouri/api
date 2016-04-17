@@ -48,15 +48,17 @@ function in_array_r($needle, $haystack)
  */
 function getUserIPAdress()
 {
-    //check ip from share internet
+    // check ip from share internet
     if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
         $ip = $_SERVER['HTTP_CLIENT_IP'];
     }
 
-    //to check ip is pass from proxy
+    // to check ip is pass from proxy
     elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } else {
+    }
+
+    else {
         $ip = $_SERVER['REMOTE_ADDR'];
     }
 
@@ -67,22 +69,17 @@ function getUserIPAdress()
  * Return user's country, based on his IP
  * @return string Country
  */
-function getUserCountry($ip = null)
+function getUserCountry($ip)
 {
-    if (empty($ip)) {
-        $ip = getUserIPAdress();
-        if ($ip !== '127.0.0.1') {
-            try {
-                geoip_country_code_by_name($ip);
-            } catch (\Exception $e) {
-                return 'GB';
-            }
+    if ($ip !== '127.0.0.1') {
+        try {
+            return geoip_country_code_by_name($ip);
+        } catch (\Exception $e) {
+            return 'GB';
         }
-
-        return 'GB';
     }
 
-    return strtolower(geoip_country_code_by_name($ip));
+    return 'GB';
 }
 
 /**
@@ -100,7 +97,7 @@ function ISO8601ToSeconds($ISO8601)
     $duration = [
         'hours'   => $hours ? $hours[0] : 0,
         'minutes' => $minutes ? $minutes[0] : 0,
-        'seconds' => $seconds ? $seconds[0] : 0
+        'seconds' => $seconds ? $seconds[0] : 0,
     ];
 
     $hours = substr($duration['hours'], 0, -1);
