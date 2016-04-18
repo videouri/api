@@ -11,18 +11,28 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class RegisterView extends Job implements SelfHandling, ShouldQueue
+/**
+ * Class RegisterView
+ * @package App\Jobs
+ */
+class RegisterView extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
 
+    /**
+     * @var Video
+     */
     private $video;
 
+    /**
+     * @var User
+     */
     private $user;
 
     /**
-     * Create a new job instance.
-     *
-     * @return void
+     * RegisterView constructor.
+     * @param $originalId
+     * @param User $user
      */
     public function __construct($originalId, User $user)
     {
@@ -32,8 +42,7 @@ class RegisterView extends Job implements SelfHandling, ShouldQueue
 
     /**
      * Execute the job.
-     *
-     * @return void
+     * @return bool
      */
     public function handle()
     {

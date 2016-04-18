@@ -22,7 +22,7 @@ module.exports = {
             };
 
             this.$http.post('/api/user/watch-later', parameters, function(homeVideos) {
-                alert('success bitches')
+                alert('success');
             });
         }
     }

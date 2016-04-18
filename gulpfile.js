@@ -1,7 +1,7 @@
 var
-    elixir       = require('laravel-elixir'),
+    elixir = require('laravel-elixir'),
     autoprefixer = require('gulp-autoprefixer')
-;
+    ;
 
 require('laravel-elixir-livereload');
 
@@ -17,10 +17,9 @@ require('laravel-elixir-livereload');
  */
 
 elixir(
-    function(mix) {
-        mix.less('app.less');
-
+    function (mix) {
         mix
+            .less('app.less')
             .scripts([
                 // '../../bower_components/vue/dist/vue.js',
                 // '../../bower_components/vue-resource/dist/vue-resource.js',
@@ -43,9 +42,8 @@ elixir(
             ], 'public/js/vendor.js', 'resources/assets/')
 
             .browserify('app.js')
+            .livereload()
         ;
-
-        mix.livereload();
 
         mix
             .copy([

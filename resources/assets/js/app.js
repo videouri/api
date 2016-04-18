@@ -11,7 +11,7 @@ var
 
 // require('linkifyjs/plugin/hashtag')(linkify); // optional
 
-Vue.config.debug = false;
+Vue.config.debug = true;
 
 // Import vue-resource and configure to use the csrf token in all requests,
 // in which I put him in a meta tag in home.blade.php
@@ -39,21 +39,6 @@ app = new Vue({
     },
 
     ready: function() {
-        // Floating-Fixed table of contents
-        // if (jQuery('nav').length) {
-        //     jQuery('.toc-wrapper').pushpin({
-        //         top: jQuery('nav').height()
-        //     });
-        // } else if (jQuery('#index-banner').length) {
-        //     jQuery('.toc-wrapper').pushpin({
-        //         top: jQuery('#index-banner').height()
-        //     });
-        // } else {
-        //     jQuery('.toc-wrapper').pushpin({
-        //         top: 0
-        //     });
-        // }
-
         $('.button-collapse').sideNav();
 
         $('.custom-dropdown-button').dropdown({
@@ -84,43 +69,3 @@ app = new Vue({
         }
     }
 });
-
-// /**
-//  * ROUTER
-//  * @type {Router}
-//  */
-// var router = new VueRouter();
-
-// // Define some routes.
-// // Each route should map to a component. The "component" can
-// // either be an actual component constructor created via
-// // Vue.extend(), or just a component options object.
-// // We'll talk about nested routes later.
-// router.map({
-//     '/foo': {
-//         component: Foo
-//     },
-//     '/bar': {
-//         component: Bar
-//     }
-// })
-
-// // Now we can start the app!
-// // The router will create an instance of App and mount to
-// // the element matching the selector #app.
-// router.start(App, '#app')
-
-// // ['all', 'active', 'completed'].forEach(function (visibility) {
-// //     router.on(visibility, function () {
-// //         app.visibility = visibility;
-// //     });
-// // });
-
-// // router.configure({
-// //     notfound: function () {
-// //         window.location.hash = '';
-// //         app.visibility = 'all';
-// //     }
-// // });
-
-// // router.init();

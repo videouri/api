@@ -54,14 +54,14 @@
                                     <div class="indeterminate"></div>
                                 </div>
                                 <li>
-                                    <a class="video-action" v-on:click="toggleAction('favorite', video.id)">
+                                    <a class="video-action" v-on:click="toggleAction('favorite', video.original_id)">
                                         <i class="fa fa-check-square-o" v-if="video.favorited"></i>
                                         <i class="fa fa-square-o" v-else></i>
                                         Favorite
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="video-action" v-on:click="toggleAction('watch_later', video.id)">
+                                    <a class="video-action" v-on:click="toggleAction('watch_later', video.original_id)">
                                         <i class="fa fa-check-square-o" v-if="video.saved_for_later"></i>
                                         <i class="fa fa-square-o" v-else></i>
                                         Watch later

@@ -13,8 +13,9 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'event.name' => [
-            'EventListener'
+        'App\Events\VideoAccessed' => [
+            'App\Listeners\Video\CacheVideo',
+            'App\Listeners\Video\RegisterView'
         ]
     ];
 

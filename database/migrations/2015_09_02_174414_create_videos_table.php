@@ -18,7 +18,6 @@ class CreateVideosTable extends Migration
             $table->string('provider');
             $table->string('original_id')->unique();
             $table->string('custom_id')->unique()->nullable(); // TODO: remove nullable once populated on LIVE DB
-
             $table->string('original_url')->unique();
             $table->string('slug')->nullable();
 
@@ -28,8 +27,8 @@ class CreateVideosTable extends Migration
             $table->string('thumbnail');
             $table->integer('views')->default(0);
             $table->integer('duration')->default(0); // Value will be in seconds
-            $table->json('categories')->nullable();
-            $table->json('tags')->nullable();
+            $table->text('categories')->nullable();
+            $table->text('tags');
 
             $table->boolean('dmca_claim')->default(false);
 

@@ -1,9 +1,11 @@
+'use strict';
+
 module.exports = {
     template: require('./VideoPage.template.html'),
 
     props: [
         'video',
-        'user',
+        'user'
     ],
 
     components: {
@@ -19,7 +21,7 @@ module.exports = {
         $('#video-details').readmore({
             collapsedHeight: 150,
             moreLink: '<a href="#" class="btn" style="margin: 10px 0 20px;">Read More</a>',
-            lessLink: '<a href="#" class="btn" style="margin: 10px 0 20px;">Close</a>',
+            lessLink: '<a href="#" class="btn" style="margin: 10px 0 20px;">Close</a>'
         });
 
         ///////////////
@@ -36,7 +38,7 @@ module.exports = {
         $('#tuenti-share').attr('href', tuentiUrl);
         $('#twitter-share').attr('href', twitterUrl);
 
-        $('.popup').click(function(event) {
+        $('.popup').click(function() {
             var width = 575,
                 height = 400,
                 left = ($(window).width() - width) / 2,
@@ -68,7 +70,7 @@ module.exports = {
         videojs('video-player', {
             'techOrder': [videoSource],
             'src': videoUrl
-        }).ready(function(e) {
+        }).ready(function() {
             // Store the video object
             var myPlayer = this;
 
@@ -120,22 +122,22 @@ module.exports = {
         ////////////
         // Disqus //
         ////////////
-        function initializeDisqus() {
-            /*
-            var disqus_config = function () {
-            this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
-            this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-            };
-            */
-            (function() { // DON'T EDIT BELOW THIS LINE
-                var d = document,
-                    s = d.createElement('script');
-                s.src = '//videouri.disqus.com/embed.js';
-
-                s.setAttribute('data-timestamp', +new Date());
-                (d.head || d.body).appendChild(s);
-            })();
-        }
+        // function initializeDisqus() {
+        //     /*
+        //     var disqus_config = function () {
+        //     this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+        //     this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+        //     };
+        //     */
+        //     (function() { // DON'T EDIT BELOW THIS LINE
+        //         var d = document,
+        //             s = d.createElement('script');
+        //         s.src = '//videouri.disqus.com/embed.js';
+        //
+        //         s.setAttribute('data-timestamp', +new Date());
+        //         (d.head || d.body).appendChild(s);
+        //     })();
+        // }
 
         // if (window.location.hostname !== 'local.videouri.com') {
         //     initializeDisqus();
@@ -143,40 +145,25 @@ module.exports = {
     },
 
     methods: {
-        toggleAction: function(action, videoId) {
+        toggleAction: function(action, originalId) {
             jQuery('#loading-bar').removeClass('hide');
+
             var
                 endpoint = '/api/user',
-
-                /**
-                 * Example:
-                 *     message.success
-                 *     message.failure
-                 */
-                message = {},
-
                 parameters = {
-                    'video_id': videoId
+                    'original_id': originalId
                 }
             ;
 
             switch (action) {
                 case 'favorite':
                     endpoint = endpoint + '/favorite';
-                    message = {
-                        success: 'Video has been added to your favorites.  ',
-                        failure: 'There was an error. Please try again.'
-                    };
                     break;
 
                 case 'watch_later':
                     endpoint = endpoint + '/watch-later';
-                    message = {
-                        success: 'Video has been added to your favorites!',
-                        failure: 'There was an error. Please try again. \n'
-                    };
                     break;
-            };
+            }
 
             this.$http.post(endpoint, parameters, function(response) {
                 if (response.errors !== false) {
