@@ -7,7 +7,7 @@ use App\Jobs\SaveVideo;
 use App\Jobs\RegisterView;
 use App\Services\ApiFetcher;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Class VideoController
@@ -39,7 +39,7 @@ class VideoController extends Controller
     /**
      * Display the specified resource.
      *
-     * @var int    $id
+     * @var int $id
      * @var string $slug
      *
      * @return Response
@@ -91,17 +91,14 @@ class VideoController extends Controller
             return abort(404);
         }
 
-        $this->dispatch(new SaveVideo($video, $api));
-
-        // dd($video);
+        $job = (new SaveVideo($video, $api))->onQueue('pre_video_saved');
+        $this->dispatch($job);
 
         // If there's a user logged, register the video view
         if ($user = Auth::user()) {
-            $delay = 30; // seconds
             $originalId = $video['original_id'];
 
-            $job = (new RegisterView($originalId, $user))->delay($delay);
-
+            $job = (new RegisterView($originalId, $user))->onQueue('post_video_saved');
             $this->dispatch($job);
         }
 
@@ -115,13 +112,10 @@ class VideoController extends Controller
 
         $data['recommended'] = $relatedVideos;
 
-        // $data['source'] = $api;
-
         // Metadata
         $data['title'] = $video['title'] . ' - Videouri';
         $data['description'] = str_limit($video['description'], 100);
         $data['canonical'] = 'video/' . $video['custom_id'];
-
         $data['bodyId'] = 'videoPage';
 
         return view('videouri.public.video', $data);

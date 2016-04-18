@@ -13,12 +13,12 @@ class UserController extends ApiController
 {
     /**
      * @param Request $request
-     * @return mixed
+     * @return json
      */
     public function postWatchLater(Request $request)
     {
-        $id = $request->input('video_id');
-        $video = Video::find($id);
+        $id = $request->input('original_id');
+        $video = Video::where('original_id', '=', $id)->first();
 
         if ($video) {
             $watchLater = $video->watchLater();
@@ -38,15 +38,13 @@ class UserController extends ApiController
     }
 
     /**
-     * [postFavorite description]
-     *
-     * @param  Request $request [description]
-     * @return [type]           [description]
+     * @param Request $request
+     * @return json
      */
     public function postFavorite(Request $request)
     {
-        $id = $request->input('video_id');
-        $video = Video::find($id);
+        $id = $request->input('original_id');
+        $video = Video::where('original_id', '=', $id)->first();
 
         if ($video) {
             $favorited = $video->favorited();
@@ -66,10 +64,8 @@ class UserController extends ApiController
     }
 
     /**
-     * [returnSuccessfullVideoAction description]
-     *
-     * @param  Video  $video [description]
-     * @return [type]        [description]
+     * @param Video $video
+     * @return json
      */
     private function returnSuccessfullVideoAction(Video $video)
     {

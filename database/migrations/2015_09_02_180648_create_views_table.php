@@ -39,6 +39,6 @@ class CreateViewsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('watched');
+        Schema::drop('views');
     }
 }

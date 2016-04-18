@@ -32,6 +32,7 @@ trait SocialAuth
 
     /**
      * @param string $provider
+     * @throws SocialAuthException
      * @return Redirect
      */
     public function handleProviderCallback($provider)
@@ -83,7 +84,15 @@ trait SocialAuth
 
         $this->validateParameters($userData);
 
-        $this->createUser($userData);
+        $user = new User($userData);
+
+        if ($user->save()) {
+            Auth::login($user, true);
+            return redirect('/');
+        } else {
+            Log::error('Social auth: Creating user failure. User data: ' . serialize($userData));
+            throw new SocialAuthException('Internal error, couldn\'t create the user');
+        }
     }
 
     /**
@@ -100,25 +109,6 @@ trait SocialAuth
         if ($validator->fails()) {
             return redirect('/login')->withErrors($validator)
                 ->withInput();
-        }
-    }
-
-    /**
-     * @param $userData
-     * @throws SocialAuthException
-     *
-     * @return Redirect
-     */
-    private function createUser($userData)
-    {
-        $user = new User($userData);
-
-        if ($user->save()) {
-            Auth::login($user, true);
-            return redirect('/');
-        } else {
-            Log::error('Social auth: Creating user failure. User data: ' . serialize($userData));
-            throw new SocialAuthException('Internal error, couldn\'t create the user');
         }
     }
 }

@@ -11,18 +11,27 @@ use Illuminate\Queue\SerializesModels;
 use App\Entities\Video;
 use App\Entities\User;
 
-class SaveVideo extends Job implements SelfHandling, ShouldQueue
+/**
+ * Class SaveVideo
+ * @package App\Jobs
+ */
+class SaveVideo extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
 
+    /**
+     * @var array
+     */
     private $data;
 
+    /**
+     * @var string
+     */
     private $provider;
 
     /**
-     * Create a new job instance.
-     *
-     * @return void
+     * @param array $data
+     * @param string $provider
      */
     public function __construct($data, $provider)
     {
@@ -31,9 +40,7 @@ class SaveVideo extends Job implements SelfHandling, ShouldQueue
     }
 
     /**
-     * Execute the job.
-     *
-     * @return void
+     * @return bool
      */
     public function handle()
     {
@@ -71,6 +78,6 @@ class SaveVideo extends Job implements SelfHandling, ShouldQueue
         $video->categories = null;
         $video->tags = json_encode($this->data['tags']);
 
-        $video->save();
+        return $video->save();
     }
 }
