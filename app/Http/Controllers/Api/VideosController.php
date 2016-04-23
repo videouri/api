@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Jobs\RegisterSearch;
+use App\Services\ApiFetcher;
 use App\Services\FakeContentGenerator;
 use Illuminate\Http\Request;
 use Auth;
@@ -14,6 +15,11 @@ use Auth;
 class VideosController extends ApiController
 {
     /**
+     * @var ApiFetcher
+     */
+    protected $apiFetcher;
+    
+    /**
      * Don't execute a real call to the APIs
      * @var boolean
      */
@@ -22,16 +28,18 @@ class VideosController extends ApiController
     /**
      * VideosController constructor.
      */
-    public function __construct()
+    public function __construct(ApiFetcher $apiFetcher)
     {
         parent::__construct();
-        
+
         $this->middleware('auth', [
             'only' => [
                 'getWatchLater',
                 'getFavorites'
             ]
         ]);
+
+        $this->apiFetcher = $apiFetcher;
     }
 
     /**

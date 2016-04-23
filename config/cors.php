@@ -12,7 +12,7 @@ return [
     |
     */
     'supportsCredentials' => false,
-    'allowedOrigins'      => ['videouri.com', 'local.videouri.com'],
+    'allowedOrigins'      => ['https://videouri.com', 'https://local.videouri.com'],
     'allowedHeaders'      => ['Content-Type', 'Accept', 'X-Requested-With', 'X-CSRF-TOKEN', 'Origin'],
     'allowedMethods'      => ['GET', 'POST', 'PUT', 'DELETE'],
     'exposedHeaders'      => [],

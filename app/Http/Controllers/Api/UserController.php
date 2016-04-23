@@ -18,6 +18,8 @@ class UserController extends ApiController
     public function postWatchLater(Request $request)
     {
         $id = $request->input('original_id');
+        
+        /** @var Video $video */
         $video = Video::where('original_id', '=', $id)->first();
 
         if ($video) {
@@ -31,7 +33,7 @@ class UserController extends ApiController
                 $watchLater->detach($this->user->id);
             }
 
-            return $this->returnSuccessfullVideoAction($video);
+            return $this->returnSuccessfulVideoAction($video);
         }
 
         return response()->error('There was an error saving your video for later. Please try again!');
@@ -44,6 +46,8 @@ class UserController extends ApiController
     public function postFavorite(Request $request)
     {
         $id = $request->input('original_id');
+
+        /** @var Video $video */
         $video = Video::where('original_id', '=', $id)->first();
 
         if ($video) {
@@ -57,7 +61,7 @@ class UserController extends ApiController
                 $favorited->detach($this->user->id);
             }
 
-            return $this->returnSuccessfullVideoAction($video);
+            return $this->returnSuccessfulVideoAction($video);
         }
 
         return response()->error('There was add video to your favorites. Please try again!');
@@ -67,7 +71,7 @@ class UserController extends ApiController
      * @param Video $video
      * @return json
      */
-    private function returnSuccessfullVideoAction(Video $video)
+    private function returnSuccessfulVideoAction(Video $video)
     {
         $video['saved_for_later'] = $video->savedForLater($this->user->id);
         $video['favorited'] = $video->isFavorited($this->user->id);

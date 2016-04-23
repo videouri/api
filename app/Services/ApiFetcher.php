@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use Auth;
 use Cache;
 use Session;
 
 use App\Entities\Video;
+use App\Jobs\SaveVideo;
+use App\Jobs\RegisterView;
 use App\Services\Agents\YoutubeAgent;
 use App\Services\Agents\DailymotionAgent;
 use App\Services\Agents\VimeoAgent;
@@ -154,12 +157,17 @@ final class ApiFetcher extends ApiManager
         $this->timestamp = date('Y-m-d');
     }
 
+    /**
+     * @param $content
+     * @return array
+     * @throws Exception
+     */
     public function mixedCalls($content)
     {
         $apiParameters = [
-            'apis'    => $this->apis,
+            'apis' => $this->apis,
             'content' => $content,
-            'period'  => $this->period,
+            'period' => $this->period,
             // 'searchQuery' => $this->searchQuery,
             // 'page'        => $this->page,
             // 'sort'        => $this->sort
@@ -213,9 +221,9 @@ final class ApiFetcher extends ApiManager
     {
         $parameters = [
             'searchQuery' => $searchQuery,
+            'page' => $this->page,
+            'maxResults' => $this->maxResults,
         ];
-
-        $parameters['page'] = $this->page;
 
         if ($this->sort !== null) {
             $parameters['sort'] = $this->sort;
@@ -225,34 +233,35 @@ final class ApiFetcher extends ApiManager
             $parameters['period'] = $this->period;
         }
 
-        $parameters['maxResults'] = $this->maxResults;
-
         $results = [];
-
         foreach ($this->apis as $api) {
-            $apiAgent = $this->getAgent($api);
+            try {
+                $apiAgent = $this->getAgent($api);
 
-            $videos = $apiAgent->searchVideos($parameters);
-            $videos = $this->parseResults($api, $videos);
+                $videos = $apiAgent->searchVideos($parameters);
+                $videos = $this->parseResults($api, $videos);
 
-            $results[$api] = $videos;
+                $results[$api] = $videos;
+            } catch (\Exception $e) {
+                // @TODO dynamically activate or de-activate calls to an api source based on the fact
+                //       that if my calls are being denied because of rate-limiting
+            }
         }
 
         return $results;
     }
 
     /**
-     * [getVideoInfo description]
-     *
      * @param  string $api
      * @param  string $videoId
-     * @param  bool $parseResult
      * @return mixed
      */
-    public function getVideoInfo($api, $videoId, $parseResult = true)
+    public function getVideoInfo($api, $videoId)
     {
-        // If it exists in the database, get the info from there and transform it
-        // via VideoTransformer
+        /**
+         * Return cached video and if it's not,
+         * get it from the source and transform it
+         */
         if ($video = Video::where('original_id', '=', $videoId)->first()) {
             if ($video->dmca_claim) {
                 return abort(404);
@@ -262,21 +271,34 @@ final class ApiFetcher extends ApiManager
         } else {
             try {
                 $apiAgent = $this->getAgent($api);
+
+                # Fetch the video from source
                 $video = $apiAgent->getVideoInfo($videoId);
 
-                if ($parseResult) {
-                    $video = $this->parseResults($api, $video);
-                }
+                # Parse it
+                $video = $this->parseResults($api, $video);
+
+                # Run a job to cache it in the DB
+                $job = (new SaveVideo($video, $api))->onQueue('pre_video_saved');
+                $this->dispatch($job);
             } catch (NotFoundHttpException $e) {
                 abort(404);
             } catch (DailymotionApiException $e) {
                 abort(404);
-
-                // @TODO Log $e->getCode() > 404
             } catch (\Exception $e) {
                 dump('parseResults');
                 dump($e);
             }
+        }
+
+        /**
+         * If there's a user logged, register the video view
+         */
+        if ($user = Auth::user()) {
+            $originalId = $video['original_id'];
+
+            $job = (new RegisterView($originalId, $user))->onQueue('post_video_saved');
+            $this->dispatch($job);
         }
 
         return $video;

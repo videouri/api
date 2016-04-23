@@ -3,11 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests;
-use App\Jobs\SaveVideo;
-use App\Jobs\RegisterView;
 use App\Services\ApiFetcher;
-
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Class VideoController
@@ -18,14 +14,14 @@ class VideoController extends Controller
     /**
      * @var ApiFetcher
      */
-    protected $fetcher;
+    protected $apiFetcher;
 
     /**
-     * VideoController constructor.
+     * @param ApiFetcher $apiFetcher
      */
-    public function __construct()
+    public function __construct(ApiFetcher $apiFetcher)
     {
-        $this->fetcher = app('api.fetcher');
+        $this->apiFetcher = $apiFetcher;
     }
 
     /**
@@ -42,7 +38,7 @@ class VideoController extends Controller
      * @var int $id
      * @var string $slug
      *
-     * @return Response
+     * @return View
      */
     public function show($customId, $slug = null)
     {
@@ -73,33 +69,9 @@ class VideoController extends Controller
                 break;
         }
 
-        /**
-         * If no video is fetched from DB, call API and follow
-         * the process to store it for next time.
-         *   '
-         *       What is caching?
-         *       Baby don\'t cache me, don\'t cache me!
-         *       No more!
-         *   '
-         */
-        // $video = Video::where('original_id', '=', $originalId)->first();
-        // // dump($video);
-        // dump($video->favorited()->whereUserId(Auth::user()->id)->get());
-        // // dump($video->watchLater);
-
+        # Return cached video or fetch it new
         if (!$video = $this->fetcher->getVideoInfo($api, $originalId)) {
             return abort(404);
-        }
-
-        $job = (new SaveVideo($video, $api))->onQueue('pre_video_saved');
-        $this->dispatch($job);
-
-        // If there's a user logged, register the video view
-        if ($user = Auth::user()) {
-            $originalId = $video['original_id'];
-
-            $job = (new RegisterView($originalId, $user))->onQueue('post_video_saved');
-            $this->dispatch($job);
         }
 
         $data['thumbnail'] = $video['thumbnail'];
