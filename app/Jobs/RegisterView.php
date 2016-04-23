@@ -46,6 +46,7 @@ class RegisterView extends Job implements ShouldQueue
      */
     public function handle()
     {
+        // @TODO Well there's an issue when this job is dispatched, without video having been cached first, so $this->video is null
         return $this->video->watchers()->attach($this->user->id);
     }
 }

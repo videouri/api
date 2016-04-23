@@ -2,12 +2,29 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Services\ApiFetcher;
+
 /**
  * Class HistoryController
  * @package App\Http\Controllers\Api
  */
 class HistoryController extends ApiController
 {
+    /**
+     * @param ApiFetcher
+     */
+    protected $apiFetcher;
+
+    /**
+     * @param ApiFetcher $apiFetcher
+     */
+    public function __construct(ApiFetcher $apiFetcher)
+    {
+        parent::__construct();
+        
+        $this->apiFetcher = $apiFetcher;
+    }
+
     /**
      * @return mixed
      */

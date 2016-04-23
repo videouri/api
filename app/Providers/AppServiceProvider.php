@@ -42,10 +42,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('api.fetcher', function ($app) {
+        $this->app->bind('ApiFetcher', function () {
             return new ApiFetcher();
         });
-
 
         if (Config::get('app.debug') === true) {
             // $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);

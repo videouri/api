@@ -215,11 +215,6 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
         /**
-         * Application facades
-         */
-        'ApiFetcher' => App\Facades\ApiFetcher::class,
-
-        /**
          * 3rd party aliases
          */
         // 'Debugbar'  => 'Barryvdh\Debugbar\Facade::class,
