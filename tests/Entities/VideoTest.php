@@ -2,7 +2,7 @@
 
 namespace Videouri\Tests\Entities;
 
-use App\Entities\Video;
+use Videouri\Entities\Video;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Videouri\Tests\AbstractTestCase;
 
