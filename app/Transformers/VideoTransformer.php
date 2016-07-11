@@ -1,14 +1,21 @@
 <?php
 
-namespace App\Transformers;
+namespace Videouri\Transformers;
 
-use League\Fractal\Resource\Collection;
 use League\Fractal\TransformerAbstract;
-use App\Entities\Video;
+use Videouri\Entities\Video;
 use Auth;
 
+/**
+ * @package Videouri\Transformers
+ */
 class VideoTransformer extends TransformerAbstract
 {
+    /**
+     * @param Video $video
+     *
+     * @return array
+     */
     public function transform(Video $video)
     {
         $response = [
@@ -33,11 +40,11 @@ class VideoTransformer extends TransformerAbstract
         $savedForLater = false;
 
         if ($user = Auth::user()) {
-            if ($video->favorited()->whereUserId($user->id)->first()) {
+            if ($video->favorited()->where('user_id', '=', $user->id)->first()) {
                 $isFavorited = true;
             }
 
-            if ($video->watchLater()->whereUserId($user->id)->first()) {
+            if ($video->watchLater()->where('user_id', '=', $user->id)->first()) {
                 $savedForLater = true;
             }
         }

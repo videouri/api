@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\User;
+namespace Videouri\Http\Controllers\User;
 
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
+use Illuminate\View\View;
+use Videouri\Http\Controllers\Controller;
+use Videouri\Http\Requests;
 
 /**
- * Class FavoritesController
- * @package App\Http\Controllers\User
+ * @package Videouri\Http\Controllers\User
  */
 class FavoritesController extends Controller
 {
     /**
-     * @return mixed
+     * @return View
      */
     public function index()
     {

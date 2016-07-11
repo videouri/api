@@ -1,24 +1,24 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace Videouri\Http\Controllers\Api;
 
-use App\Entities\Video;
 use Illuminate\Http\Request;
+use Videouri\Entities\Video;
 
 /**
- * Class UserController
- * @package App\Http\Controllers\Api
+ * @package Videouri\Http\Controllers\Api
  */
 class UserController extends ApiController
 {
     /**
      * @param Request $request
-     * @return json
+     *
+     * @return string
      */
     public function postWatchLater(Request $request)
     {
         $id = $request->input('original_id');
-        
+
         /** @var Video $video */
         $video = Video::where('original_id', '=', $id)->first();
 
@@ -41,7 +41,8 @@ class UserController extends ApiController
 
     /**
      * @param Request $request
-     * @return json
+     *
+     * @return string
      */
     public function postFavorite(Request $request)
     {
@@ -69,7 +70,8 @@ class UserController extends ApiController
 
     /**
      * @param Video $video
-     * @return json
+     *
+     * @return string
      */
     private function returnSuccessfulVideoAction(Video $video)
     {

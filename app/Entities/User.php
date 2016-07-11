@@ -1,27 +1,26 @@
 <?php
 
-namespace App\Entities;
+namespace Videouri\Entities;
 
-use App\Traits\PresentableTrait;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
+/**
+ * @package Videouri\Entities
+ */
 class User extends Authenticatable
 {
-    use PresentableTrait;
-
-    /**
-     * @var \App\Presenters\User
-     */
-    protected $presenter = 'App\Presenters\User';
-
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'username', 'email', 'password',
-        'avatar', 'provider', 'provider_id',
+        'username',
+        'email',
+        'password',
+        'avatar',
+        'provider',
+        'provider_id',
     ];
 
     /**
@@ -31,31 +30,35 @@ class User extends Authenticatable
      */
     protected $hidden = ['password', 'remember_token'];
 
-    ////////////////
-    // FUNCTIONAL //
-    ////////////////
-
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function favorites()
     {
         return $this->belongsToMany(Video::class, 'favorites');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function watchLater()
     {
         return $this->belongsToMany(Video::class, 'watch_later');
     }
 
-    /////////////
-    // HISTORY //
-    /////////////
-
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function videosWatched()
     {
-        return $this->belongsToMany(Video::class, 'views')->orderBy('registered_at', 'desc');
+        return $this->belongsToMany(Video::class, 'views');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function searches()
     {
-        return $this->hasMany(Search::class)->orderBy('registered_at', 'desc');
+        return $this->hasMany(Search::class);
     }
 }

@@ -1,24 +1,24 @@
 <?php
 
-namespace App\Traits;
+namespace Videouri\Traits;
 
-use App\Entities\User;
-use App\Exceptions\SocialAuthException;
-use Cocur\Slugify\Slugify;
 use Auth;
+use Cocur\Slugify\Slugify;
 use Log;
 use Redirect;
 use Socialite;
 use Validator;
+use Videouri\Entities\User;
+use Videouri\Exceptions\SocialAuthException;
 
 /**
- * Class SocialAuth
- * @package App\Traits
+ * @package Videouri\Traits
  */
 trait SocialAuth
 {
     /**
      * @param string $provider
+     *
      * @return Redirect
      */
     public function redirectToProvider($provider)
@@ -32,11 +32,13 @@ trait SocialAuth
 
     /**
      * @param string $provider
+     *
      * @throws SocialAuthException
      * @return Redirect
      */
     public function handleProviderCallback($provider)
     {
+        /** @var \Laravel\Socialite\Contracts\User $userData */
         $userData = Socialite::driver($provider)->user();
 
         ///////////////////////
@@ -97,6 +99,7 @@ trait SocialAuth
 
     /**
      * @param $userData
+     *
      * @return mixed
      */
     private function validateParameters($userData)
@@ -107,7 +110,8 @@ trait SocialAuth
         ]);
 
         if ($validator->fails()) {
-            return redirect('/login')->withErrors($validator)
+            return redirect('/login')
+                ->withErrors($validator)
                 ->withInput();
         }
     }

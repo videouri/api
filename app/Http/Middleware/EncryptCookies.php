@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Videouri\Http\Middleware;
 
 use Illuminate\Cookie\Middleware\EncryptCookies as BaseEncrypter;
 
+/**
+ * @package Videouri\Http\Middleware
+ */
 class EncryptCookies extends BaseEncrypter
 {
     /**

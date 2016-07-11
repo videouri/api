@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Videouri\Console\Commands;
 
 use File;
 use Illuminate\Console\Command;
-use App\Entities\Search;
-use App\Entities\Sitemap;
-use App\Entities\Video;
+use Videouri\Entities\Search;
+use Videouri\Entities\Sitemap;
+use Videouri\Entities\Video;
 
 /**
- * Class GenerateSitemap
- * @package App\Console\Commands
+ * @package Videouri\Console\Commands
  */
 class GenerateSitemap extends Command
 {
@@ -28,8 +27,6 @@ class GenerateSitemap extends Command
      */
     protected $description = 'Generate sitemap based on data registered in the database';
 
-    // VIDEOURI
-
     /**
      * @var Video
      */
@@ -38,28 +35,26 @@ class GenerateSitemap extends Command
     /**
      * @var Search
      */
-    protected $Search;
+    protected $search;
 
     /**
-     * [$videoDumpPath description]
      * @var string
      */
     protected $videoDumpPath;
 
+    /**
+     * @var string
+     */
     protected $sitemapsDirectory;
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
-    public function __construct(Video $videos, Search $searchHistory)
+    public function __construct(Video $videos)
     {
         parent::__construct();
 
         $this->videos = $videos;
-        $this->searchHistory = $searchHistory;
-
         $this->videoDumpPath = storage_path('app/videoDumpPath.json');
         $this->sitemapsDirectory = public_path('sitemaps');
     }
@@ -119,20 +114,26 @@ EOF;
         ///
 
         $fields = [
-            'id', 'original_id', 'custom_id', 'provider',
-            'title', 'description',
-            'thumbnail', 'duration',
-            'updated_at', 'created_at',
+            'id',
+            'original_id',
+            'custom_id',
+            'provider',
+            'title',
+            'description',
+            'thumbnail',
+            'duration',
+            'updated_at',
+            'created_at',
         ];
 
         // Initialize base Video eloquent query
         $videos = $this->videos
-                       ->whereNotNull('title')
-                       ->where('duration', '>', 0)
-                       ->where(function ($query) {
-                           $query->where('provider', 'Youtube')
-                                 ->orWhere('provider', 'Vimeo');
-                       });
+            ->whereNotNull('title')
+            ->where('duration', '>', 0)
+            ->where(function ($query) {
+                $query->where('provider', 'Youtube')
+                    ->orWhere('provider', 'Vimeo');
+            });
 
         // Default limit value
         $limit = 5000;
@@ -143,7 +144,8 @@ EOF;
         // Load last video sitemap or create a new one
         if ($lastSitemap &&
             File::exists($lastSitemap['path']) &&
-            $lastSitemap->items_count < 50000) {
+            $lastSitemap->items_count < 50000
+        ) {
             $xml = simplexml_load_file($lastSitemap['path']);
 
             if (($xml->count() + $limit === 50000) && (50000 - $xml->count() < $limit)) {
@@ -242,8 +244,8 @@ EOF;
             $lastSitemap->save();
         } else {
             Sitemap::create([
-                'path'        => $videoSitemapPath,
-                'filename'    => $videoSitemapName,
+                'path' => $videoSitemapPath,
+                'filename' => $videoSitemapName,
                 'items_count' => $xml->count(),
             ]);
         }
@@ -254,6 +256,6 @@ EOF;
 
     private function utf8ForXml($string)
     {
-        return preg_replace ('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
+        return preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
     }
 }

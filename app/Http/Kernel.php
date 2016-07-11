@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http;
+namespace Videouri\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
@@ -18,9 +18,9 @@ class Kernel extends HttpKernel
         \Illuminate\Session\Middleware\StartSession::class,
         \Barryvdh\Cors\HandleCors::class,
         \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-        \App\Http\Middleware\EncryptCookies::class,
-        \App\Http\Middleware\VerifyCsrfToken::class,
-        \App\Http\Middleware\VideouriDefaults::class,
+        \Videouri\Http\Middleware\EncryptCookies::class,
+        \Videouri\Http\Middleware\VerifyCsrfToken::class,
+        \Videouri\Http\Middleware\VideouriDefaults::class,
     ];
 
     /**
@@ -46,10 +46,10 @@ class Kernel extends HttpKernel
      * @var array
      */
     protected $routeMiddleware = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth' => \Videouri\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'can' => \Illuminate\Foundation\Http\Middleware\Authorize::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'guest' => \Videouri\Http\Middleware\RedirectIfAuthenticated::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
     ];
 }

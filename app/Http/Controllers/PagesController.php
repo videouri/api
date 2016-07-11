@@ -1,17 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Videouri\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
+use Illuminate\View\View;
 
 /**
- * Class PagesController
- * @package App\Http\Controllers
+ * @package Videouri\Http\Controllers
  */
 class PagesController extends Controller
 {
     /**
-     * @return mixed
+     * @return View
      */
     public function home()
     {
@@ -20,7 +22,8 @@ class PagesController extends Controller
 
     /**
      * @param Request $request
-     * @return mixed
+     *
+     * @return View
      */
     public function search(Request $request)
     {
@@ -34,9 +37,10 @@ class PagesController extends Controller
     }
 
     /**
-     * @param $view
-     * @param null $part
-     * @return mixed
+     * @param string $view
+     * @param string $part
+     *
+     * @return RedirectResponse|Redirector|View
      */
     public function info($view, $part = null)
     {

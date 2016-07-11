@@ -1,18 +1,24 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace Videouri\Http\Controllers\Auth;
 
-use App\Entities\User;
-use App\Http\Controllers\Controller;
-use App\Traits\SocialAuth;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Validator;
+use Videouri\Entities\User;
+use Videouri\Http\Controllers\Controller;
+use Videouri\Traits\SocialAuth;
 
+/**
+ * @package Videouri\Http\Controllers\Auth
+ */
 class AuthController extends Controller
 {
     use AuthenticatesAndRegistersUsers, ThrottlesLogins, SocialAuth;
 
+    /**
+     * @var string
+     */
     protected $redirectPath = '/';
 
     /**
@@ -26,14 +32,15 @@ class AuthController extends Controller
     /**
      * Get a validator for an incoming registration request.
      *
-     * @param  array  $data
+     * @param  array $data
+     *
      * @return \Illuminate\Contracts\Validation\Validator
      */
     protected function validator(array $data)
     {
         return Validator::make($data, [
             'username' => 'required|max:255',
-            'email'    => 'required|email|max:255|unique:users',
+            'email' => 'required|email|max:255|unique:users',
             'password' => 'required|min:6|confirmed',
         ]);
     }
@@ -41,30 +48,16 @@ class AuthController extends Controller
     /**
      * Create a new user instance after a valid registration.
      *
-     * @param  array  $data
+     * @param  array $data
+     *
      * @return User
      */
     protected function create(array $data)
     {
         return User::create([
             'username' => $data['username'],
-            'email'    => $data['email'],
+            'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
     }
-
-    /**
-     * Handle a registration request for the application.
-     *
-     * @param  \Illuminate\Foundation\Http\FormRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    // public function postRegister(Request $request)
-    // {
-    //     $users = new UserRepository;
-
-    //     $users->findOrCreateRegular($request);
-
-    //     return redirect('login')->with('status', 'An email with your activation code has been sent.');
-    // }
 }

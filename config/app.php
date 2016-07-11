@@ -107,7 +107,9 @@ return [
     |
     */
 
-    'log' => env('APP_LOG', 'single'),
+    'log' => env('APP_LOG', 'daily'),
+
+    'log_level' => env('APP_LOG_LEVEL', 'debug'),
 
     /*
     |--------------------------------------------------------------------------
@@ -158,7 +160,6 @@ return [
         /**
          * 3rd party providers
          */
-        // Barryvdh\Debugbar\ServiceProvider::class,
         Vinkla\Vimeo\VimeoServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
@@ -217,8 +218,6 @@ return [
         /**
          * 3rd party aliases
          */
-        // 'Debugbar'  => 'Barryvdh\Debugbar\Facade::class,
-        // 'Debugbar' => Barryvdh\Debugbar\Facade::class,
         'Socialite'  => Laravel\Socialite\Facades\Socialite::class,
         'Vimeo'      => Vinkla\Vimeo\Facades\Vimeo::class,
     ]

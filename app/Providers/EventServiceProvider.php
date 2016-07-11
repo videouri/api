@@ -1,10 +1,13 @@
 <?php
 
-namespace App\Providers;
+namespace Videouri\Providers;
 
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
+/**
+ * @package Videouri\Providers
+ */
 class EventServiceProvider extends ServiceProvider
 {
     /**
@@ -13,16 +16,17 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'App\Events\VideoAccessed' => [
-            'App\Listeners\Video\CacheVideo',
-            'App\Listeners\Video\RegisterView'
+        'Videouri\Events\VideoAccessed' => [
+            'Videouri\Listeners\Video\CacheVideo',
+            'Videouri\Listeners\Video\RegisterView'
         ]
     ];
 
     /**
      * Register any other events for your application.
      *
-     * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @param  \Illuminate\Contracts\Events\Dispatcher $events
+     *
      * @return void
      */
     public function boot(DispatcherContract $events)
@@ -31,5 +35,4 @@ class EventServiceProvider extends ServiceProvider
 
         //
     }
-
 }

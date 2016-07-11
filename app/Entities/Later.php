@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Entities;
+namespace Videouri\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @package Videouri\Entities
+ */
 class Later extends Model
 {
     /**
@@ -20,13 +23,19 @@ class Later extends Model
      */
     public $timestamps = false;
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function user()
     {
-        return $this->belongsTo('App\Entities\User');
+        return $this->belongsTo('Videouri\Entities\User');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function video()
     {
-        return $this->belongsTo('App\Entities\Video');
+        return $this->belongsTo('Videouri\Entities\Video');
     }
 }

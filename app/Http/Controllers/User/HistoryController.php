@@ -1,13 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\User;
+namespace Videouri\Http\Controllers\User;
 
-use Illuminate\Http\Request;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Redirector;
+use Illuminate\View\View;
+use Videouri\Http\Controllers\Controller;
+use Videouri\Http\Requests;
 
+/**
+ * @package Videouri\Http\Controllers\User
+ */
 class HistoryController extends Controller
 {
+    /**
+     * @return RedirectResponse|Redirector
+     */
     public function index()
     {
         return redirect('/');
@@ -19,11 +27,11 @@ class HistoryController extends Controller
      *
      * @param  string $user
      * @param  string $type
-     * @return view
+     *
+     * @return Redirector|View
      */
     public function show($user, $type)
     {
-        // if (!in_array($type, ['videos', 'search'])) {
         if (!in_array($type, ['videos'])) {
             return redirect('/');
         }

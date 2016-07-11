@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Jobs;
+namespace Videouri\Jobs;
 
-use App\Entities\Search;
-use App\Entities\User;
-
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Videouri\Entities\Search;
+use Videouri\Entities\User;
 
+/**
+ * @package Videouri\Jobs
+ */
 class RegisterSearch extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
@@ -16,7 +18,7 @@ class RegisterSearch extends Job implements ShouldQueue
     /**
      * @var string
      */
-    private $searchTerm;
+    private $term;
 
     /**
      * @var User
@@ -24,12 +26,12 @@ class RegisterSearch extends Job implements ShouldQueue
     private $user;
 
     /**
-     * @param string $searchTerm
+     * @param string $term
      * @param User $user
      */
-    public function __construct($searchTerm, User $user = null)
+    public function __construct($term, User $user = null)
     {
-        $this->searchTerm = $searchTerm;
+        $this->term = $term;
         $this->user = $user;
     }
 
@@ -38,11 +40,11 @@ class RegisterSearch extends Job implements ShouldQueue
      */
     public function handle()
     {
-        $searchHistory = new Search;
+        $search = new Search;
 
-        $searchHistory->term = $this->searchTerm;
-        $searchHistory->user_id = isset($this->user->id) ? $this->user->id : null;
+        $search->term = $this->term;
+        $search->user_id = isset($this->user->id) ? $this->user->id : null;
 
-        return $searchHistory->save();
+        return $search->save();
     }
 }

@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Entities;
+namespace Videouri\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @package Videouri\Entities
+ */
 class Search extends Model
 {
     /**
@@ -27,8 +30,11 @@ class Search extends Model
      */
     protected $fillable = ['term', 'user_id'];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function user()
     {
-        return $this->belongsTo('App\Entities\User');
+        return $this->belongsTo('Videouri\Entities\User');
     }
 }

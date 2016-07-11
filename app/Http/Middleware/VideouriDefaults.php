@@ -1,29 +1,28 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Videouri\Http\Middleware;
 
 use Closure;
-use Request;
 use Session;
 
+/**
+ * @package Videouri\Http\Middleware
+ */
 class VideouriDefaults
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Closure $next
+     *
      * @return mixed
      */
     public function handle($request, Closure $next)
     {
-        #if (Request::server('SERVER_ADDR') != Request::server('REMOTE_ADDR')) {
-        #    abort(404);
-        #}
-
         // Set user's country value based on his IP
         if (!Session::get('country')) {
-            $ip = getUserIPAdress();
+            $ip = getUserIPAddress();
             Session::put('country', getUserCountry($ip));
         }
 

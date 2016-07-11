@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Videouri\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Entities\Video;
+use Videouri\Entities\Video;
 
 /**
- * Class RefreshVideosData
- * @package App\Console\Commands
+ * @package Videouri\Console\Commands
  */
 class RefreshVideosData extends Command
 {
@@ -31,11 +30,10 @@ class RefreshVideosData extends Command
     protected $description = 'Refresh the data stored in the db for the videos.';
 
     /**
-     * [$canRefresh description]
-     * @var [type]
+     * @var array
      */
-    // private $canRefresh = ['title', 'description', 'views', 'duration', 'all'];
     private $canRefresh = ['views', 'duration'];
+    // private $canRefresh = ['title', 'description', 'views', 'duration', 'all'];
 
     /**
      * Execute the console command.
@@ -56,7 +54,8 @@ class RefreshVideosData extends Command
             $this->error('You must specify at least one parameter to update: ' . implode(', ', $this->canRefresh));
             die;
         } elseif (!in_array_r($toRefresh, $this->canRefresh)) {
-            $this->error($options['refresh'] . ' is not a valid option. Available options: ' . implode(', ', $this->canRefresh));
+            $this->error($options['refresh'] . ' is not a valid option. Available options: ' . implode(', ',
+                    $this->canRefresh));
             die;
         }
 
@@ -113,7 +112,6 @@ class RefreshVideosData extends Command
                     }
                 }
 
-                // die;
                 $videoToUpdate->save();
             } catch (\Exception $e) {
                 $this->info("   \-> Error processing this video. ");

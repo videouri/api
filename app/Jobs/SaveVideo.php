@@ -1,19 +1,14 @@
 <?php
 
-namespace App\Jobs;
+namespace Videouri\Jobs;
 
-use App\Jobs\Job;
-use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-
-use App\Entities\Video;
-use App\Entities\User;
+use Videouri\Entities\Video;
 
 /**
- * Class SaveVideo
- * @package App\Jobs
+ * @package Videouri\Jobs
  */
 class SaveVideo extends Job implements ShouldQueue
 {
@@ -57,6 +52,7 @@ class SaveVideo extends Job implements ShouldQueue
         $video->custom_id = $this->data['custom_id'];
 
         $video->original_url = $this->data['original_url'];
+        // @TODO slug for video
         // $video->slug = null;
 
         $video->title = $this->data['title'];

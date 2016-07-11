@@ -41,17 +41,6 @@ $app->singleton(
     App\Exceptions\Handler::class
 );
 
-
-/*
-|
-| Load testing environment configuration file if --env=testing is present
-|
-*/
-if (!empty($argv) && in_array('--env=testing', $argv)) {
-    $app->loadEnvironmentFrom('.env.testing');
-}
-
-
 /*
 |--------------------------------------------------------------------------
 | Return The Application

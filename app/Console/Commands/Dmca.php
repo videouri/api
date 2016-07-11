@@ -1,14 +1,12 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Videouri\Console\Commands;
 
 use Illuminate\Console\Command;
-
-use App\Entities\Video;
+use Videouri\Entities\Video;
 
 /**
- * Class Dmca
- * @package App\Console\Commands
+ * @package Videouri\Console\Commands
  */
 class Dmca extends Command
 {
@@ -29,8 +27,6 @@ class Dmca extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -56,7 +52,7 @@ class Dmca extends Command
             $video->save();
 
             $this->info('Video\'s dmca_claim set to: ' . json_encode($status));
-            return ;
+            return;
         }
 
         $this->error('No video found with original_id of: ' . $originalId);

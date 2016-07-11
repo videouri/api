@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace Videouri\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Entities\User;
 use Auth;
+use Videouri\Entities\User;
+use Videouri\Http\Controllers\Controller;
 
-class ApiController extends Controller
+/**
+ * @package Videouri\Http\Controllers\Api
+ */
+abstract class ApiController extends Controller
 {
     /**
      * @var User
@@ -18,7 +21,6 @@ class ApiController extends Controller
      */
     public function __construct()
     {
-        /** @var User user */
         $this->user = Auth::user();
     }
 }

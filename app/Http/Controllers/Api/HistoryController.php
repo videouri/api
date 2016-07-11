@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace Videouri\Http\Controllers\Api;
 
-use App\Services\ApiFetcher;
+use Videouri\Services\ApiFetcher;
 
 /**
- * Class HistoryController
- * @package App\Http\Controllers\Api
+ * @package Videouri\Http\Controllers\Api
  */
 class HistoryController extends ApiController
 {
@@ -21,12 +20,14 @@ class HistoryController extends ApiController
     public function __construct(ApiFetcher $apiFetcher)
     {
         parent::__construct();
-        
+
         $this->apiFetcher = $apiFetcher;
     }
 
     /**
-     * @return mixed
+     * Fetch videos watched by current user
+     *
+     * @return string
      */
     public function getVideos()
     {
@@ -44,9 +45,4 @@ class HistoryController extends ApiController
 
         return response()->success($records);
     }
-
-    // public function searches()
-    // {
-    //     $records = $user->searches();
-    // }
 }

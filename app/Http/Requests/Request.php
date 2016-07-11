@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace Videouri\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-abstract class Request extends FormRequest {
-
-	//
-
+/**
+ * @package Videouri\Http\Requests
+ */
+abstract class Request extends FormRequest
+{
 }

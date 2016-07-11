@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Exceptions;
+namespace Videouri\Exceptions;
 
-use App\Exceptions\SocialAuthException;
+use Videouri\Exceptions\SocialAuthException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;

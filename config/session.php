@@ -135,7 +135,7 @@ return [
     |
     */
 
-    'domain' => env('COOKIE_DOMAIN'),
+    'domain' => env('SESSION_DOMAIN', null),
 
     /*
     |--------------------------------------------------------------------------

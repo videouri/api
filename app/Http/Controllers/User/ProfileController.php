@@ -1,15 +1,19 @@
 <?php
 
-namespace App\Http\Controllers\User;
+namespace Videouri\Http\Controllers\User;
 
-use Illuminate\Http\Request;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
+use Illuminate\View\View;
+use Videouri\Http\Controllers\Controller;
+use Videouri\Http\Requests;
 
-use App\Entities\User;
-
+/**
+ * @package Videouri\Http\Controllers\User
+ */
 class ProfileController extends Controller
 {
+    /**
+     * @return View
+     */
     public function index()
     {
         return view('videouri.user.profile');

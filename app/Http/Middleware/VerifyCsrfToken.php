@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Videouri\Http\Middleware;
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as BaseVerifier;
 
+/**
+ * @package Videouri\Http\Middleware
+ */
 class VerifyCsrfToken extends BaseVerifier
 {
     /**

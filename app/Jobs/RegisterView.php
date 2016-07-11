@@ -1,19 +1,15 @@
 <?php
 
-namespace App\Jobs;
+namespace Videouri\Jobs;
 
-use App\Jobs\Job;
-use App\Entities\Video;
-use App\Entities\User;
-
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Videouri\Entities\User;
+use Videouri\Entities\Video;
 
 /**
- * Class RegisterView
- * @package App\Jobs
+ * @package Videouri\Jobs
  */
 class RegisterView extends Job implements ShouldQueue
 {
@@ -30,7 +26,6 @@ class RegisterView extends Job implements ShouldQueue
     private $user;
 
     /**
-     * RegisterView constructor.
      * @param $originalId
      * @param User $user
      */
@@ -46,7 +41,8 @@ class RegisterView extends Job implements ShouldQueue
      */
     public function handle()
     {
-        // @TODO Well there's an issue when this job is dispatched, without video having been cached first, so $this->video is null
+        // @TODO Well there's an issue when this job is dispatched,
+        //       without video having been cached first, so $this->video is null
         return $this->video->watchers()->attach($this->user->id);
     }
 }

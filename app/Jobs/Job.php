@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Jobs;
+namespace Videouri\Jobs;
 
 use Illuminate\Bus\Queueable;
 
 /**
- * Class Job
- * @package App\Jobs
+ * @package Videouri\Jobs
  */
 abstract class Job
 {

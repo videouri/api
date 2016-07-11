@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Videouri\Http\Controllers;
 
-use App\Http\Requests;
-use App\Services\ApiFetcher;
+use Videouri\Http\Requests;
+use Videouri\Services\ApiFetcher;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Redirector;
+use Illuminate\View\View;
 
 /**
- * Class VideoController
- * @package App\Http\Controllers
+ * @package Videouri\Http\Controllers
  */
 class VideoController extends Controller
 {
@@ -25,7 +27,7 @@ class VideoController extends Controller
     }
 
     /**
-     * @return mixed
+     * @return RedirectResponse|Redirector
      */
     public function index()
     {
@@ -58,14 +60,8 @@ class VideoController extends Controller
                 $api = 'Youtube';
                 break;
 
-            case 'm':
-                $api = 'Metacafe';
-                $long_id = $originalId . '/' . $slug;
-                break;
-
             default:
                 abort(404);
-                #show_error(lang('video_id',$customId));
                 break;
         }
 

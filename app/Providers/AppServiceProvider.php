@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Providers;
+namespace Videouri\Providers;
 
-use App\Services\ApiFetcher;
-use Illuminate\Support\ServiceProvider;
 use Auth;
-use Config;
+use Illuminate\Support\ServiceProvider;
+use Videouri\Services\ApiFetcher;
 use View;
 
 /**
- * Class AppServiceProvider
- * @package App\Providers
+ * @package Videouri\Providers
  */
 class AppServiceProvider extends ServiceProvider
 {
@@ -46,10 +44,8 @@ class AppServiceProvider extends ServiceProvider
             return new ApiFetcher();
         });
 
-        if (Config::get('app.debug') === true) {
-            // $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
-            // $this->app->register(\Barryvdh\Debugbar\ServiceProvider::class);
-            // $this->app->register(\Spatie\Tail\TailServiceProvider::class);
+        if (in_array(env('APP_ENV'), ['local', 'development'])) {
+            $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
         }
     }
 

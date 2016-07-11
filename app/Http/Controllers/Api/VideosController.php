@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace Videouri\Http\Controllers\Api;
 
-use App\Jobs\RegisterSearch;
-use App\Services\ApiFetcher;
-use App\Services\FakeContentGenerator;
-use Illuminate\Http\Request;
 use Auth;
+use Illuminate\Http\Request;
+use Videouri\Jobs\RegisterSearch;
+use Videouri\Services\ApiFetcher;
+use Videouri\Services\FakeContentGenerator;
 
 /**
- * Class VideosController
- * @package App\Http\Controllers\Api
+ * @package Videouri\Http\Controllers\Api
  */
 class VideosController extends ApiController
 {
@@ -18,7 +17,7 @@ class VideosController extends ApiController
      * @var ApiFetcher
      */
     protected $apiFetcher;
-    
+
     /**
      * Don't execute a real call to the APIs
      * @var boolean
@@ -44,6 +43,7 @@ class VideosController extends ApiController
 
     /**
      * @param Request $request
+     *
      * @return mixed
      */
     public function getSearch(Request $request)
@@ -55,10 +55,6 @@ class VideosController extends ApiController
          * nor contains just empty spaces
          */
         $searchQuery = $request->get('query');
-
-        if (empty($searchQuery) || ctype_space($searchQuery)) {
-            return response()->error('invalid_search_query', 400);
-        }
 
         # Max results
         $maxResults = $request->get('maxResults');
@@ -164,6 +160,7 @@ class VideosController extends ApiController
      * Recommended
      *
      * @param Request $request
+     *
      * @return array
      */
     public function getRecommended(Request $request)
@@ -185,10 +182,10 @@ class VideosController extends ApiController
     {
         $user = Auth::user();
         $records = $user->favorites()
-                        ->distinct()
-                        // ->select(['title', 'thumbnail', 'description', 'custom_id'])
-                        ->limit(50)
-                        ->get();
+            ->distinct()
+            // ->select(['title', 'thumbnail', 'description', 'custom_id'])
+            ->limit(50)
+            ->get();
 
         return $this->parseResponse($records);
     }
@@ -202,10 +199,10 @@ class VideosController extends ApiController
     {
         $user = Auth::user();
         $records = $user->watchLater()
-                        ->distinct()
-                        // ->select(['title', 'thumbnail', 'description', 'custom_id'])
-                        ->limit(50)
-                        ->get();
+            ->distinct()
+            // ->select(['title', 'thumbnail', 'description', 'custom_id'])
+            ->limit(50)
+            ->get();
 
         return $this->parseResponse($records);
     }
@@ -214,6 +211,7 @@ class VideosController extends ApiController
      * DRY for favorites and watch later
      *
      * @param  array $records
+     *
      * @return array
      */
     private function parseResponse($records)
