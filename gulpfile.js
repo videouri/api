@@ -55,6 +55,6 @@ elixir(
         ;
 
         // TESTING!
-        // mix.phpUnit();
+        mix.phpUnit();
     }
 );
