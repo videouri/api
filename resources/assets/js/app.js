@@ -1,22 +1,13 @@
 'use strict';
 
-var
-    app,
-    Vue = require('vue'),
-    Resource = require('vue-resource'),
-    linkify = require('linkifyjs'),
-    linkifyStr = require('linkifyjs/string'),
-    csrfToken = document.querySelector('meta[name=csrf-token]').getAttribute('content')
-;
-
-// require('linkifyjs/plugin/hashtag')(linkify); // optional
+var Vue = require('vue');
+var VueResource = require('vue-resource');
+var linkifyStr = require('linkifyjs/string');
 
 Vue.config.debug = true;
 
-// Import vue-resource and configure to use the csrf token in all requests,
-// in which I put him in a meta tag in home.blade.php
-Vue.use(Resource);
-Vue.http.headers.common['X-CSRF-TOKEN'] = csrfToken;
+Vue.use(VueResource);
+Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name=csrf-token]').getAttribute('content');
 
 Vue.filter('linkify', function(text) {
     if (text) {
@@ -30,7 +21,7 @@ Vue.filter('linkify', function(text) {
  * Main APP
  * @return {Vue}
  */
-app = new Vue({
+var app = new Vue({
     el: '#app',
 
     components: {
@@ -59,7 +50,7 @@ app = new Vue({
         }
 
         if (is_touch_device()) {
-            jQuery('#nav-mobile').css({ overflow: 'auto'});
+            $('#nav-mobile').css({ overflow: 'auto'});
         }
 
         // Set checkbox on forms.html to indeterminate
