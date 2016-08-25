@@ -22,7 +22,7 @@
     <link rel="alternate" href="https://videouri.com" hreflang="en-us" />
 
     <meta property="og:site_name" content="Videouri"/>
-    <meta property="og:url" content="http://<?= $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ?>"/>
+    <meta property="og:url" content=""/>
 
     @if (isset($thumbnail))
         <meta property="og:type" content="video"/>
@@ -31,7 +31,7 @@
 
     {{-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"> --}}
-    <link href="{{ videouri_asset('/css/app.css') }}" rel="stylesheet">
+    <link href="{{ elixir('dist/css/app.css') }}" rel="stylesheet">
 
     <meta name="alexaVerifyID" content="jcuPoQKjF9UOXxPKulzeux8w7g4"/>
     <meta name="msvalidate.01" content="48B0A933360DDEC6CF1775D7C7E28FD3" />
@@ -50,7 +50,7 @@
     @endif
 </head>
 <body id="app" class="{{ isset($bodyId) ? $bodyId : '' }}">
-    @include('videouri.partials.header')
+    @include('partials.header')
 
     <main>
         @yield('content')
@@ -130,10 +130,9 @@
     </main>
 
     <script type="text/javascript">
+        // Iubenda
         (function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src = "//cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);
-    </script>
 
-    <script type="text/javascript">
         var _iub = _iub || [];
         _iub.csConfiguration = {
             cookiePolicyId: 863528,
@@ -144,10 +143,8 @@
             var loader = function () { var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src = "//cdn.iubenda.com/cookie_solution/iubenda_cs.js"; tag.parentNode.insertBefore(s, tag); };
             if (w.addEventListener) { w.addEventListener("load", loader, false); } else if (w.attachEvent) { w.attachEvent("onload", loader); } else { w.onload = loader; }
         })(window, document);
-    </script>
 
-    <!-- UserVoice JavaScript SDK (only needed once on a page) -->
-    <script>
+        // Uservoice
         (function() {
             var uv = document.createElement('script');
             uv.type = 'text/javascript';
@@ -159,14 +156,14 @@
     </script>
 
     <!-- Scripts -->
-    <script src="{{ videouri_asset('/js/vendor.js') }}"></script>
-    <script src="{{ videouri_asset('/js/app.js') }}"></script>
-    @yield('scripts')
-
-    @if (env('APP_DEBUG') === true)
-    <script type="text/javascript">
-        document.write('<script src="//localhost:35729/livereload.js?snipver=1" type="text/javascript"><\/script>')
-    </script>
+    @if (getenv('APP_ENV') == 'production')
+        <script src="{{ elixir('dist/js/vendors.js') }}"></script>
+        <script src="{{ elixir('dist/js/app.js') }}"></script>
+    @else
+        <script src="/dist/js/vendors.js"></script>
+        <script src="/dist/js/app.js"></script>
     @endif
+
+    @yield('scripts')
 </body>
 </html>
