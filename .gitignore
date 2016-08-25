@@ -1,10 +1,9 @@
 # Stuff
 .idea
 .phpintel
-oracle.sqlite
-oracle.sqlite-journal
 _ide_helper.php
 .phpstorm.meta.php
+NOTES
 
 # Vendors
 /vendor
