@@ -3,19 +3,15 @@
 .phpintel
 oracle.sqlite
 oracle.sqlite-journal
-/stats
+_ide_helper.php
+.phpstorm.meta.php
 
 # Vendors
 /vendor
 /node_modules
-/bower_components
 
 # Env
 .env
-Homestead.yaml
-Homestead.json
-
-# App
 /storage/app/videoDump.json
 /public/sitemaps/*.xml
 /public/storage
@@ -23,3 +19,6 @@ Homestead.json
 # Tests
 tests/report/*
 !tests/report/.gitkeep
+
+# Server
+/stats
