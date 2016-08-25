@@ -152,10 +152,10 @@ return [
         /*
          * Application Service Providers...
          */
-        App\Providers\AppServiceProvider::class,
-        App\Providers\AuthServiceProvider::class,
-        App\Providers\EventServiceProvider::class,
-        App\Providers\RouteServiceProvider::class,
+        Videouri\Providers\AppServiceProvider::class,
+        Videouri\Providers\AuthServiceProvider::class,
+        Videouri\Providers\EventServiceProvider::class,
+        Videouri\Providers\RouteServiceProvider::class,
 
         /**
          * 3rd party providers
@@ -167,7 +167,7 @@ return [
         /**
          * Custom Providers
          */
-        App\Providers\ResponseMacroServiceProvider::class,
+        Videouri\Providers\ResponseMacroServiceProvider::class,
 
     ],
 

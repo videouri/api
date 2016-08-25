@@ -16,7 +16,7 @@
     "alaouy/youtube": "dev-master",
     "dailymotion/sdk": "^1.6",
     "barryvdh/laravel-cors": "^0.8.0",
-    "vinkla/vimeo": "^3.2",
+    "vinkla/vimeo": "^3.4",
     "nesbot/carbon": "^1.21",
     "league/fractal": "^0.13.0",
     "pda/pheanstalk": "^3.1",
@@ -41,7 +41,7 @@
       ]
     ],
     "psr-4": {
-      "App\\": "app/"
+      "Videouri\\": "app/"
     },
     "files": [
       "app/helpers.php"

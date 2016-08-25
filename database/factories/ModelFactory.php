@@ -3,7 +3,7 @@
 /**
  * User
  */
-$factory->define(App\Entities\User::class, function (Faker\Generator $faker) {
+$factory->define(Videouri\Entities\User::class, function (Faker\Generator $faker) {
     return [
         'username'       => $faker->name,
         'email'          => $faker->email,
@@ -15,14 +15,13 @@ $factory->define(App\Entities\User::class, function (Faker\Generator $faker) {
 /**
  * Video
  */
-$factory->define(App\Entities\Video::class, function (Faker\Generator $faker) {
+$factory->define(Videouri\Entities\Video::class, function (Faker\Generator $faker) {
     $faker->addProvider(new Faker\Provider\Internet($faker));
 
     $providers = [
         'Youtube',
         'Vimeo',
         'Dailymotion',
-        // 'Metacafe',
     ];
 
     $original_id = $custom_id = str_random(5);
@@ -44,9 +43,9 @@ $factory->define(App\Entities\Video::class, function (Faker\Generator $faker) {
     ];
 });
 
-$factory->define(App\Entities\Favorite::class, function (Faker\Generator $faker) {
-    $user = factory(App\Entities\User::class)->create();
-    $video = factory(App\Entities\Video::class)->create();
+$factory->define(Videouri\Entities\Favorite::class, function (Faker\Generator $faker) {
+    $user = factory(Videouri\Entities\User::class)->create();
+    $video = factory(Videouri\Entities\Video::class)->create();
 
     return [
         'user_id' => $user->id,
@@ -54,9 +53,9 @@ $factory->define(App\Entities\Favorite::class, function (Faker\Generator $faker)
     ];
 });
 
-$factory->define(App\Entities\View::class, function (Faker\Generator $faker) {
-    $user = factory(App\Entities\User::class)->create();
-    $video = factory(App\Entities\Video::class)->create();
+$factory->define(Videouri\Entities\View::class, function (Faker\Generator $faker) {
+    $user = factory(Videouri\Entities\User::class)->create();
+    $video = factory(Videouri\Entities\Video::class)->create();
 
     return [
         'user_id' => $user->id,
@@ -64,9 +63,9 @@ $factory->define(App\Entities\View::class, function (Faker\Generator $faker) {
     ];
 });
 
-$factory->define(App\Entities\Later::class, function (Faker\Generator $faker) {
-    $user = factory(App\Entities\User::class)->create();
-    $video = factory(App\Entities\Video::class)->create();
+$factory->define(Videouri\Entities\Later::class, function (Faker\Generator $faker) {
+    $user = factory(Videouri\Entities\User::class)->create();
+    $video = factory(Videouri\Entities\Video::class)->create();
 
     return [
         'user_id' => $user->id,
@@ -74,8 +73,8 @@ $factory->define(App\Entities\Later::class, function (Faker\Generator $faker) {
     ];
 });
 
-$factory->define(App\Entities\Search::class, function (Faker\Generator $faker) {
-    $user = factory(App\Entities\User::class)->create();
+$factory->define(Videouri\Entities\Search::class, function (Faker\Generator $faker) {
+    $user = factory(Videouri\Entities\User::class)->create();
 
     return [
         'term' => $faker->words(1, true),
