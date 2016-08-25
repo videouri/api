@@ -1,18 +1,30 @@
 {
+  "name": "Videouri",
+  "authors": [
+    "Alexandru Budurovici <w0rldart@w0rldart.com>"
+  ],
   "private": true,
   "scripts": {
     "prod": "gulp --production",
     "dev": "gulp watch"
   },
   "dependencies": {
+    "font-awesome": "^4.6.3",
     "gulp": "^3.9.1",
-    "laravel-elixir": "^5.0.0",
     "gulp-autoprefixer": "^3.1.0",
-    "laravel-elixir-livereload": "^1.1.4",
+    "imagesloaded": "^4.1.0",
+    "isotope-layout": "^3.0.1",
+    "jquery": "^3.1.0",
+    "laravel-elixir": "^5.0.0",
     "linkifyjs": "^2.0.0-beta.9",
+    "materialize-css": "^0.97.6",
     "readmore-js": "^2.1.0",
-    "vue": "^1.0.17",
-    "vue-resource": "^0.7.0",
-    "vue-router": "^0.7.11"
+    "video.js": "^5.11.0",
+    "videojs-dailymotion": "benjipott/video.js-dailymotion",
+    "videojs-vimeo": "^2.0.2",
+    "videojs-youtube": "^2.1.0",
+    "vue": "^1.0.26",
+    "vue-resource": "^0.9.3",
+    "vue-router": "^0.7.13"
   }
 }
