@@ -1,5 +1,5 @@
 @extends('app')
 
 @section('content')
-    @include('videouri.user.history.menu')
+    @include('user.history.menu')
 @endsection

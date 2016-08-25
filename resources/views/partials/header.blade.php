@@ -16,14 +16,17 @@
             <div class="nav-wrapper">
                 <div class="row">
                     <div class="col s1">
-                        <a href="#" data-activates="nav-mobile" class="button-collapse top-nav full hide-on-large-only black-text">
+                        <a href="#" data-activates="nav-mobile"
+                           class="button-collapse top-nav full hide-on-large-only black-text">
                             <i class="mdi-navigation-menu"></i>
                         </a>
                     </div>
-                    <form action="/search" method="get" id="navbar-search" class="col s5 m7 offset-s2" autocomplete="off">
+                    <form action="/search" method="get" id="navbar-search" class="col s5 m7 offset-s2"
+                          autocomplete="off">
                         <div class="row">
                             <div class="input-field col s10">
-                                <input id="search" type="text" name="query" value="{{ isset($query) ? $query : '' }}" class="validate" required placeholder="Search">
+                                <input id="search" type="text" name="query" value="{{ isset($query) ? $query : '' }}"
+                                       class="validate" required placeholder="Search">
                             </div>
                             <div class="input-field col s2">
                                 <button id="submit-search" class="btn waves-effect waves-light" type="submit">
@@ -37,7 +40,8 @@
                             @if (Auth::guest())
                                 <div class="row">
                                     <div class="col s6 right-align">
-                                        <a href="{{ url('login') }}" class="waves-effect waves-light btn-flat login" id="signup-navbar">
+                                        <a href="{{ url('login') }}" class="waves-effect waves-light btn-flat login"
+                                           id="signup-navbar">
                                             login
                                         </a>
                                     </div>
@@ -60,5 +64,5 @@
         </div>
     </nav>
 
-    @include('videouri.partials.sidebar')
+    @include('partials.sidebar')
 </header>
