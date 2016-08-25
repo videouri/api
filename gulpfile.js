@@ -1,60 +1,60 @@
-var
-    elixir = require('laravel-elixir'),
-    autoprefixer = require('gulp-autoprefixer')
-    ;
+var elixir = require('laravel-elixir');
 
-require('laravel-elixir-livereload');
-
-/*
- |--------------------------------------------------------------------------
- | Elixir Asset Management
- |--------------------------------------------------------------------------
- |
- | Elixir provides a clean, fluent API for defining some basic Gulp tasks
- | for your Laravel application. By default, we are compiling the Less
- | file for our application, as well as publishing vendor resources.
- |
- */
+elixir.config.js.browserify.watchify = {
+    enabled: true,
+    options: {
+        poll: true
+    }
+};
 
 elixir(
     function (mix) {
         mix
-            .less('app.less')
+            .sass('app.scss', 'public/dist/css/app.css')
+
             .scripts([
-                // '../../bower_components/vue/dist/vue.js',
-                // '../../bower_components/vue-resource/dist/vue-resource.js',
-                '../../bower_components/jquery/dist/jquery.js',
-                '../../bower_components/Materialize/dist/js/materialize.js',
+                // 'node_modules/vue/dist/vue.js',
+                // 'node_modules/vue-resource/dist/vue-resource.js',
 
-                'js/vendor/jquery.placeholder.js',
-                'js/vendor/jquery.cookie.js',
-                'js/vendor/jquery.query.js',
+                'node_modules/jquery/dist/jquery.js',
+                'node_modules/materialize-css/dist/js/materialize.js',
 
-                '../../bower_components/imagesloaded/imagesloaded.pkgd.js',
-                '../../bower_components/isotope/dist/isotope.pkgd.js',
+                'node_modules/imagesloaded/imagesloaded.pkgd.js',
+                'node_modules/isotope-layout/dist/isotope.pkgd.js',
 
-                '../../bower_components/video.js/dist/video-js/video.js',
-                '../../bower_components/videojs-youtube/src/youtube.js',
-                '../../bower_components/videojs-vimeo/src/media.vimeo.js',
-                '../../bower_components/videojs-dailymotion/src/dailymotion.js',
+                'node_modules/video.js/dist/video.js',
+                'node_modules/videojs-youtube/dist/Youtube.js',
+                'node_modules/videojs-vimeo/src/Vimeo.js',
+                // 'node_modules/videojs-dailymotion/es5/dailymotion.js',
+                // 'resources/assets/js/vendor/videojs-dailymotion.js',
 
-                '../../bower_components/Readmore.js/readmore.js',
-            ], 'public/js/vendor.js', 'resources/assets/')
+                'node_modules/readmore-js/readmore.js',
 
-            .browserify('app.js')
-            .livereload()
-        ;
+                'resources/assets/js/vendor/jquery.cookie.js',
+                'resources/assets/js/vendor/jquery.query.js'
+            ], 'public/dist/js/vendors.js', './')
 
-        mix
+            .browserify('app.js', 'public/dist/js/app.js')
+
+            .browserSync({
+                proxy: 'local.videouri.com'
+            })
+
+            .version([
+                'public/dist/css/app.css',
+                'public/dist/js/vendors.js',
+                'public/dist/js/app.js'
+            ])
+
             .copy([
-                './bower_components/font-awesome/fonts/**',
-                './bower_components/Materialize/dist/font/**',
-                './bower_components/video.js/dist/video-js/font/**',
-                './resources/assets/font/**'
-            ], 'public/font')
+                'node_modules/font-awesome/fonts',
+                'node_modules/materialize-css/dist/fonts/roboto',
+                'node_modules/video.js/dist/font',
+                'resources/assets/font'
+            ], 'public/dist/font')
         ;
 
         // TESTING!
-        mix.phpUnit();
+        // mix.phpUnit();
     }
 );
