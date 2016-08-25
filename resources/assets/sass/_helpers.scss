@@ -1,22 +1,5 @@
-/* Border Radius */
-.border-radius(@args) {
-    -webkit-border-radius: @args;
-    -moz-border-radius: @args;
-    border-radius: @args;
-
-    -webkit-background-clip: padding-box;
-    -moz-background-clip: padding;
-    background-clip: padding-box;
-}
-
-.inner-shadow(@args) {
-    .box-shadow(inset @args);
-}
-
-
 div.or-container {
     text-align: center;
-    margin-top: 20px;
     color: #808080;
     font-variant: small-caps;
     margin: 50px 0 10px 0;

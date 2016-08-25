@@ -1,15 +1,15 @@
 /**
  * Vendors
  */
-@import 'vendor/materialize.less';
-@import 'vendor/font-awesome.less';
-@import 'vendor/video-js.less';
+@import 'vendor/materialize';
+@import 'vendor/font-awesome';
+@import 'vendor/video-js';
 
 /**
  * Custom shit
  */
-@import 'fonts.less';
-@import 'helpers.less';
+@import 'fonts';
+@import 'helpers';
 
 body {
     background-color: #fff;
