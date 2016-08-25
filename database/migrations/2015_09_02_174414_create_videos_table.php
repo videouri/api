@@ -16,26 +16,23 @@ class CreateVideosTable extends Migration
             $table->increments('id');
 
             $table->string('provider');
-            $table->string('original_id')->unique();
-            $table->string('custom_id')->unique()->nullable(); // TODO: remove nullable once populated on LIVE DB
-            $table->string('original_url')->unique();
+            $table->string('original_id');
+            $table->string('original_url');
+
+            $table->string('custom_id');
             $table->string('slug')->nullable();
 
-            $table->string('author')->nullable();
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->string('thumbnail');
-            $table->integer('views')->default(0);
-            $table->integer('duration')->default(0); // Value will be in seconds
-            $table->text('categories')->nullable();
-            $table->text('tags');
+            // json encoded video data as returned from API
+            $table->json('data');
 
+            // Determine whether a video has a DMCA claim
             $table->boolean('dmca_claim')->default(false);
 
             $table->softDeletes();
             $table->timestamps();
 
-            $table->index(['original_id']);
+            $table->unique(['original_id', 'original_url', 'custom_id']);
+            $table->index(['original_id', 'custom_id']);
         });
     }
 
