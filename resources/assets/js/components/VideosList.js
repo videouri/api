@@ -12,51 +12,64 @@ module.exports = {
         ////////////////
         // Video page //
         ////////////////
-        'api',
-        'original_id',
+        'custom_id'
     ],
-
-    // data: function() {
-    //     return {
-    //         videos: {}
-    //     };
-    // },
 
     components: {
         'video-card': require('./VideoCard')
     },
 
-    beforeCompile: function(e) {
+    beforeCompile: function () {
+        var baseUri = '/api';
+        var uri = {
+            recommendations: {
+                video: baseUri + '/recommendations/video'
+            },
+            content: {
+                home:  baseUri +'/content/related'
+            },
+            user: {
+                favorites: baseUri + '/user/favorites',
+                watchLater: baseUri + '/user/watch-later',
+                history: {
+                    videos: baseUri + '/user/history/videos',
+                    searches: baseUri + '/user/history/searches'
+                }
+            },
+            search: baseUri + '/search'
+        };
+
         switch (this.content) {
-            ////////////
-            // Videos //
-            ////////////
+            /////////////
+            // Content //
+            /////////////
             case 'homeVideos':
-                this.$http.get('/api/videos/home', function(videos) {
+                this.$http.get(uri.content.home, function (videos) {
                     this.$set('videos', videos.data);
                     this.initIsotope();
                 });
                 break;
 
+            ////////////
+            //  User  //
+            ////////////
+
             case 'favorites':
-                this.$http.get('/api/videos/favorites', function(videos) {
+                this.$http.get(uri.user.favorites, function (videos) {
                     this.$set('videos', videos.data);
                     this.initIsotope();
                 });
                 break;
 
             case 'watchLater':
-                this.$http.get('/api/videos/watch-later', function(videos) {
+                this.$http.get(uri.user.watchLater, function (videos) {
                     this.$set('videos', videos.data);
                     this.initIsotope();
                 });
                 break;
 
-            /////////////
-            // History //
-            /////////////
             case 'videosWatched':
-                this.$http.get('/api/history/videos', function(videos) {
+                this.$http.get(uri.user.history.videos, function (videos) {
                     this.$set('videos', videos.data);
                     this.initIsotope();
                 });
@@ -66,11 +79,11 @@ module.exports = {
             // Search //
             ////////////
             case 'search':
-                var parameters = {
-                    'query': this.query
-                };
-
-                this.$http.get('/api/videos/search', parameters, function(searchResults) {
+                this.$http.get(uri.search, {
+                    params: {
+                        query: this.query
+                    }
+                }).then(function (searchResults) {
                     this.$set('videos', searchResults.data);
                     this.initIsotope();
                 });
@@ -80,12 +93,11 @@ module.exports = {
             // Video page //
             ////////////////
             case 'recommended':
-                var parameters = {
-                    'api': this.api,
-                    'original_id': this.original_id
-                };
-
-                this.$http.get('/api/videos/recommended', parameters, function(results) {
+                this.$http.get(uri.recommendations.video, {
+                    params: {
+                        'custom_id': this.custom_id
+                    }
+                }).then(function (results) {
                     this.$set('videos', results);
                     this.initIsotope();
                 });
@@ -94,53 +106,35 @@ module.exports = {
     },
 
     watch: {
-        "videos": function(oldVal, newVal) {
+        "videos": function () {
             jQuery('#preloader').fadeOut();
             jQuery('#filter-apis').removeClass('hide');
         }
     },
 
     methods: {
-        initIsotope: function() {
+        initIsotope: function () {
             this.$nextTick(function () {
-                var $grid = jQuery('#videos').isotope({
-                    // columnWidth: '.video',
+                var $grid = $('#videos').isotope({
                     itemSelector: '.video',
-                    layoutMode: 'masonry',
-                    // isInitLayout: true,
-                    // gutter: 200
+                    layoutMode: 'masonry'
                 });
 
-                $grid.imagesLoaded().progress( function() {
+                $grid.imagesLoaded().progress(function () {
                     $grid.isotope('layout');
                 });
 
 
                 if (this.filter_apis == 'enabled') {
-                    $('.video-source').on('click', function() {
+                    $('.video-source').on('click', function () {
                         var filterValue = $(this).data('filter');
-                        $('.choosen-source').html('Source: '  + $(this).text());
+                        $('.choosen-source').html('Source: ' + $(this).text());
 
                         $grid.isotope({
                             filter: filterValue
                         });
                     });
-                }
-
-                // // bind event
-                // $grid.isotope( 'on', 'arrangeComplete', function(ev, ve) {
-                //     console.log(ev);
-                //     console.log(ve);
-                //     console.log('arrange is complete');
-                // });
-
-                // $grid.isotope();
-
-                // $grid.on('layoutComplete', function(event, laidOutItems) {
-                //     console.log(laidOutItems);
-                //     console.log( 'Isotope layout completed on ' +
-                //                 laidOutItems.length + ' items' );
-                // });
+                };
             });
         }
     }
