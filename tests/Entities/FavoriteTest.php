@@ -15,9 +15,9 @@ class FavoriteTest extends AbstractTestCase
 
     public function testModelFactory()
     {
-        $favorite = factory(Favorite::class)->create();
-        $favoriteFromDB = Favorite::where('user_id', $favorite->user_id)->first();
+        $favourite = factory(Favorite::class)->create();
+        $favouriteFromDB = Favorite::where('user_id', $favourite->user_id)->first();
 
-        $this->assertEquals($favorite->user_id, $favoriteFromDB->user_id);
+        $this->assertEquals($favourite->user_id, $favouriteFromDB->user_id);
     }
 }
