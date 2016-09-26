@@ -5,23 +5,13 @@ module.exports = {
 
     replace: true,
 
-    // data: function() {
-    //     return {
-    //         id: '',
-    //         url: '',
-    //         thumbnail: '',
-    //         title: '',
-    //         source: ''
-    //     };
-    // },
-
     methods: {
         saveForLater: function(stuff) {
             var parameters = {
                 original_id: this.video.original_id
             };
 
-            this.$http.post('/api/user/watch-later', parameters, function(homeVideos) {
+            this.$http.post('/api/user/watch-later', parameters, function() {
                 alert('success');
             });
         }

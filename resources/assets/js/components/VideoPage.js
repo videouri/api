@@ -52,6 +52,22 @@ module.exports = {
             return false;
         });
 
+        /**
+         *
+         */
+        function resizeVideoJS() {
+            var aspectRatio = 264 / 640;
+            var player = document.getElementById('video-player');
+            var width = player.parentElement.offsetWidth;
+            var height = width * aspectRatio;
+
+            if (height > 530) {
+                height = 530;
+            }
+        }
+
+        resizeVideoJS();
+
         /////////////
         // VideoJS //
         /////////////
@@ -66,29 +82,14 @@ module.exports = {
             'sources': [{
                 'type': 'video/' + source,
                 'src': url
-            }]
+            }],
+            controlBar: {
+                muteToggle: false
+            },
+            'controls': true,
+            'autoplay': false,
+            'preload': 'auto'
         }).ready(function () {
-            var player = this;
-            var aspectRatio = 264 / 640;
-
-            function resizeVideoJS() {
-                var width = document.getElementById('video-player').parentElement.offsetWidth;
-                var height = width * aspectRatio;
-
-                if (height > 530) {
-                    height = 530;
-                }
-
-                if (!height < 530) {
-                    player
-                        .width(width)
-                        .height(height)
-                    ;
-                }
-            }
-
-            resizeVideoJS();
-
             // Re-adjust aspect ration on window resize
             window.onresize = resizeVideoJS;
         });
