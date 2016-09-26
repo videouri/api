@@ -69,7 +69,6 @@ ul#social-and-stats {
 
 
 @import 'module/header';
-// @import 'module/home';
 @import 'module/sidebar';
 @import 'module/video-cards';
 @import 'module/video-page';
@@ -117,16 +116,11 @@ ul#social-and-stats {
 // Footer //
 ////////////
 footer.page-footer {
-    // border-top: 1px solid #efefef;
-    // background: #f7f8fa;
     background-color: transparent;
 
     .footer-copyright {
         background: transparent;
         color: #444;
-
-        // a {
-        // }
     }
 }
 
