@@ -107,7 +107,7 @@ return [
     |
     */
 
-    'log' => env('APP_LOG', 'daily'),
+    'log' => env('APP_LOG', 'single'),
 
     'log_level' => env('APP_LOG_LEVEL', 'debug'),
 
@@ -156,6 +156,7 @@ return [
         Videouri\Providers\AuthServiceProvider::class,
         Videouri\Providers\EventServiceProvider::class,
         Videouri\Providers\RouteServiceProvider::class,
+        Videouri\Providers\ResponseMacroServiceProvider::class,
 
         /**
          * 3rd party providers
@@ -163,12 +164,6 @@ return [
         Vinkla\Vimeo\VimeoServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
-
-        /**
-         * Custom Providers
-         */
-        Videouri\Providers\ResponseMacroServiceProvider::class,
-
     ],
 
     /*
