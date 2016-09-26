@@ -4,7 +4,6 @@
             <span class="videouri">
                 Videouri
             </span>
-            <!-- <object id="front-page-logo" type="image/svg+xml" data="res/materialize.svg">Your browser does not support SVG</object> -->
         </a>
     </li>
 
@@ -16,37 +15,6 @@
             What to watch
         </a>
     </li>
-
-    {{-- <li class="side-menu">
-        <a href="{{ route('topic.music') }}" class="waves-effect waves-teal">
-            <i class="fa fa-music"></i> &nbsp;
-            Music
-        </a>
-    </li>
-    <li class="side-menu">
-        <a href="{{ route('topic.sports') }}" class="waves-effect waves-teal">
-            <i class="fa fa-futbol-o"></i> &nbsp;
-            Sports
-        </a>
-    </li>
-    <li class="side-menu">
-        <a href="{{ route('topic.trailers') }}" class="waves-effect waves-teal">
-            <i class="fa fa-film"></i> &nbsp;
-            Trailers
-        </a>
-    </li>
-    <li class="side-menu">
-        <a href="{{ route('topic.news') }}" class="waves-effect waves-teal">
-            <i class="fa fa-newspaper-o"></i> &nbsp;
-            News
-        </a>
-    </li>
-    <li class="side-menu">
-        <a href="{{ route('topic.best-of-week') }}" class="waves-effect waves-teal">
-            <i class="fa fa-star-o"></i> &nbsp;
-            Best of this week
-        </a>
-    </li> --}}
 
     @if ($currentUser !== 'guest')
         <br/>
