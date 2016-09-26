@@ -51,7 +51,7 @@
   "autoload-dev": {
     "classmap": [
       "tests/AbstractTestCase.php",
-      "tests/Providers/Scout/ScoutTestCase.php"
+      "tests/Services/Scout/ScoutTestCase.php"
     ]
   },
   "scripts": {
