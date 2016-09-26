@@ -6,7 +6,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\View;
 use Videouri\Http\Controllers\Controller;
-use Videouri\Http\Requests;
 
 /**
  * @package Videouri\Http\Controllers\User
@@ -36,6 +35,6 @@ class HistoryController extends Controller
             return redirect('/');
         }
 
-        return view('videouri.user.history.' . $type);
+        return view('user.history.' . $type);
     }
 }

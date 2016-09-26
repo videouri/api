@@ -17,7 +17,7 @@ class PagesController extends Controller
      */
     public function home()
     {
-        return view('videouri.public.home');
+        return view('public.home');
     }
 
     /**
@@ -33,7 +33,7 @@ class PagesController extends Controller
 
         $input = $request->only(['query']);
 
-        return view('videouri.public.search', $input);
+        return view('public.search', $input);
     }
 
     /**
@@ -50,7 +50,7 @@ class PagesController extends Controller
                     return redirect('/');
                 }
 
-                return view('videouri.legal.' . $part);
+                return view('legal.' . $part);
                 break;
 
             default:
