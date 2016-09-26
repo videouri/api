@@ -11,12 +11,6 @@
                 Please make sure you typed in the url correctly,
                 and if not, try and search again.
             </p>
-
-            <?php
-
-            // @TODO: List some videos
-
-            ?>
         </div>
     </div>
 </div>
