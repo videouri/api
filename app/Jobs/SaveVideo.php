@@ -5,6 +5,7 @@ namespace Videouri\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Log;
 use Videouri\Entities\Video;
 
 /**
@@ -12,68 +13,43 @@ use Videouri\Entities\Video;
  */
 class SaveVideo extends Job implements ShouldQueue
 {
-    use InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue;
 
     /**
-     * @var array
+     * @var Video
      */
-    private $data;
+    private $video;
 
     /**
-     * @var string
+     * @param Video $video
      */
-    private $provider;
-
-    /**
-     * @param array $data
-     * @param string $provider
-     */
-    public function __construct($data, $provider)
+    public function __construct(Video $video)
     {
-        $this->data = $data;
-        $this->provider = $provider;
+        $this->video = $video;
     }
 
     /**
-     * @return bool
+     * Execute the job.
+     *
+     * @return void
      */
     public function handle()
     {
-        $video = Video::where('original_id', '=', $this->data['original_id'])->first();
+        $originalId = $this->video->getAttribute('original_id');
+        $video = Video::where('original_id', '=', $originalId)->first();
 
-        if ($video) {
-            return true;
+        if (!$video) {
+            if ($this->video->save()) {
+                Log::info('SaveVideo: Successfully saved new video.', [
+                    'provider' => $this->video->getAttribute('provider'),
+                    'original_id' => $this->video->getAttribute('original_id')
+                ]);
+            } else {
+                Log::error('SaveVideo: Error whilst trying to save new video.', [
+                    'provider' => $this->video->getAttribute('provider'),
+                    'original_id' => $this->video->getAttribute('original_id')
+                ]);
+            }
         }
-
-        $video = new Video;
-
-        $video->provider = $this->provider;
-        $video->original_id = $this->data['original_id'];
-        $video->custom_id = $this->data['custom_id'];
-
-        $video->original_url = $this->data['original_url'];
-        // @TODO slug for video
-        // $video->slug = null;
-
-        $video->title = $this->data['title'];
-
-        if (!empty($this->data['description'])) {
-            $video->description = $this->data['description'];
-        }
-
-        $video->thumbnail = $this->data['thumbnail'];
-
-        if ($this->data['views'] > 0) {
-            $video->views = $this->data['views'];
-        }
-
-        if ($this->data['duration'] > 0) {
-            $video->duration = $this->data['duration'];
-        }
-
-        $video->categories = null;
-        $video->tags = json_encode($this->data['tags']);
-
-        return $video->save();
     }
 }
