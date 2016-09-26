@@ -14,6 +14,8 @@ var tokenize = linkify.tokenize; /**
                                  */
 
 var options = linkify.options;
+var Options = options.Options;
+
 
 function escapeText(text) {
 	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -24,8 +26,9 @@ function escapeAttr(href) {
 }
 
 function attributesToString(attributes) {
-
-	if (!attributes) return '';
+	if (!attributes) {
+		return '';
+	}
 	var result = [];
 
 	for (var attr in attributes) {
@@ -38,54 +41,56 @@ function attributesToString(attributes) {
 function linkifyStr(str) {
 	var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
+	opts = new Options(opts);
 
-	opts = options.normalize(opts);
-
-	var tokens = tokenize(str),
-	    result = [];
+	var tokens = tokenize(str);
+	var result = [];
 
 	for (var i = 0; i < tokens.length; i++) {
 		var token = tokens[i];
-		var validated = token.isLink && options.resolve(opts.validate, token.toString(), token.type);
 
-		if (token.isLink && validated) {
-
-			var href = token.toHref(opts.defaultProtocol),
-			    formatted = options.resolve(opts.format, token.toString(), token.type),
-			    formattedHref = options.resolve(opts.formatHref, href, token.type),
-			    attributesHash = options.resolve(opts.attributes, href, token.type),
-			    tagName = options.resolve(opts.tagName, href, token.type),
-			    linkClass = options.resolve(opts.linkClass, href, token.type),
-			    target = options.resolve(opts.target, href, token.type);
-
-			var link = '<' + tagName + ' href="' + escapeAttr(formattedHref) + '" class="' + escapeAttr(linkClass) + '"';
-			if (target) {
-				link += ' target="' + escapeAttr(target) + '"';
-			}
-
-			if (attributesHash) {
-				link += ' ' + attributesToString(attributesHash);
-			}
-
-			link += '>' + escapeText(formatted) + '</' + tagName + '>';
-			result.push(link);
-		} else if (token.type === 'nl' && opts.nl2br) {
-			if (opts.newLine) {
-				result.push(opts.newLine);
-			} else {
-				result.push('<br>\n');
-			}
-		} else {
+		if (token.type === 'nl' && opts.nl2br) {
+			result.push('<br>\n');
+			continue;
+		} else if (!token.isLink || !opts.check(token)) {
 			result.push(escapeText(token.toString()));
+			continue;
 		}
+
+		var _opts$resolve = opts.resolve(token);
+
+		var formatted = _opts$resolve.formatted;
+		var formattedHref = _opts$resolve.formattedHref;
+		var tagName = _opts$resolve.tagName;
+		var className = _opts$resolve.className;
+		var target = _opts$resolve.target;
+		var attributes = _opts$resolve.attributes;
+
+
+		var link = '<' + tagName + ' href="' + escapeAttr(formattedHref) + '"';
+
+		if (className) {
+			link += ' class="' + escapeAttr(className) + '"';
+		}
+
+		if (target) {
+			link += ' target="' + escapeAttr(target) + '"';
+		}
+
+		if (attributes) {
+			link += ' ' + attributesToString(attributes);
+		}
+
+		link += '>' + escapeText(formatted) + '</' + tagName + '>';
+		result.push(link);
 	}
 
 	return result.join('');
 }
 
 if (!String.prototype.linkify) {
-	String.prototype.linkify = function (options) {
-		return linkifyStr(this, options);
+	String.prototype.linkify = function (opts) {
+		return linkifyStr(this, opts);
 	};
 }
 
@@ -134,13 +139,13 @@ var tokenize = function tokenize(str) {
 var find = function find(str) {
 	var type = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
-
-	var tokens = tokenize(str),
-	    filtered = [];
+	var tokens = tokenize(str);
+	var filtered = [];
 
 	for (var i = 0; i < tokens.length; i++) {
-		if (tokens[i].isLink && (!type || tokens[i].type === type)) {
-			filtered.push(tokens[i].toObject());
+		var token = tokens[i];
+		if (token.isLink && (!type || token.type === type)) {
+			filtered.push(token.toObject());
 		}
 	}
 
@@ -176,16 +181,29 @@ exports.parser = parser;
 exports.scanner = scanner;
 exports.test = test;
 exports.tokenize = tokenize;
-},{"./linkify/core/parser":3,"./linkify/core/scanner":4,"./linkify/utils/class":7,"./linkify/utils/options":8}],3:[function(require,module,exports){
+},{"./linkify/core/parser":3,"./linkify/core/scanner":4,"./linkify/utils/class":9,"./linkify/utils/options":10}],3:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 exports.start = exports.run = exports.TOKENS = exports.State = undefined;
 
-var _tokens = require('./tokens');
-
 var _state = require('./state');
 
+var _text = require('./tokens/text');
+
+var TEXT_TOKENS = _interopRequireWildcard(_text);
+
+var _multi = require('./tokens/multi');
+
+var MULTI_TOKENS = _interopRequireWildcard(_multi);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var makeState = function makeState(tokenClass) {
+	return new _state.TokenState(tokenClass);
+};
+
+// The universal starting state.
 /**
 	Not exactly parser, more like the second-stage scanner (although we can
 	theoretically hotswap the code here with a real parser in the future... but
@@ -201,164 +219,103 @@ var _state = require('./state');
 	@main parser
 */
 
-var makeState = function makeState(tokenClass) {
-	return new _state.TokenState(tokenClass);
-};
-
-var TT_DOMAIN = _tokens.text.DOMAIN,
-    TT_AT = _tokens.text.AT,
-    TT_COLON = _tokens.text.COLON,
-    TT_DOT = _tokens.text.DOT,
-    TT_PUNCTUATION = _tokens.text.PUNCTUATION,
-    TT_LOCALHOST = _tokens.text.LOCALHOST,
-    TT_NL = _tokens.text.NL,
-    TT_NUM = _tokens.text.NUM,
-    TT_PLUS = _tokens.text.PLUS,
-    TT_POUND = _tokens.text.POUND,
-    TT_PROTOCOL = _tokens.text.PROTOCOL,
-    TT_QUERY = _tokens.text.QUERY,
-    TT_SLASH = _tokens.text.SLASH,
-    TT_SYM = _tokens.text.SYM,
-    TT_TLD = _tokens.text.TLD,
-    TT_OPENBRACE = _tokens.text.OPENBRACE,
-    TT_OPENBRACKET = _tokens.text.OPENBRACKET,
-    TT_OPENPAREN = _tokens.text.OPENPAREN,
-    TT_CLOSEBRACE = _tokens.text.CLOSEBRACE,
-    TT_CLOSEBRACKET = _tokens.text.CLOSEBRACKET,
-    TT_CLOSEPAREN = _tokens.text.CLOSEPAREN;
-
-// TT_WS 			= TEXT_TOKENS.WS;
-
-var T_EMAIL = _tokens.multi.EMAIL,
-    T_NL = _tokens.multi.NL,
-    T_TEXT = _tokens.multi.TEXT,
-    T_URL = _tokens.multi.URL;
-
-// The universal starting state.
 var S_START = makeState();
 
 // Intermediate states for URLs. Note that domains that begin with a protocol
 // are treated slighly differently from those that don't.
-var S_PROTOCOL = makeState(),
-    // e.g., 'http:'
-S_PROTOCOL_SLASH = makeState(),
-    // e.g., '/', 'http:/''
-S_PROTOCOL_SLASH_SLASH = makeState(),
-    // e.g., '//', 'http://'
-S_DOMAIN = makeState(),
-    // parsed string ends with a potential domain name (A)
-S_DOMAIN_DOT = makeState(),
-    // (A) domain followed by DOT
-S_TLD = makeState(T_URL),
-    // (A) Simplest possible URL with no query string
-S_TLD_COLON = makeState(),
-    // (A) URL followed by colon (potential port number here)
-S_TLD_PORT = makeState(T_URL),
-    // TLD followed by a port number
-S_URL = makeState(T_URL),
-    // Long URL with optional port and maybe query string
-S_URL_NON_ACCEPTING = makeState(),
-    // URL followed by some symbols (will not be part of the final URL)
-S_URL_OPENBRACE = makeState(),
-    // URL followed by {
-S_URL_OPENBRACKET = makeState(),
-    // URL followed by [
-S_URL_OPENPAREN = makeState(),
-    // URL followed by (
-S_URL_OPENBRACE_Q = makeState(T_URL),
-    // URL followed by { and some symbols that the URL can end it
-S_URL_OPENBRACKET_Q = makeState(T_URL),
-    // URL followed by [ and some symbols that the URL can end it
-S_URL_OPENPAREN_Q = makeState(T_URL),
-    // URL followed by ( and some symbols that the URL can end it
-S_URL_OPENBRACE_SYMS = makeState(),
-    // S_URL_OPENBRACE_Q followed by some symbols it cannot end it
-S_URL_OPENBRACKET_SYMS = makeState(),
-    // S_URL_OPENBRACKET_Q followed by some symbols it cannot end it
-S_URL_OPENPAREN_SYMS = makeState(),
-    // S_URL_OPENPAREN_Q followed by some symbols it cannot end it
-S_EMAIL_DOMAIN = makeState(),
-    // parsed string starts with local email info + @ with a potential domain name (C)
-S_EMAIL_DOMAIN_DOT = makeState(),
-    // (C) domain followed by DOT
-S_EMAIL = makeState(T_EMAIL),
-    // (C) Possible email address (could have more tlds)
-S_EMAIL_COLON = makeState(),
-    // (C) URL followed by colon (potential port number here)
-S_EMAIL_PORT = makeState(T_EMAIL),
-    // (C) Email address with a port
-S_LOCALPART = makeState(),
-    // Local part of the email address
-S_LOCALPART_AT = makeState(),
-    // Local part of the email address plus @
-S_LOCALPART_DOT = makeState(),
-    // Local part of the email address plus '.' (localpart cannot end in .)
-S_NL = makeState(T_NL); // single new line
+var S_PROTOCOL = makeState(); // e.g., 'http:'
+var S_PROTOCOL_SLASH = makeState(); // e.g., '/', 'http:/''
+var S_PROTOCOL_SLASH_SLASH = makeState(); // e.g., '//', 'http://'
+var S_DOMAIN = makeState(); // parsed string ends with a potential domain name (A)
+var S_DOMAIN_DOT = makeState(); // (A) domain followed by DOT
+var S_TLD = makeState(_multi.URL); // (A) Simplest possible URL with no query string
+var S_TLD_COLON = makeState(); // (A) URL followed by colon (potential port number here)
+var S_TLD_PORT = makeState(_multi.URL); // TLD followed by a port number
+var S_URL = makeState(_multi.URL); // Long URL with optional port and maybe query string
+var S_URL_NON_ACCEPTING = makeState(); // URL followed by some symbols (will not be part of the final URL)
+var S_URL_OPENBRACE = makeState(); // URL followed by {
+var S_URL_OPENBRACKET = makeState(); // URL followed by [
+var S_URL_OPENPAREN = makeState(); // URL followed by (
+var S_URL_OPENBRACE_Q = makeState(_multi.URL); // URL followed by { and some symbols that the URL can end it
+var S_URL_OPENBRACKET_Q = makeState(_multi.URL); // URL followed by [ and some symbols that the URL can end it
+var S_URL_OPENPAREN_Q = makeState(_multi.URL); // URL followed by ( and some symbols that the URL can end it
+var S_URL_OPENBRACE_SYMS = makeState(); // S_URL_OPENBRACE_Q followed by some symbols it cannot end it
+var S_URL_OPENBRACKET_SYMS = makeState(); // S_URL_OPENBRACKET_Q followed by some symbols it cannot end it
+var S_URL_OPENPAREN_SYMS = makeState(); // S_URL_OPENPAREN_Q followed by some symbols it cannot end it
+var S_EMAIL_DOMAIN = makeState(); // parsed string starts with local email info + @ with a potential domain name (C)
+var S_EMAIL_DOMAIN_DOT = makeState(); // (C) domain followed by DOT
+var S_EMAIL = makeState(_multi.EMAIL); // (C) Possible email address (could have more tlds)
+var S_EMAIL_COLON = makeState(); // (C) URL followed by colon (potential port number here)
+var S_EMAIL_PORT = makeState(_multi.EMAIL); // (C) Email address with a port
+var S_LOCALPART = makeState(); // Local part of the email address
+var S_LOCALPART_AT = makeState(); // Local part of the email address plus @
+var S_LOCALPART_DOT = makeState(); // Local part of the email address plus '.' (localpart cannot end in .)
+var S_NL = makeState(_multi.NL); // single new line
 
 // Make path from start to protocol (with '//')
-S_START.on(TT_NL, S_NL).on(TT_PROTOCOL, S_PROTOCOL).on(TT_SLASH, S_PROTOCOL_SLASH);
+S_START.on(_text.NL, S_NL).on(_text.PROTOCOL, S_PROTOCOL).on(_text.SLASH, S_PROTOCOL_SLASH);
 
-S_PROTOCOL.on(TT_SLASH, S_PROTOCOL_SLASH);
-S_PROTOCOL_SLASH.on(TT_SLASH, S_PROTOCOL_SLASH_SLASH);
+S_PROTOCOL.on(_text.SLASH, S_PROTOCOL_SLASH);
+S_PROTOCOL_SLASH.on(_text.SLASH, S_PROTOCOL_SLASH_SLASH);
 
 // The very first potential domain name
-S_START.on(TT_TLD, S_DOMAIN).on(TT_DOMAIN, S_DOMAIN).on(TT_LOCALHOST, S_TLD).on(TT_NUM, S_DOMAIN);
+S_START.on(_text.TLD, S_DOMAIN).on(_text.DOMAIN, S_DOMAIN).on(_text.LOCALHOST, S_TLD).on(_text.NUM, S_DOMAIN);
 
 // Force URL for anything sane followed by protocol
-S_PROTOCOL_SLASH_SLASH.on(TT_TLD, S_URL).on(TT_DOMAIN, S_URL).on(TT_NUM, S_URL).on(TT_LOCALHOST, S_URL);
+S_PROTOCOL_SLASH_SLASH.on(_text.TLD, S_URL).on(_text.DOMAIN, S_URL).on(_text.NUM, S_URL).on(_text.LOCALHOST, S_URL);
 
 // Account for dots and hyphens
 // hyphens are usually parts of domain names
-S_DOMAIN.on(TT_DOT, S_DOMAIN_DOT);
-S_EMAIL_DOMAIN.on(TT_DOT, S_EMAIL_DOMAIN_DOT);
+S_DOMAIN.on(_text.DOT, S_DOMAIN_DOT);
+S_EMAIL_DOMAIN.on(_text.DOT, S_EMAIL_DOMAIN_DOT);
 
 // Hyphen can jump back to a domain name
 
 // After the first domain and a dot, we can find either a URL or another domain
-S_DOMAIN_DOT.on(TT_TLD, S_TLD).on(TT_DOMAIN, S_DOMAIN).on(TT_NUM, S_DOMAIN).on(TT_LOCALHOST, S_DOMAIN);
+S_DOMAIN_DOT.on(_text.TLD, S_TLD).on(_text.DOMAIN, S_DOMAIN).on(_text.NUM, S_DOMAIN).on(_text.LOCALHOST, S_DOMAIN);
 
-S_EMAIL_DOMAIN_DOT.on(TT_TLD, S_EMAIL).on(TT_DOMAIN, S_EMAIL_DOMAIN).on(TT_NUM, S_EMAIL_DOMAIN).on(TT_LOCALHOST, S_EMAIL_DOMAIN);
+S_EMAIL_DOMAIN_DOT.on(_text.TLD, S_EMAIL).on(_text.DOMAIN, S_EMAIL_DOMAIN).on(_text.NUM, S_EMAIL_DOMAIN).on(_text.LOCALHOST, S_EMAIL_DOMAIN);
 
 // S_TLD accepts! But the URL could be longer, try to find a match greedily
 // The `run` function should be able to "rollback" to the accepting state
-S_TLD.on(TT_DOT, S_DOMAIN_DOT);
-S_EMAIL.on(TT_DOT, S_EMAIL_DOMAIN_DOT);
+S_TLD.on(_text.DOT, S_DOMAIN_DOT);
+S_EMAIL.on(_text.DOT, S_EMAIL_DOMAIN_DOT);
 
 // Become real URLs after `SLASH` or `COLON NUM SLASH`
 // Here PSS and non-PSS converge
-S_TLD.on(TT_COLON, S_TLD_COLON).on(TT_SLASH, S_URL);
-S_TLD_COLON.on(TT_NUM, S_TLD_PORT);
-S_TLD_PORT.on(TT_SLASH, S_URL);
-S_EMAIL.on(TT_COLON, S_EMAIL_COLON);
-S_EMAIL_COLON.on(TT_NUM, S_EMAIL_PORT);
+S_TLD.on(_text.COLON, S_TLD_COLON).on(_text.SLASH, S_URL);
+S_TLD_COLON.on(_text.NUM, S_TLD_PORT);
+S_TLD_PORT.on(_text.SLASH, S_URL);
+S_EMAIL.on(_text.COLON, S_EMAIL_COLON);
+S_EMAIL_COLON.on(_text.NUM, S_EMAIL_PORT);
 
 // Types of characters the URL can definitely end in
-var qsAccepting = [TT_DOMAIN, TT_AT, TT_LOCALHOST, TT_NUM, TT_PLUS, TT_POUND, TT_PROTOCOL, TT_SLASH, TT_TLD, TT_SYM];
+var qsAccepting = [_text.DOMAIN, _text.AT, _text.LOCALHOST, _text.NUM, _text.PLUS, _text.POUND, _text.PROTOCOL, _text.SLASH, _text.TLD, _text.UNDERSCORE, _text.SYM];
 
 // Types of tokens that can follow a URL and be part of the query string
 // but cannot be the very last characters
 // Characters that cannot appear in the URL at all should be excluded
-var qsNonAccepting = [TT_COLON, TT_DOT, TT_QUERY, TT_PUNCTUATION, TT_CLOSEBRACE, TT_CLOSEBRACKET, TT_CLOSEPAREN, TT_OPENBRACE, TT_OPENBRACKET, TT_OPENPAREN];
+var qsNonAccepting = [_text.COLON, _text.DOT, _text.QUERY, _text.PUNCTUATION, _text.CLOSEBRACE, _text.CLOSEBRACKET, _text.CLOSEPAREN, _text.OPENBRACE, _text.OPENBRACKET, _text.OPENPAREN];
 
 // These states are responsible primarily for determining whether or not to
 // include the final round bracket.
 
 // URL, followed by an opening bracket
-S_URL.on(TT_OPENBRACE, S_URL_OPENBRACE).on(TT_OPENBRACKET, S_URL_OPENBRACKET).on(TT_OPENPAREN, S_URL_OPENPAREN);
+S_URL.on(_text.OPENBRACE, S_URL_OPENBRACE).on(_text.OPENBRACKET, S_URL_OPENBRACKET).on(_text.OPENPAREN, S_URL_OPENPAREN);
 
 // URL with extra symbols at the end, followed by an opening bracket
-S_URL_NON_ACCEPTING.on(TT_OPENBRACE, S_URL_OPENBRACE).on(TT_OPENBRACKET, S_URL_OPENBRACKET).on(TT_OPENPAREN, S_URL_OPENPAREN);
+S_URL_NON_ACCEPTING.on(_text.OPENBRACE, S_URL_OPENBRACE).on(_text.OPENBRACKET, S_URL_OPENBRACKET).on(_text.OPENPAREN, S_URL_OPENPAREN);
 
 // Closing bracket component. This character WILL be included in the URL
-S_URL_OPENBRACE.on(TT_CLOSEBRACE, S_URL);
-S_URL_OPENBRACKET.on(TT_CLOSEBRACKET, S_URL);
-S_URL_OPENPAREN.on(TT_CLOSEPAREN, S_URL);
-S_URL_OPENBRACE_Q.on(TT_CLOSEBRACE, S_URL);
-S_URL_OPENBRACKET_Q.on(TT_CLOSEBRACKET, S_URL);
-S_URL_OPENPAREN_Q.on(TT_CLOSEPAREN, S_URL);
-S_URL_OPENBRACE_SYMS.on(TT_CLOSEBRACE, S_URL);
-S_URL_OPENBRACKET_SYMS.on(TT_CLOSEBRACKET, S_URL);
-S_URL_OPENPAREN_SYMS.on(TT_CLOSEPAREN, S_URL);
+S_URL_OPENBRACE.on(_text.CLOSEBRACE, S_URL);
+S_URL_OPENBRACKET.on(_text.CLOSEBRACKET, S_URL);
+S_URL_OPENPAREN.on(_text.CLOSEPAREN, S_URL);
+S_URL_OPENBRACE_Q.on(_text.CLOSEBRACE, S_URL);
+S_URL_OPENBRACKET_Q.on(_text.CLOSEBRACKET, S_URL);
+S_URL_OPENPAREN_Q.on(_text.CLOSEPAREN, S_URL);
+S_URL_OPENBRACE_SYMS.on(_text.CLOSEBRACE, S_URL);
+S_URL_OPENBRACKET_SYMS.on(_text.CLOSEBRACKET, S_URL);
+S_URL_OPENPAREN_SYMS.on(_text.CLOSEPAREN, S_URL);
 
 // URL that beings with an opening bracket, followed by a symbols.
 // Note that the final state can still be `S_URL_OPENBRACE_Q` (if the URL only
@@ -397,36 +354,35 @@ S_URL_NON_ACCEPTING.on(qsNonAccepting, S_URL_NON_ACCEPTING);
 // with real URLs
 
 // Tokens allowed in the localpart of the email
-var localpartAccepting = [TT_DOMAIN, TT_NUM, TT_PLUS, TT_POUND, TT_QUERY, TT_SYM, TT_TLD];
+var localpartAccepting = [_text.DOMAIN, _text.NUM, _text.PLUS, _text.POUND, _text.QUERY, _text.UNDERSCORE, _text.SYM, _text.TLD];
 
 // Some of the tokens in `localpartAccepting` are already accounted for here and
 // will not be overwritten (don't worry)
-S_DOMAIN.on(localpartAccepting, S_LOCALPART).on(TT_AT, S_LOCALPART_AT);
-S_TLD.on(localpartAccepting, S_LOCALPART).on(TT_AT, S_LOCALPART_AT);
+S_DOMAIN.on(localpartAccepting, S_LOCALPART).on(_text.AT, S_LOCALPART_AT);
+S_TLD.on(localpartAccepting, S_LOCALPART).on(_text.AT, S_LOCALPART_AT);
 S_DOMAIN_DOT.on(localpartAccepting, S_LOCALPART);
 
 // Okay we're on a localpart. Now what?
 // TODO: IP addresses and what if the email starts with numbers?
-S_LOCALPART.on(localpartAccepting, S_LOCALPART).on(TT_AT, S_LOCALPART_AT) // close to an email address now
-.on(TT_DOT, S_LOCALPART_DOT);
+S_LOCALPART.on(localpartAccepting, S_LOCALPART).on(_text.AT, S_LOCALPART_AT) // close to an email address now
+.on(_text.DOT, S_LOCALPART_DOT);
 S_LOCALPART_DOT.on(localpartAccepting, S_LOCALPART);
-S_LOCALPART_AT.on(TT_TLD, S_EMAIL_DOMAIN).on(TT_DOMAIN, S_EMAIL_DOMAIN).on(TT_LOCALHOST, S_EMAIL);
+S_LOCALPART_AT.on(_text.TLD, S_EMAIL_DOMAIN).on(_text.DOMAIN, S_EMAIL_DOMAIN).on(_text.LOCALHOST, S_EMAIL);
 // States following `@` defined above
 
 var run = function run(tokens) {
-	var len = tokens.length,
-	    cursor = 0,
-	    multis = [],
-	    textTokens = [];
+	var len = tokens.length;
+	var cursor = 0;
+	var multis = [];
+	var textTokens = [];
 
 	while (cursor < len) {
-
-		var state = S_START,
-		    secondState = null,
-		    nextState = null,
-		    multiLength = 0,
-		    latestAccepting = null,
-		    sinceAccepts = -1;
+		var state = S_START;
+		var secondState = null;
+		var nextState = null;
+		var multiLength = 0;
+		var latestAccepting = null;
+		var sinceAccepts = -1;
 
 		while (cursor < len && !(secondState = state.next(tokens[cursor]))) {
 			// Starting tokens with nowhere to jump to.
@@ -465,7 +421,7 @@ var run = function run(tokens) {
 
 			// First close off the textTokens (if available)
 			if (textTokens.length > 0) {
-				multis.push(new T_TEXT(textTokens));
+				multis.push(new _multi.TEXT(textTokens));
 				textTokens = [];
 			}
 
@@ -481,27 +437,31 @@ var run = function run(tokens) {
 
 	// Finally close off the textTokens (if available)
 	if (textTokens.length > 0) {
-		multis.push(new T_TEXT(textTokens));
+		multis.push(new _multi.TEXT(textTokens));
 	}
 
 	return multis;
 };
 
-var TOKENS = _tokens.multi,
-    start = S_START;
 exports.State = _state.TokenState;
-exports.TOKENS = TOKENS;
+exports.TOKENS = MULTI_TOKENS;
 exports.run = run;
-exports.start = start;
-},{"./state":5,"./tokens":6}],4:[function(require,module,exports){
+exports.start = S_START;
+},{"./state":5,"./tokens/multi":7,"./tokens/text":8}],4:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 exports.start = exports.run = exports.TOKENS = exports.State = undefined;
 
-var _tokens = require('./tokens');
-
 var _state = require('./state');
+
+var _text = require('./tokens/text');
+
+var TOKENS = _interopRequireWildcard(_text);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var tlds = 'aaa|aarp|abb|abbott|abogado|ac|academy|accenture|accountant|accountants|aco|active|actor|ad|adac|ads|adult|ae|aeg|aero|af|afl|ag|agency|ai|aig|airforce|airtel|al|alibaba|alipay|allfinanz|alsace|am|amica|amsterdam|an|analytics|android|ao|apartments|app|apple|aq|aquarelle|ar|aramco|archi|army|arpa|arte|as|asia|associates|at|attorney|au|auction|audi|audio|author|auto|autos|avianca|aw|ax|axa|az|azure|ba|baidu|band|bank|bar|barcelona|barclaycard|barclays|bargains|bauhaus|bayern|bb|bbc|bbva|bcg|bcn|bd|be|beats|beer|bentley|berlin|best|bet|bf|bg|bh|bharti|bi|bible|bid|bike|bing|bingo|bio|biz|bj|black|blackfriday|bloomberg|blue|bm|bms|bmw|bn|bnl|bnpparibas|bo|boats|boehringer|bom|bond|boo|book|boots|bosch|bostik|bot|boutique|br|bradesco|bridgestone|broadway|broker|brother|brussels|bs|bt|budapest|bugatti|build|builders|business|buy|buzz|bv|bw|by|bz|bzh|ca|cab|cafe|cal|call|camera|camp|cancerresearch|canon|capetown|capital|car|caravan|cards|care|career|careers|cars|cartier|casa|cash|casino|cat|catering|cba|cbn|cc|cd|ceb|center|ceo|cern|cf|cfa|cfd|cg|ch|chanel|channel|chase|chat|cheap|chloe|christmas|chrome|church|ci|cipriani|circle|cisco|citic|city|cityeats|ck|cl|claims|cleaning|click|clinic|clinique|clothing|cloud|club|clubmed|cm|cn|co|coach|codes|coffee|college|cologne|com|commbank|community|company|compare|computer|comsec|condos|construction|consulting|contact|contractors|cooking|cool|coop|corsica|country|coupon|coupons|courses|cr|credit|creditcard|creditunion|cricket|crown|crs|cruises|csc|cu|cuisinella|cv|cw|cx|cy|cymru|cyou|cz|dabur|dad|dance|date|dating|datsun|day|dclk|de|dealer|deals|degree|delivery|dell|deloitte|delta|democrat|dental|dentist|desi|design|dev|diamonds|diet|digital|direct|directory|discount|dj|dk|dm|dnp|do|docs|dog|doha|domains|download|drive|dubai|durban|dvag|dz|earth|eat|ec|edeka|edu|education|ee|eg|email|emerck|energy|engineer|engineering|enterprises|epson|equipment|er|erni|es|esq|estate|et|eu|eurovision|eus|events|everbank|exchange|expert|exposed|express|fage|fail|fairwinds|faith|family|fan|fans|farm|fashion|fast|feedback|ferrero|fi|film|final|finance|financial|firestone|firmdale|fish|fishing|fit|fitness|fj|fk|flickr|flights|florist|flowers|flsmidth|fly|fm|fo|foo|football|ford|forex|forsale|forum|foundation|fox|fr|fresenius|frl|frogans|frontier|fund|furniture|futbol|fyi|ga|gal|gallery|gallup|game|garden|gb|gbiz|gd|gdn|ge|gea|gent|genting|gf|gg|ggee|gh|gi|gift|gifts|gives|giving|gl|glass|gle|global|globo|gm|gmail|gmbh|gmo|gmx|gn|gold|goldpoint|golf|goo|goog|google|gop|got|gov|gp|gq|gr|grainger|graphics|gratis|green|gripe|group|gs|gt|gu|gucci|guge|guide|guitars|guru|gw|gy|hamburg|hangout|haus|hdfcbank|health|healthcare|help|helsinki|here|hermes|hiphop|hitachi|hiv|hk|hm|hn|hockey|holdings|holiday|homedepot|homes|honda|horse|host|hosting|hoteles|hotmail|house|how|hr|hsbc|ht|hu|hyundai|ibm|icbc|ice|icu|id|ie|ifm|iinet|il|im|immo|immobilien|in|industries|infiniti|info|ing|ink|institute|insurance|insure|int|international|investments|io|ipiranga|iq|ir|irish|is|iselect|ist|istanbul|it|itau|iwc|jaguar|java|jcb|je|jetzt|jewelry|jlc|jll|jm|jmp|jo|jobs|joburg|jot|joy|jp|jpmorgan|jprs|juegos|kaufen|kddi|ke|kerryhotels|kerrylogistics|kerryproperties|kfh|kg|kh|ki|kia|kim|kinder|kitchen|kiwi|km|kn|koeln|komatsu|kp|kpn|kr|krd|kred|kuokgroup|kw|ky|kyoto|kz|la|lacaixa|lamborghini|lamer|lancaster|land|landrover|lanxess|lasalle|lat|latrobe|law|lawyer|lb|lc|lds|lease|leclerc|legal|lexus|lgbt|li|liaison|lidl|life|lifeinsurance|lifestyle|lighting|like|limited|limo|lincoln|linde|link|live|living|lixil|lk|loan|loans|local|locus|lol|london|lotte|lotto|love|lr|ls|lt|ltd|ltda|lu|lupin|luxe|luxury|lv|ly|ma|madrid|maif|maison|makeup|man|management|mango|market|marketing|markets|marriott|mba|mc|md|me|med|media|meet|melbourne|meme|memorial|men|menu|meo|mg|mh|miami|microsoft|mil|mini|mk|ml|mm|mma|mn|mo|mobi|mobily|moda|moe|moi|mom|monash|money|montblanc|mormon|mortgage|moscow|motorcycles|mov|movie|movistar|mp|mq|mr|ms|mt|mtn|mtpc|mtr|mu|museum|mutuelle|mv|mw|mx|my|mz|na|nadex|nagoya|name|natura|navy|nc|ne|nec|net|netbank|network|neustar|new|news|nexus|nf|ng|ngo|nhk|ni|nico|nikon|ninja|nissan|nl|no|nokia|norton|nowruz|np|nr|nra|nrw|ntt|nu|nyc|nz|obi|office|okinawa|om|omega|one|ong|onl|online|ooo|oracle|orange|org|organic|origins|osaka|otsuka|ovh|pa|page|pamperedchef|panerai|paris|pars|partners|parts|party|passagens|pe|pet|pf|pg|ph|pharmacy|philips|photo|photography|photos|physio|piaget|pics|pictet|pictures|pid|pin|ping|pink|pizza|pk|pl|place|play|playstation|plumbing|plus|pm|pn|pohl|poker|porn|post|pr|praxi|press|pro|prod|productions|prof|promo|properties|property|protection|ps|pt|pub|pw|pwc|py|qa|qpon|quebec|quest|racing|re|read|realtor|realty|recipes|red|redstone|redumbrella|rehab|reise|reisen|reit|ren|rent|rentals|repair|report|republican|rest|restaurant|review|reviews|rexroth|rich|ricoh|rio|rip|ro|rocher|rocks|rodeo|room|rs|rsvp|ru|ruhr|run|rw|rwe|ryukyu|sa|saarland|safe|safety|sakura|sale|salon|samsung|sandvik|sandvikcoromant|sanofi|sap|sapo|sarl|sas|saxo|sb|sbs|sc|sca|scb|schaeffler|schmidt|scholarships|school|schule|schwarz|science|scor|scot|sd|se|seat|security|seek|select|sener|services|seven|sew|sex|sexy|sfr|sg|sh|sharp|shell|shia|shiksha|shoes|show|shriram|si|singles|site|sj|sk|ski|skin|sky|skype|sl|sm|smile|sn|sncf|so|soccer|social|softbank|software|sohu|solar|solutions|song|sony|soy|space|spiegel|spot|spreadbetting|sr|srl|st|stada|star|starhub|statefarm|statoil|stc|stcgroup|stockholm|storage|store|studio|study|style|su|sucks|supplies|supply|support|surf|surgery|suzuki|sv|swatch|swiss|sx|sy|sydney|symantec|systems|sz|tab|taipei|taobao|tatamotors|tatar|tattoo|tax|taxi|tc|tci|td|team|tech|technology|tel|telecity|telefonica|temasek|tennis|tf|tg|th|thd|theater|theatre|tickets|tienda|tiffany|tips|tires|tirol|tj|tk|tl|tm|tmall|tn|to|today|tokyo|tools|top|toray|toshiba|total|tours|town|toyota|toys|tp|tr|trade|trading|training|travel|travelers|travelersinsurance|trust|trv|tt|tube|tui|tunes|tushu|tv|tvs|tw|tz|ua|ubs|ug|uk|unicom|university|uno|uol|us|uy|uz|va|vacations|vana|vc|ve|vegas|ventures|verisign|versicherung|vet|vg|vi|viajes|video|viking|villas|vin|vip|virgin|vision|vista|vistaprint|viva|vlaanderen|vn|vodka|volkswagen|vote|voting|voto|voyage|vu|vuelos|wales|walter|wang|wanggou|watch|watches|weather|weatherchannel|webcam|weber|website|wed|wedding|weir|wf|whoswho|wien|wiki|williamhill|win|windows|wine|wme|wolterskluwer|work|works|world|ws|wtc|wtf|xbox|xerox|xin|xperia|xxx|xyz|yachts|yahoo|yamaxun|yandex|ye|yodobashi|yoga|yokohama|youtube|yt|za|zara|zero|zip|zm|zone|zuerich|zw'.split('|'); // macro, see gulpfile.js
 
 /**
 	The scanner provides an interface that takes a string of text as input, and
@@ -512,41 +472,28 @@ var _state = require('./state');
 	@main scanner
 */
 
-var tlds = 'aaa|aarp|abb|abbott|abogado|ac|academy|accenture|accountant|accountants|aco|active|actor|ad|adac|ads|adult|ae|aeg|aero|af|afl|ag|agency|ai|aig|airforce|airtel|al|alibaba|alipay|allfinanz|alsace|am|amica|amsterdam|an|analytics|android|ao|apartments|app|apple|aq|aquarelle|ar|aramco|archi|army|arpa|arte|as|asia|associates|at|attorney|au|auction|audi|audio|author|auto|autos|avianca|aw|ax|axa|az|azure|ba|baidu|band|bank|bar|barcelona|barclaycard|barclays|bargains|bauhaus|bayern|bb|bbc|bbva|bcg|bcn|bd|be|beats|beer|bentley|berlin|best|bet|bf|bg|bh|bharti|bi|bible|bid|bike|bing|bingo|bio|biz|bj|black|blackfriday|bloomberg|blue|bm|bms|bmw|bn|bnl|bnpparibas|bo|boats|boehringer|bom|bond|boo|book|boots|bosch|bostik|bot|boutique|br|bradesco|bridgestone|broadway|broker|brother|brussels|bs|bt|budapest|bugatti|build|builders|business|buy|buzz|bv|bw|by|bz|bzh|ca|cab|cafe|cal|call|camera|camp|cancerresearch|canon|capetown|capital|car|caravan|cards|care|career|careers|cars|cartier|casa|cash|casino|cat|catering|cba|cbn|cc|cd|ceb|center|ceo|cern|cf|cfa|cfd|cg|ch|chanel|channel|chase|chat|cheap|chloe|christmas|chrome|church|ci|cipriani|circle|cisco|citic|city|cityeats|ck|cl|claims|cleaning|click|clinic|clinique|clothing|cloud|club|clubmed|cm|cn|co|coach|codes|coffee|college|cologne|com|commbank|community|company|compare|computer|comsec|condos|construction|consulting|contact|contractors|cooking|cool|coop|corsica|country|coupon|coupons|courses|cr|credit|creditcard|creditunion|cricket|crown|crs|cruises|csc|cu|cuisinella|cv|cw|cx|cy|cymru|cyou|cz|dabur|dad|dance|date|dating|datsun|day|dclk|de|dealer|deals|degree|delivery|dell|deloitte|delta|democrat|dental|dentist|desi|design|dev|diamonds|diet|digital|direct|directory|discount|dj|dk|dm|dnp|do|docs|dog|doha|domains|download|drive|dubai|durban|dvag|dz|earth|eat|ec|edeka|edu|education|ee|eg|email|emerck|energy|engineer|engineering|enterprises|epson|equipment|er|erni|es|esq|estate|et|eu|eurovision|eus|events|everbank|exchange|expert|exposed|express|fage|fail|fairwinds|faith|family|fan|fans|farm|fashion|fast|feedback|ferrero|fi|film|final|finance|financial|firestone|firmdale|fish|fishing|fit|fitness|fj|fk|flickr|flights|florist|flowers|flsmidth|fly|fm|fo|foo|football|ford|forex|forsale|forum|foundation|fox|fr|fresenius|frl|frogans|frontier|fund|furniture|futbol|fyi|ga|gal|gallery|gallup|game|garden|gb|gbiz|gd|gdn|ge|gea|gent|genting|gf|gg|ggee|gh|gi|gift|gifts|gives|giving|gl|glass|gle|global|globo|gm|gmail|gmbh|gmo|gmx|gn|gold|goldpoint|golf|goo|goog|google|gop|got|gov|gp|gq|gr|grainger|graphics|gratis|green|gripe|group|gs|gt|gu|gucci|guge|guide|guitars|guru|gw|gy|hamburg|hangout|haus|hdfcbank|health|healthcare|help|helsinki|here|hermes|hiphop|hitachi|hiv|hk|hm|hn|hockey|holdings|holiday|homedepot|homes|honda|horse|host|hosting|hoteles|hotmail|house|how|hr|hsbc|ht|hu|hyundai|ibm|icbc|ice|icu|id|ie|ifm|iinet|il|im|immo|immobilien|in|industries|infiniti|info|ing|ink|institute|insurance|insure|int|international|investments|io|ipiranga|iq|ir|irish|is|iselect|ist|istanbul|it|itau|iwc|jaguar|java|jcb|je|jetzt|jewelry|jlc|jll|jm|jmp|jo|jobs|joburg|jot|joy|jp|jpmorgan|jprs|juegos|kaufen|kddi|ke|kerryhotels|kerrylogistics|kerryproperties|kfh|kg|kh|ki|kia|kim|kinder|kitchen|kiwi|km|kn|koeln|komatsu|kp|kpn|kr|krd|kred|kuokgroup|kw|ky|kyoto|kz|la|lacaixa|lamborghini|lamer|lancaster|land|landrover|lanxess|lasalle|lat|latrobe|law|lawyer|lb|lc|lds|lease|leclerc|legal|lexus|lgbt|li|liaison|lidl|life|lifeinsurance|lifestyle|lighting|like|limited|limo|lincoln|linde|link|live|living|lixil|lk|loan|loans|local|locus|lol|london|lotte|lotto|love|lr|ls|lt|ltd|ltda|lu|lupin|luxe|luxury|lv|ly|ma|madrid|maif|maison|makeup|man|management|mango|market|marketing|markets|marriott|mba|mc|md|me|med|media|meet|melbourne|meme|memorial|men|menu|meo|mg|mh|miami|microsoft|mil|mini|mk|ml|mm|mma|mn|mo|mobi|mobily|moda|moe|moi|mom|monash|money|montblanc|mormon|mortgage|moscow|motorcycles|mov|movie|movistar|mp|mq|mr|ms|mt|mtn|mtpc|mtr|mu|museum|mutuelle|mv|mw|mx|my|mz|na|nadex|nagoya|name|natura|navy|nc|ne|nec|net|netbank|network|neustar|new|news|nexus|nf|ng|ngo|nhk|ni|nico|nikon|ninja|nissan|nl|no|nokia|norton|nowruz|np|nr|nra|nrw|ntt|nu|nyc|nz|obi|office|okinawa|om|omega|one|ong|onl|online|ooo|oracle|orange|org|organic|origins|osaka|otsuka|ovh|pa|page|pamperedchef|panerai|paris|pars|partners|parts|party|passagens|pe|pet|pf|pg|ph|pharmacy|philips|photo|photography|photos|physio|piaget|pics|pictet|pictures|pid|pin|ping|pink|pizza|pk|pl|place|play|playstation|plumbing|plus|pm|pn|pohl|poker|porn|post|pr|praxi|press|pro|prod|productions|prof|promo|properties|property|protection|ps|pt|pub|pw|pwc|py|qa|qpon|quebec|quest|racing|re|read|realtor|realty|recipes|red|redstone|redumbrella|rehab|reise|reisen|reit|ren|rent|rentals|repair|report|republican|rest|restaurant|review|reviews|rexroth|rich|ricoh|rio|rip|ro|rocher|rocks|rodeo|room|rs|rsvp|ru|ruhr|run|rw|rwe|ryukyu|sa|saarland|safe|safety|sakura|sale|salon|samsung|sandvik|sandvikcoromant|sanofi|sap|sapo|sarl|sas|saxo|sb|sbs|sc|sca|scb|schaeffler|schmidt|scholarships|school|schule|schwarz|science|scor|scot|sd|se|seat|security|seek|select|sener|services|seven|sew|sex|sexy|sfr|sg|sh|sharp|shell|shia|shiksha|shoes|show|shriram|si|singles|site|sj|sk|ski|skin|sky|skype|sl|sm|smile|sn|sncf|so|soccer|social|softbank|software|sohu|solar|solutions|song|sony|soy|space|spiegel|spot|spreadbetting|sr|srl|st|stada|star|starhub|statefarm|statoil|stc|stcgroup|stockholm|storage|store|studio|study|style|su|sucks|supplies|supply|support|surf|surgery|suzuki|sv|swatch|swiss|sx|sy|sydney|symantec|systems|sz|tab|taipei|taobao|tatamotors|tatar|tattoo|tax|taxi|tc|tci|td|team|tech|technology|tel|telecity|telefonica|temasek|tennis|tf|tg|th|thd|theater|theatre|tickets|tienda|tiffany|tips|tires|tirol|tj|tk|tl|tm|tmall|tn|to|today|tokyo|tools|top|toray|toshiba|total|tours|town|toyota|toys|tp|tr|trade|trading|training|travel|travelers|travelersinsurance|trust|trv|tt|tube|tui|tunes|tushu|tv|tvs|tw|tz|ua|ubs|ug|uk|unicom|university|uno|uol|us|uy|uz|va|vacations|vana|vc|ve|vegas|ventures|verisign|versicherung|vet|vg|vi|viajes|video|viking|villas|vin|vip|virgin|vision|vista|vistaprint|viva|vlaanderen|vn|vodka|volkswagen|vote|voting|voto|voyage|vu|vuelos|wales|walter|wang|wanggou|watch|watches|weather|weatherchannel|webcam|weber|website|wed|wedding|weir|wf|whoswho|wien|wiki|williamhill|win|windows|wine|wme|wolterskluwer|work|works|world|ws|wtc|wtf|xbox|xerox|xin|xperia|xxx|xyz|yachts|yahoo|yamaxun|yandex|ye|yodobashi|yoga|yokohama|youtube|yt|za|zara|zero|zip|zm|zone|zuerich|zw'.split('|'); // macro, see gulpfile.js
-
-var NUM = '0123456789'.split('');
+var NUMBERS = '0123456789'.split('');
 var ALPHANUM = '0123456789abcdefghijklmnopqrstuvwxyz'.split('');
-var WHITESPACE = [' ', '\f', '\r', '\t', '\v']; // excluding line breaks
-var COLON = ':';
+var WHITESPACE = [' ', '\f', '\r', '\t', '\v', ' ', ' ', '᠎']; // excluding line breaks
 
-var domainStates = [],
-    // states that jump to DOMAIN on /[a-z0-9]/
-makeState = function makeState(tokenClass) {
+var domainStates = []; // states that jump to DOMAIN on /[a-z0-9]/
+var makeState = function makeState(tokenClass) {
 	return new _state.CharacterState(tokenClass);
 };
 
-var // Frequently used tokens
-T_DOMAIN = _tokens.text.DOMAIN,
-    T_LOCALHOST = _tokens.text.LOCALHOST,
-    T_NUM = _tokens.text.NUM,
-    T_PROTOCOL = _tokens.text.PROTOCOL,
-    T_TLD = _tokens.text.TLD,
-    T_WS = _tokens.text.WS;
-
-var // Frequently used states
-S_START = makeState(),
-    S_NUM = makeState(T_NUM),
-    S_DOMAIN = makeState(T_DOMAIN),
-    S_DOMAIN_HYPHEN = makeState(),
-    // domain followed by 1 or more hyphen characters
-S_WS = makeState(T_WS);
+// Frequently used states
+var S_START = makeState();
+var S_NUM = makeState(_text.NUM);
+var S_DOMAIN = makeState(_text.DOMAIN);
+var S_DOMAIN_HYPHEN = makeState(); // domain followed by 1 or more hyphen characters
+var S_WS = makeState(_text.WS);
 
 // States for special URL symbols
-S_START.on('@', makeState(_tokens.text.AT)).on('.', makeState(_tokens.text.DOT)).on('+', makeState(_tokens.text.PLUS)).on('#', makeState(_tokens.text.POUND)).on('?', makeState(_tokens.text.QUERY)).on('/', makeState(_tokens.text.SLASH)).on(COLON, makeState(_tokens.text.COLON)).on('{', makeState(_tokens.text.OPENBRACE)).on('[', makeState(_tokens.text.OPENBRACKET)).on('(', makeState(_tokens.text.OPENPAREN)).on('}', makeState(_tokens.text.CLOSEBRACE)).on(']', makeState(_tokens.text.CLOSEBRACKET)).on(')', makeState(_tokens.text.CLOSEPAREN)).on([',', ';', '!', '"'], makeState(_tokens.text.PUNCTUATION));
+S_START.on('@', makeState(_text.AT)).on('.', makeState(_text.DOT)).on('+', makeState(_text.PLUS)).on('#', makeState(_text.POUND)).on('?', makeState(_text.QUERY)).on('/', makeState(_text.SLASH)).on('_', makeState(_text.UNDERSCORE)).on(':', makeState(_text.COLON)).on('{', makeState(_text.OPENBRACE)).on('[', makeState(_text.OPENBRACKET)).on('(', makeState(_text.OPENPAREN)).on('}', makeState(_text.CLOSEBRACE)).on(']', makeState(_text.CLOSEBRACKET)).on(')', makeState(_text.CLOSEPAREN)).on([',', ';', '!', '"'], makeState(_text.PUNCTUATION));
 
 // Whitespace jumps
 // Tokens of only non-newline whitespace are arbitrarily long
-S_START.on('\n', makeState(_tokens.text.NL)).on(WHITESPACE, S_WS);
+S_START.on('\n', makeState(_text.NL)).on(WHITESPACE, S_WS);
 
 // If any whitespace except newline, more whitespace!
 S_WS.on(WHITESPACE, S_WS);
@@ -554,47 +501,47 @@ S_WS.on(WHITESPACE, S_WS);
 // Generates states for top-level domains
 // Note that this is most accurate when tlds are in alphabetical order
 for (var i = 0; i < tlds.length; i++) {
-	var newStates = (0, _state.stateify)(tlds[i], S_START, T_TLD, T_DOMAIN);
+	var newStates = (0, _state.stateify)(tlds[i], S_START, _text.TLD, _text.DOMAIN);
 	domainStates.push.apply(domainStates, newStates);
 }
 
 // Collect the states generated by different protocls
-var partialProtocolFileStates = (0, _state.stateify)('file', S_START, T_DOMAIN, T_DOMAIN),
-    partialProtocolFtpStates = (0, _state.stateify)('ftp', S_START, T_DOMAIN, T_DOMAIN),
-    partialProtocolHttpStates = (0, _state.stateify)('http', S_START, T_DOMAIN, T_DOMAIN);
+var partialProtocolFileStates = (0, _state.stateify)('file', S_START, _text.DOMAIN, _text.DOMAIN);
+var partialProtocolFtpStates = (0, _state.stateify)('ftp', S_START, _text.DOMAIN, _text.DOMAIN);
+var partialProtocolHttpStates = (0, _state.stateify)('http', S_START, _text.DOMAIN, _text.DOMAIN);
 
 // Add the states to the array of DOMAINeric states
 domainStates.push.apply(domainStates, partialProtocolFileStates);
 domainStates.push.apply(domainStates, partialProtocolFtpStates);
 domainStates.push.apply(domainStates, partialProtocolHttpStates);
 
-var // Protocol states
-S_PROTOCOL_FILE = partialProtocolFileStates.pop(),
-    S_PROTOCOL_FTP = partialProtocolFtpStates.pop(),
-    S_PROTOCOL_HTTP = partialProtocolHttpStates.pop(),
-    S_PROTOCOL_SECURE = makeState(T_DOMAIN),
-    S_FULL_PROTOCOL = makeState(T_PROTOCOL); // Full protocol ends with COLON
+// Protocol states
+var S_PROTOCOL_FILE = partialProtocolFileStates.pop();
+var S_PROTOCOL_FTP = partialProtocolFtpStates.pop();
+var S_PROTOCOL_HTTP = partialProtocolHttpStates.pop();
+var S_PROTOCOL_SECURE = makeState(_text.DOMAIN);
+var S_FULL_PROTOCOL = makeState(_text.PROTOCOL); // Full protocol ends with COLON
 
 // Secure protocols (end with 's')
-S_PROTOCOL_FTP.on('s', S_PROTOCOL_SECURE).on(COLON, S_FULL_PROTOCOL);
+S_PROTOCOL_FTP.on('s', S_PROTOCOL_SECURE).on(':', S_FULL_PROTOCOL);
 
-S_PROTOCOL_HTTP.on('s', S_PROTOCOL_SECURE).on(COLON, S_FULL_PROTOCOL);
+S_PROTOCOL_HTTP.on('s', S_PROTOCOL_SECURE).on(':', S_FULL_PROTOCOL);
 
 domainStates.push(S_PROTOCOL_SECURE);
 
 // Become protocol tokens after a COLON
-S_PROTOCOL_FILE.on(COLON, S_FULL_PROTOCOL);
-S_PROTOCOL_SECURE.on(COLON, S_FULL_PROTOCOL);
+S_PROTOCOL_FILE.on(':', S_FULL_PROTOCOL);
+S_PROTOCOL_SECURE.on(':', S_FULL_PROTOCOL);
 
 // Localhost
-var partialLocalhostStates = (0, _state.stateify)('localhost', S_START, T_LOCALHOST, T_DOMAIN);
+var partialLocalhostStates = (0, _state.stateify)('localhost', S_START, _text.LOCALHOST, _text.DOMAIN);
 domainStates.push.apply(domainStates, partialLocalhostStates);
 
 // Everything else
 // DOMAINs make more DOMAINs
 // Number and character transitions
-S_START.on(NUM, S_NUM);
-S_NUM.on('-', S_DOMAIN_HYPHEN).on(NUM, S_NUM).on(ALPHANUM, S_DOMAIN); // number becomes DOMAIN
+S_START.on(NUMBERS, S_NUM);
+S_NUM.on('-', S_DOMAIN_HYPHEN).on(NUMBERS, S_NUM).on(ALPHANUM, S_DOMAIN); // number becomes DOMAIN
 
 S_DOMAIN.on('-', S_DOMAIN_HYPHEN).on(ALPHANUM, S_DOMAIN);
 
@@ -603,10 +550,10 @@ for (var _i = 0; _i < domainStates.length; _i++) {
 	domainStates[_i].on('-', S_DOMAIN_HYPHEN).on(ALPHANUM, S_DOMAIN);
 }
 
-S_DOMAIN_HYPHEN.on('-', S_DOMAIN_HYPHEN).on(NUM, S_DOMAIN).on(ALPHANUM, S_DOMAIN);
+S_DOMAIN_HYPHEN.on('-', S_DOMAIN_HYPHEN).on(NUMBERS, S_DOMAIN).on(ALPHANUM, S_DOMAIN);
 
 // Set default transition
-S_START.defaultTransition = makeState(_tokens.text.SYM);
+S_START.defaultTransition = makeState(_text.SYM);
 
 /**
 	Given a string, returns an array of TOKEN instances representing the
@@ -632,13 +579,12 @@ var run = function run(str) {
 
 	// Tokenize the string
 	while (cursor < len) {
-
-		var state = S_START,
-		    secondState = null,
-		    nextState = null,
-		    tokenLength = 0,
-		    latestAccepting = null,
-		    sinceAccepts = -1;
+		var state = S_START;
+		var secondState = null;
+		var nextState = null;
+		var tokenLength = 0;
+		var latestAccepting = null;
+		var sinceAccepts = -1;
 
 		while (cursor < len && (nextState = state.next(lowerStr[cursor]))) {
 			secondState = null;
@@ -656,7 +602,9 @@ var run = function run(str) {
 			cursor++;
 		}
 
-		if (sinceAccepts < 0) continue; // Should never happen
+		if (sinceAccepts < 0) {
+			continue;
+		} // Should never happen
 
 		// Roll back to the latest accepting state
 		cursor -= sinceAccepts;
@@ -674,10 +622,10 @@ var run = function run(str) {
 
 var start = S_START;
 exports.State = _state.CharacterState;
-exports.TOKENS = _tokens.text;
+exports.TOKENS = TOKENS;
 exports.run = run;
 exports.start = start;
-},{"./state":5,"./tokens":6}],5:[function(require,module,exports){
+},{"./state":5,"./tokens/text":8}],5:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -749,16 +697,15 @@ BaseState.prototype = {
  	@return {State} state Returns false if no jumps are available
  */
 	next: function next(item) {
-
 		for (var i = 0; i < this.j.length; i++) {
-
-			var jump = this.j[i],
-			    symbol = jump[0],
-			    // Next item to check for
-			state = jump[1]; // State to jump to if items match
+			var jump = this.j[i];
+			var symbol = jump[0]; // Next item to check for
+			var state = jump[1]; // State to jump to if items match
 
 			// compare item with symbol
-			if (this.test(item, symbol)) return state;
+			if (this.test(item, symbol)) {
+				return state;
+			}
 		}
 
 		// Nowhere left to jump!
@@ -817,7 +764,6 @@ var CharacterState = (0, _class.inherits)(BaseState, createStateClass(), {
  	@param {String|RegExp} charOrRegExp
  	@return {Boolean}
  */
-
 	test: function test(character, charOrRegExp) {
 		return character === charOrRegExp || charOrRegExp instanceof RegExp && charOrRegExp.test(character);
 	}
@@ -832,13 +778,35 @@ var CharacterState = (0, _class.inherits)(BaseState, createStateClass(), {
 var TokenState = (0, _class.inherits)(BaseState, createStateClass(), {
 
 	/**
+  * Similar to `on`, but returns the state the results in the transition from
+  * the given item
+  * @method jump
+  * @param {Mixed} item
+  * @param {Token} [token]
+  * @return state
+  */
+	jump: function jump(token) {
+		var tClass = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+		var state = this.next(new token('')); // dummy temp token
+		if (state === this.defaultTransition) {
+			// Make a new state!
+			state = new this.constructor(tClass);
+			this.on(token, state);
+		} else if (tClass) {
+			state.T = tClass;
+		}
+		return state;
+	},
+
+
+	/**
  	Is the given token an instance of the given token class?
  		@method test
  	@param {TextToken} token
  	@param {Class} tokenClass
  	@return {Boolean}
  */
-
 	test: function test(token, tokenClass) {
 		return token instanceof tokenClass;
 	}
@@ -865,7 +833,6 @@ var TokenState = (0, _class.inherits)(BaseState, createStateClass(), {
 	@return {Array} list of newly-created states
 */
 function stateify(str, start, endToken, defaultToken) {
-
 	var i = 0,
 	    len = str.length,
 	    state = start,
@@ -878,7 +845,9 @@ function stateify(str, start, endToken, defaultToken) {
 		i++;
 	}
 
-	if (i >= len) return []; // no new tokens were added
+	if (i >= len) {
+		return [];
+	} // no new tokens were added
 
 	while (i < len - 1) {
 		nextState = new CharacterState(defaultToken);
@@ -898,14 +867,10 @@ function stateify(str, start, endToken, defaultToken) {
 exports.CharacterState = CharacterState;
 exports.TokenState = TokenState;
 exports.stateify = stateify;
-},{"../utils/class":7}],6:[function(require,module,exports){
-'use strict';
+},{"../utils/class":9}],6:[function(require,module,exports){
+"use strict";
 
 exports.__esModule = true;
-exports.multi = exports.text = undefined;
-
-var _class = require('../utils/class');
-
 function createTokenClass() {
 	return function (value) {
 		if (value) {
@@ -914,183 +879,18 @@ function createTokenClass() {
 	};
 }
 
-/******************************************************************************
-	Text Tokens
-	Tokens composed of strings
-******************************************************************************/
+exports.createTokenClass = createTokenClass;
+},{}],7:[function(require,module,exports){
+'use strict';
 
-/**
-	Abstract class used for manufacturing text tokens.
-	Pass in the value this token represents
+exports.__esModule = true;
+exports.URL = exports.TEXT = exports.NL = exports.EMAIL = exports.Base = undefined;
 
-	@class TextToken
-	@abstract
-*/
+var _createTokenClass = require('./create-token-class');
 
-var TextToken = createTokenClass();
+var _class = require('../../utils/class');
 
-TextToken.prototype = {
-	toString: function toString() {
-		return this.v + '';
-	}
-};
-
-function inheritsToken(value) {
-	var props = value ? { v: value } : {};
-	return (0, _class.inherits)(TextToken, createTokenClass(), props);
-}
-
-/**
-	A valid domain token
-	@class DOMAIN
-	@extends TextToken
-*/
-var DOMAIN = inheritsToken();
-
-/**
-	@class AT
-	@extends TextToken
-*/
-var AT = inheritsToken('@');
-
-/**
-	Represents a single colon `:` character
-
-	@class COLON
-	@extends TextToken
-*/
-var COLON = inheritsToken(':');
-
-/**
-	@class DOT
-	@extends TextToken
-*/
-var DOT = inheritsToken('.');
-
-/**
-	A character class that can surround the URL, but which the URL cannot begin
-	or end with. Does not include certain English punctuation like parentheses.
-
-	@class PUNCTUATION
-	@extends TextToken
-*/
-var PUNCTUATION = inheritsToken();
-
-/**
-	The word localhost (by itself)
-	@class LOCALHOST
-	@extends TextToken
-*/
-var LOCALHOST = inheritsToken();
-
-/**
-	Newline token
-	@class TNL
-	@extends TextToken
-*/
-var TNL = inheritsToken('\n');
-
-/**
-	@class NUM
-	@extends TextToken
-*/
-var NUM = inheritsToken();
-
-/**
-	@class PLUS
-	@extends TextToken
-*/
-var PLUS = inheritsToken('+');
-
-/**
-	@class POUND
-	@extends TextToken
-*/
-var POUND = inheritsToken('#');
-
-/**
-	Represents a web URL protocol. Supported types include
-
-	* `http:`
-	* `https:`
-	* `ftp:`
-	* `ftps:`
-	* There's Another super weird one
-
-	@class PROTOCOL
-	@extends TextToken
-*/
-var PROTOCOL = inheritsToken();
-
-/**
-	@class QUERY
-	@extends TextToken
-*/
-var QUERY = inheritsToken('?');
-
-/**
-	@class SLASH
-	@extends TextToken
-*/
-var SLASH = inheritsToken('/');
-
-/**
-	One ore more non-whitespace symbol.
-	@class SYM
-	@extends TextToken
-*/
-var SYM = inheritsToken();
-
-/**
-	@class TLD
-	@extends TextToken
-*/
-var TLD = inheritsToken();
-
-/**
-	Represents a string of consecutive whitespace characters
-
-	@class WS
-	@extends TextToken
-*/
-var WS = inheritsToken();
-
-/**
-	Opening/closing bracket classes
-*/
-
-var OPENBRACE = inheritsToken('{');
-var OPENBRACKET = inheritsToken('[');
-var OPENPAREN = inheritsToken('(');
-var CLOSEBRACE = inheritsToken('}');
-var CLOSEBRACKET = inheritsToken(']');
-var CLOSEPAREN = inheritsToken(')');
-
-var text = {
-	Base: TextToken,
-	DOMAIN: DOMAIN,
-	AT: AT,
-	COLON: COLON,
-	DOT: DOT,
-	PUNCTUATION: PUNCTUATION,
-	LOCALHOST: LOCALHOST,
-	NL: TNL,
-	NUM: NUM,
-	PLUS: PLUS,
-	POUND: POUND,
-	QUERY: QUERY,
-	PROTOCOL: PROTOCOL,
-	SLASH: SLASH,
-	SYM: SYM,
-	TLD: TLD,
-	WS: WS,
-	OPENBRACE: OPENBRACE,
-	OPENBRACKET: OPENBRACKET,
-	OPENPAREN: OPENPAREN,
-	CLOSEBRACE: CLOSEBRACE,
-	CLOSEBRACKET: CLOSEBRACKET,
-	CLOSEPAREN: CLOSEPAREN
-};
+var _text = require('./text');
 
 /******************************************************************************
 	Multi-Tokens
@@ -1100,7 +900,7 @@ var text = {
 // Is the given token a valid domain token?
 // Should nums be included here?
 function isDomainToken(token) {
-	return token instanceof DOMAIN || token instanceof TLD;
+	return token instanceof _text.DOMAIN || token instanceof _text.TLD;
 }
 
 /**
@@ -1114,7 +914,7 @@ function isDomainToken(token) {
 	@class MultiToken
 	@abstract
 */
-var MultiToken = createTokenClass();
+var MultiToken = (0, _createTokenClass.createTokenClass)();
 
 MultiToken.prototype = {
 	/**
@@ -1182,7 +982,7 @@ MultiToken.prototype = {
 	@class EMAIL
 	@extends MultiToken
 */
-var EMAIL = (0, _class.inherits)(MultiToken, createTokenClass(), {
+var EMAIL = (0, _class.inherits)(MultiToken, (0, _createTokenClass.createTokenClass)(), {
 	type: 'email',
 	isLink: true,
 	toHref: function toHref() {
@@ -1195,21 +995,21 @@ var EMAIL = (0, _class.inherits)(MultiToken, createTokenClass(), {
 	@class TEXT
 	@extends MultiToken
 */
-var TEXT = (0, _class.inherits)(MultiToken, createTokenClass(), { type: 'text' });
+var TEXT = (0, _class.inherits)(MultiToken, (0, _createTokenClass.createTokenClass)(), { type: 'text' });
 
 /**
 	Multi-linebreak token - represents a line break
-	@class MNL
+	@class NL
 	@extends MultiToken
 */
-var MNL = (0, _class.inherits)(MultiToken, createTokenClass(), { type: 'nl' });
+var NL = (0, _class.inherits)(MultiToken, (0, _createTokenClass.createTokenClass)(), { type: 'nl' });
 
 /**
 	Represents a list of tokens making up a valid URL
 	@class URL
 	@extends MultiToken
 */
-var URL = (0, _class.inherits)(MultiToken, createTokenClass(), {
+var URL = (0, _class.inherits)(MultiToken, (0, _createTokenClass.createTokenClass)(), {
 	type: 'url',
 	isLink: true,
 
@@ -1224,22 +1024,22 @@ var URL = (0, _class.inherits)(MultiToken, createTokenClass(), {
 	toHref: function toHref() {
 		var protocol = arguments.length <= 0 || arguments[0] === undefined ? 'http' : arguments[0];
 
-		var hasProtocol = false,
-		    hasSlashSlash = false,
-		    tokens = this.v,
-		    result = [],
-		    i = 0;
+		var hasProtocol = false;
+		var hasSlashSlash = false;
+		var tokens = this.v;
+		var result = [];
+		var i = 0;
 
 		// Make the first part of the domain lowercase
 		// Lowercase protocol
-		while (tokens[i] instanceof PROTOCOL) {
+		while (tokens[i] instanceof _text.PROTOCOL) {
 			hasProtocol = true;
 			result.push(tokens[i].toString().toLowerCase());
 			i++;
 		}
 
 		// Skip slash-slash
-		while (tokens[i] instanceof SLASH) {
+		while (tokens[i] instanceof _text.SLASH) {
 			hasSlashSlash = true;
 			result.push(tokens[i].toString());
 			i++;
@@ -1265,21 +1065,206 @@ var URL = (0, _class.inherits)(MultiToken, createTokenClass(), {
 		return result;
 	},
 	hasProtocol: function hasProtocol() {
-		return this.v[0] instanceof PROTOCOL;
+		return this.v[0] instanceof _text.PROTOCOL;
 	}
 });
 
-var multi = {
-	Base: MultiToken,
-	EMAIL: EMAIL,
-	NL: MNL,
-	TEXT: TEXT,
-	URL: URL
+exports.Base = MultiToken;
+exports.EMAIL = EMAIL;
+exports.NL = NL;
+exports.TEXT = TEXT;
+exports.URL = URL;
+},{"../../utils/class":9,"./create-token-class":6,"./text":8}],8:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports.CLOSEPAREN = exports.CLOSEBRACKET = exports.CLOSEBRACE = exports.OPENPAREN = exports.OPENBRACKET = exports.OPENBRACE = exports.WS = exports.TLD = exports.SYM = exports.UNDERSCORE = exports.SLASH = exports.PROTOCOL = exports.QUERY = exports.POUND = exports.PLUS = exports.NUM = exports.NL = exports.LOCALHOST = exports.PUNCTUATION = exports.DOT = exports.COLON = exports.AT = exports.DOMAIN = exports.Base = undefined;
+
+var _createTokenClass = require('./create-token-class');
+
+var _class = require('../../utils/class');
+
+/******************************************************************************
+	Text Tokens
+	Tokens composed of strings
+******************************************************************************/
+
+/**
+	Abstract class used for manufacturing text tokens.
+	Pass in the value this token represents
+
+	@class TextToken
+	@abstract
+*/
+var TextToken = (0, _createTokenClass.createTokenClass)();
+TextToken.prototype = {
+	toString: function toString() {
+		return this.v + '';
+	}
 };
 
-exports.text = text;
-exports.multi = multi;
-},{"../utils/class":7}],7:[function(require,module,exports){
+function inheritsToken(value) {
+	var props = value ? { v: value } : {};
+	return (0, _class.inherits)(TextToken, (0, _createTokenClass.createTokenClass)(), props);
+}
+
+/**
+	A valid domain token
+	@class DOMAIN
+	@extends TextToken
+*/
+var DOMAIN = inheritsToken();
+
+/**
+	@class AT
+	@extends TextToken
+*/
+var AT = inheritsToken('@');
+
+/**
+	Represents a single colon `:` character
+
+	@class COLON
+	@extends TextToken
+*/
+var COLON = inheritsToken(':');
+
+/**
+	@class DOT
+	@extends TextToken
+*/
+var DOT = inheritsToken('.');
+
+/**
+	A character class that can surround the URL, but which the URL cannot begin
+	or end with. Does not include certain English punctuation like parentheses.
+
+	@class PUNCTUATION
+	@extends TextToken
+*/
+var PUNCTUATION = inheritsToken();
+
+/**
+	The word localhost (by itself)
+	@class LOCALHOST
+	@extends TextToken
+*/
+var LOCALHOST = inheritsToken();
+
+/**
+	Newline token
+	@class NL
+	@extends TextToken
+*/
+var NL = inheritsToken('\n');
+
+/**
+	@class NUM
+	@extends TextToken
+*/
+var NUM = inheritsToken();
+
+/**
+	@class PLUS
+	@extends TextToken
+*/
+var PLUS = inheritsToken('+');
+
+/**
+	@class POUND
+	@extends TextToken
+*/
+var POUND = inheritsToken('#');
+
+/**
+	Represents a web URL protocol. Supported types include
+
+	* `http:`
+	* `https:`
+	* `ftp:`
+	* `ftps:`
+	* There's Another super weird one
+
+	@class PROTOCOL
+	@extends TextToken
+*/
+var PROTOCOL = inheritsToken();
+
+/**
+	@class QUERY
+	@extends TextToken
+*/
+var QUERY = inheritsToken('?');
+
+/**
+	@class SLASH
+	@extends TextToken
+*/
+var SLASH = inheritsToken('/');
+
+/**
+	@class UNDERSCORE
+	@extends TextToken
+*/
+var UNDERSCORE = inheritsToken('_');
+
+/**
+	One ore more non-whitespace symbol.
+	@class SYM
+	@extends TextToken
+*/
+var SYM = inheritsToken();
+
+/**
+	@class TLD
+	@extends TextToken
+*/
+var TLD = inheritsToken();
+
+/**
+	Represents a string of consecutive whitespace characters
+
+	@class WS
+	@extends TextToken
+*/
+var WS = inheritsToken();
+
+/**
+	Opening/closing bracket classes
+*/
+
+var OPENBRACE = inheritsToken('{');
+var OPENBRACKET = inheritsToken('[');
+var OPENPAREN = inheritsToken('(');
+var CLOSEBRACE = inheritsToken('}');
+var CLOSEBRACKET = inheritsToken(']');
+var CLOSEPAREN = inheritsToken(')');
+
+exports.Base = TextToken;
+exports.DOMAIN = DOMAIN;
+exports.AT = AT;
+exports.COLON = COLON;
+exports.DOT = DOT;
+exports.PUNCTUATION = PUNCTUATION;
+exports.LOCALHOST = LOCALHOST;
+exports.NL = NL;
+exports.NUM = NUM;
+exports.PLUS = PLUS;
+exports.POUND = POUND;
+exports.QUERY = QUERY;
+exports.PROTOCOL = PROTOCOL;
+exports.SLASH = SLASH;
+exports.UNDERSCORE = UNDERSCORE;
+exports.SYM = SYM;
+exports.TLD = TLD;
+exports.WS = WS;
+exports.OPENBRACE = OPENBRACE;
+exports.OPENBRACKET = OPENBRACKET;
+exports.OPENPAREN = OPENPAREN;
+exports.CLOSEBRACE = CLOSEBRACE;
+exports.CLOSEBRACKET = CLOSEBRACKET;
+exports.CLOSEPAREN = CLOSEPAREN;
+},{"../../utils/class":9,"./create-token-class":6}],9:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -1295,60 +1280,121 @@ function inherits(parent, child) {
 	child.prototype = extended;
 	return child;
 }
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
-exports.normalize = normalize;
-exports.resolve = resolve;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+var defaults = {
+	defaultProtocol: 'http',
+	events: null,
+	format: noop,
+	formatHref: noop,
+	nl2br: false,
+	tagName: 'a',
+	target: typeToTarget,
+	validate: true,
+	ignoreTags: [],
+	attributes: null,
+	className: 'linkified' };
+
+exports.defaults = defaults;
+exports.Options = Options;
 exports.contains = contains;
-/**
- * Convert set of options into objects including all the defaults
- */
-function normalize(opts) {
+
+
+function Options(opts) {
 	opts = opts || {};
-	var newLine = opts.newLine || false; // deprecated
-	var ignoreTags = opts.ignoreTags || [];
+
+	this.defaultProtocol = opts.defaultProtocol || defaults.defaultProtocol;
+	this.events = opts.events || defaults.events;
+	this.format = opts.format || defaults.format;
+	this.formatHref = opts.formatHref || defaults.formatHref;
+	this.nl2br = opts.nl2br || defaults.nl2br;
+	this.tagName = opts.tagName || defaults.tagName;
+	this.target = opts.target || defaults.target;
+	this.validate = opts.validate || defaults.validate;
+	this.ignoreTags = [];
+
+	// linkAttributes and linkClass is deprecated
+	this.attributes = opts.attributes || opts.linkAttributes || defaults.attributes;
+	this.className = opts.className || opts.linkClass || defaults.className;
 
 	// Make all tags names upper case
-	for (var i = 0; i < ignoreTags.length; i++) {
-		ignoreTags[i] = ignoreTags[i].toUpperCase();
-	}
 
-	return {
-		attributes: opts.linkAttributes || null,
-		defaultProtocol: opts.defaultProtocol || 'http',
-		events: opts.events || null,
-		format: opts.format || noop,
-		validate: opts.validate || yes,
-		formatHref: opts.formatHref || noop,
-		newLine: opts.newLine || false, // deprecated
-		nl2br: !!newLine || opts.nl2br || false,
-		tagName: opts.tagName || 'a',
-		target: opts.target || typeToTarget,
-		linkClass: opts.linkClass || 'linkified',
-		ignoreTags: ignoreTags
-	};
+	var ignoredTags = opts.ignoreTags || defaults.ignoreTags;
+	for (var i = 0; i < ignoredTags.length; i++) {
+		this.ignoreTags.push(ignoredTags[i].toUpperCase());
+	}
 }
 
-/**
- * Resolve an option's value based on the value of the option and the given
- * params
- */
-function resolve(value) {
-	for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-		params[_key - 1] = arguments[_key];
-	}
+Options.prototype = {
+	/**
+  * Given the token, return all options for how it should be displayed
+  */
+	resolve: function resolve(token) {
+		var href = token.toHref(this.defaultProtocol);
+		return {
+			formatted: this.get('format', token.toString(), token),
+			formattedHref: this.get('formatHref', href, token),
+			tagName: this.get('tagName', href, token),
+			className: this.get('className', href, token),
+			target: this.get('target', href, token),
+			events: this.getObject('events', href, token),
+			attributes: this.getObject('attributes', href, token)
+		};
+	},
 
-	return typeof value === 'function' ? value.apply(undefined, params) : value;
-}
+
+	/**
+  * Returns true or false based on whether a token should be displayed as a
+  * link based on the user options. By default,
+  */
+	check: function check(token) {
+		return this.get('validate', token.toString(), token);
+	},
+
+
+	// Private methods
+
+	/**
+  * Resolve an option's value based on the value of the option and the given
+  * params.
+  * @param [String] key Name of option to use
+  * @param operator will be passed to the target option if it's method
+  * @param [MultiToken] token The token from linkify.tokenize
+  */
+	get: function get(key, operator, token) {
+		var option = this[key];
+
+		if (!option) {
+			return option;
+		}
+
+		switch (typeof option === 'undefined' ? 'undefined' : _typeof(option)) {
+			case 'function':
+				return option(operator, token.type);
+			case 'object':
+				var optionValue = option[token.type] || defaults[key];
+				return typeof optionValue === 'function' ? optionValue(operator, token.type) : optionValue;
+		}
+
+		return option;
+	},
+	getObject: function getObject(key, operator, token) {
+		var option = this[key];
+		return typeof option === 'function' ? option(operator, token.type) : option;
+	}
+};
 
 /**
  * Quick indexOf replacement for checking the ignoreTags option
  */
 function contains(arr, value) {
 	for (var i = 0; i < arr.length; i++) {
-		if (arr[i] == value) {
+		if (arr[i] === value) {
 			return true;
 		}
 	}
@@ -1359,17 +1405,13 @@ function noop(val) {
 	return val;
 }
 
-function yes(val) {
-	return true;
-}
-
 function typeToTarget(href, type) {
 	return type === 'url' ? '_blank' : null;
 }
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = require('./lib/linkify-string').default;
 
-},{"./lib/linkify-string":1}],10:[function(require,module,exports){
+},{"./lib/linkify-string":1}],12:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -1490,7 +1532,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /*!
  * vue-resource v0.9.3
  * https://github.com/vuejs/vue-resource
@@ -2803,10 +2845,10 @@ if (typeof window !== 'undefined' && window.Vue) {
 }
 
 module.exports = plugin;
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (process,global){
 /*!
- * Vue.js v1.0.26
+ * Vue.js v1.0.27
  * (c) 2016 Evan You
  * Released under the MIT License.
  */
@@ -2962,7 +3004,7 @@ function stripQuotes(str) {
 }
 
 /**
- * Camelize a hyphen-delmited string.
+ * Camelize a hyphen-delimited string.
  *
  * @param {String} str
  * @return {String}
@@ -2985,10 +3027,10 @@ function toUpper(_, c) {
  * @return {String}
  */
 
-var hyphenateRE = /([a-z\d])([A-Z])/g;
+var hyphenateRE = /([^-])([A-Z])/g;
 
 function hyphenate(str) {
-  return str.replace(hyphenateRE, '$1-$2').toLowerCase();
+  return str.replace(hyphenateRE, '$1-$2').replace(hyphenateRE, '$1-$2').toLowerCase();
 }
 
 /**
@@ -3208,12 +3250,6 @@ var UA = inBrowser && window.navigator.userAgent.toLowerCase();
 var isIE = UA && UA.indexOf('trident') > 0;
 var isIE9 = UA && UA.indexOf('msie 9.0') > 0;
 var isAndroid = UA && UA.indexOf('android') > 0;
-var isIos = UA && /(iphone|ipad|ipod|ios)/i.test(UA);
-var iosVersionMatch = isIos && UA.match(/os ([\d_]+)/);
-var iosVersion = iosVersionMatch && iosVersionMatch[1].split('_');
-
-// detecting iOS UIWebView by indexedDB
-var hasMutationObserverBug = iosVersion && Number(iosVersion[0]) >= 9 && Number(iosVersion[1]) >= 3 && !window.indexedDB;
 
 var transitionProp = undefined;
 var transitionEndEvent = undefined;
@@ -3253,25 +3289,25 @@ var nextTick = (function () {
     }
   }
 
-  /* istanbul ignore if */
-  if (typeof MutationObserver !== 'undefined' && !hasMutationObserverBug) {
-    var counter = 1;
-    var observer = new MutationObserver(nextTickHandler);
-    var textNode = document.createTextNode(counter);
-    observer.observe(textNode, {
-      characterData: true
-    });
-    timerFunc = function () {
-      counter = (counter + 1) % 2;
-      textNode.data = counter;
-    };
-  } else {
-    // webpack attempts to inject a shim for setImmediate
-    // if it is used as a global, so we have to work around that to
-    // avoid bundling unnecessary code.
-    var context = inBrowser ? window : typeof global !== 'undefined' ? global : {};
-    timerFunc = context.setImmediate || setTimeout;
+  /* istanbul ignore else */
+  if (inBrowser && window.postMessage && !window.importScripts && // not in WebWorker
+  !(isAndroid && !window.requestAnimationFrame) // not in Android <= 4.3
+  ) {
+      (function () {
+        var NEXT_TICK_TOKEN = '__vue__nextTick__';
+        window.addEventListener('message', function (e) {
+          if (e.source === window && e.data === NEXT_TICK_TOKEN) {
+            nextTickHandler();
+          }
+        });
+        timerFunc = function () {
+          window.postMessage(NEXT_TICK_TOKEN, '*');
+        };
+      })();
+    } else {
+    timerFunc = typeof global !== 'undefined' && global.setImmediate || setTimeout;
   }
+
   return function (cb, ctx) {
     var func = ctx ? function () {
       cb.call(ctx);
@@ -3406,7 +3442,6 @@ p.get = function (key, returnEntry) {
 };
 
 var cache$1 = new Cache(1000);
-var filterTokenRE = /[^\s'"]+|'[^']*'|"[^"]*"/g;
 var reservedArgRE = /^in$|^-?\d+/;
 
 /**
@@ -3415,35 +3450,167 @@ var reservedArgRE = /^in$|^-?\d+/;
 
 var str;
 var dir;
-var c;
-var prev;
-var i;
-var l;
-var lastFilterIndex;
-var inSingle;
-var inDouble;
-var curly;
-var square;
-var paren;
-/**
- * Push a filter to the current directive object
- */
+var len;
+var index;
+var chr;
+var state;
+var startState = 0;
+var filterState = 1;
+var filterNameState = 2;
+var filterArgState = 3;
 
-function pushFilter() {
-  var exp = str.slice(lastFilterIndex, i).trim();
-  var filter;
-  if (exp) {
-    filter = {};
-    var tokens = exp.match(filterTokenRE);
-    filter.name = tokens[0];
-    if (tokens.length > 1) {
-      filter.args = tokens.slice(1).map(processFilterArg);
+var doubleChr = 0x22;
+var singleChr = 0x27;
+var pipeChr = 0x7C;
+var escapeChr = 0x5C;
+var spaceChr = 0x20;
+
+var expStartChr = { 0x5B: 1, 0x7B: 1, 0x28: 1 };
+var expChrPair = { 0x5B: 0x5D, 0x7B: 0x7D, 0x28: 0x29 };
+
+function peek() {
+  return str.charCodeAt(index + 1);
+}
+
+function next() {
+  return str.charCodeAt(++index);
+}
+
+function eof() {
+  return index >= len;
+}
+
+function eatSpace() {
+  while (peek() === spaceChr) {
+    next();
+  }
+}
+
+function isStringStart(chr) {
+  return chr === doubleChr || chr === singleChr;
+}
+
+function isExpStart(chr) {
+  return expStartChr[chr];
+}
+
+function isExpEnd(start, chr) {
+  return expChrPair[start] === chr;
+}
+
+function parseString() {
+  var stringQuote = next();
+  var chr;
+  while (!eof()) {
+    chr = next();
+    // escape char
+    if (chr === escapeChr) {
+      next();
+    } else if (chr === stringQuote) {
+      break;
     }
   }
-  if (filter) {
-    (dir.filters = dir.filters || []).push(filter);
+}
+
+function parseSpecialExp(chr) {
+  var inExp = 0;
+  var startChr = chr;
+
+  while (!eof()) {
+    chr = peek();
+    if (isStringStart(chr)) {
+      parseString();
+      continue;
+    }
+
+    if (startChr === chr) {
+      inExp++;
+    }
+    if (isExpEnd(startChr, chr)) {
+      inExp--;
+    }
+
+    next();
+
+    if (inExp === 0) {
+      break;
+    }
   }
-  lastFilterIndex = i + 1;
+}
+
+/**
+ * syntax:
+ * expression | filterName  [arg  arg [| filterName arg arg]]
+ */
+
+function parseExpression() {
+  var start = index;
+  while (!eof()) {
+    chr = peek();
+    if (isStringStart(chr)) {
+      parseString();
+    } else if (isExpStart(chr)) {
+      parseSpecialExp(chr);
+    } else if (chr === pipeChr) {
+      next();
+      chr = peek();
+      if (chr === pipeChr) {
+        next();
+      } else {
+        if (state === startState || state === filterArgState) {
+          state = filterState;
+        }
+        break;
+      }
+    } else if (chr === spaceChr && (state === filterNameState || state === filterArgState)) {
+      eatSpace();
+      break;
+    } else {
+      if (state === filterState) {
+        state = filterNameState;
+      }
+      next();
+    }
+  }
+
+  return str.slice(start + 1, index) || null;
+}
+
+function parseFilterList() {
+  var filters = [];
+  while (!eof()) {
+    filters.push(parseFilter());
+  }
+  return filters;
+}
+
+function parseFilter() {
+  var filter = {};
+  var args;
+
+  state = filterState;
+  filter.name = parseExpression().trim();
+
+  state = filterArgState;
+  args = parseFilterArguments();
+
+  if (args.length) {
+    filter.args = args;
+  }
+  return filter;
+}
+
+function parseFilterArguments() {
+  var args = [];
+  while (!eof() && state !== filterState) {
+    var arg = parseExpression();
+    if (!arg) {
+      break;
+    }
+    args.push(processFilterArg(arg));
+  }
+
+  return args;
 }
 
 /**
@@ -3495,56 +3662,22 @@ function parseDirective(s) {
 
   // reset parser state
   str = s;
-  inSingle = inDouble = false;
-  curly = square = paren = 0;
-  lastFilterIndex = 0;
   dir = {};
+  len = str.length;
+  index = -1;
+  chr = '';
+  state = startState;
 
-  for (i = 0, l = str.length; i < l; i++) {
-    prev = c;
-    c = str.charCodeAt(i);
-    if (inSingle) {
-      // check single quote
-      if (c === 0x27 && prev !== 0x5C) inSingle = !inSingle;
-    } else if (inDouble) {
-      // check double quote
-      if (c === 0x22 && prev !== 0x5C) inDouble = !inDouble;
-    } else if (c === 0x7C && // pipe
-    str.charCodeAt(i + 1) !== 0x7C && str.charCodeAt(i - 1) !== 0x7C) {
-      if (dir.expression == null) {
-        // first filter, end of expression
-        lastFilterIndex = i + 1;
-        dir.expression = str.slice(0, i).trim();
-      } else {
-        // already has filter
-        pushFilter();
-      }
-    } else {
-      switch (c) {
-        case 0x22:
-          inDouble = true;break; // "
-        case 0x27:
-          inSingle = true;break; // '
-        case 0x28:
-          paren++;break; // (
-        case 0x29:
-          paren--;break; // )
-        case 0x5B:
-          square++;break; // [
-        case 0x5D:
-          square--;break; // ]
-        case 0x7B:
-          curly++;break; // {
-        case 0x7D:
-          curly--;break; // }
-      }
+  var filters;
+
+  if (str.indexOf('|') < 0) {
+    dir.expression = str.trim();
+  } else {
+    dir.expression = parseExpression().trim();
+    filters = parseFilterList();
+    if (filters.length) {
+      dir.filters = filters;
     }
-  }
-
-  if (dir.expression == null) {
-    dir.expression = str.slice(0, i).trim();
-  } else if (lastFilterIndex !== 0) {
-    pushFilter();
   }
 
   cache$1.put(s, dir);
@@ -4350,6 +4483,24 @@ function getOuterHTML(el) {
   }
 }
 
+/**
+ * Find a vm from a fragment.
+ *
+ * @param {Fragment} frag
+ * @return {Vue|undefined}
+ */
+
+function findVmFromFrag(frag) {
+  var node = frag.node;
+  // handle multi-node frag
+  if (frag.end) {
+    while (!node.__vue__ && node !== frag.end && node.nextSibling) {
+      node = node.nextSibling;
+    }
+  }
+  return node.__vue__;
+}
+
 var commonTagRE = /^(div|p|span|img|a|b|i|br|ul|ol|li|h1|h2|h3|h4|h5|h6|code|pre|table|th|td|tr|form|label|input|select|option|nav|article|section|header|footer)$/i;
 var reservedTagRE = /^(slot|partial|component)$/i;
 
@@ -5133,10 +5284,6 @@ var util = Object.freeze({
 	isIE: isIE,
 	isIE9: isIE9,
 	isAndroid: isAndroid,
-	isIos: isIos,
-	iosVersionMatch: iosVersionMatch,
-	iosVersion: iosVersion,
-	hasMutationObserverBug: hasMutationObserverBug,
 	get transitionProp () { return transitionProp; },
 	get transitionEndEvent () { return transitionEndEvent; },
 	get animationProp () { return animationProp; },
@@ -5167,6 +5314,7 @@ var util = Object.freeze({
 	removeNodeRange: removeNodeRange,
 	isFragment: isFragment,
 	getOuterHTML: getOuterHTML,
+	findVmFromFrag: findVmFromFrag,
 	mergeOptions: mergeOptions,
 	resolveAsset: resolveAsset,
 	checkComponentAttr: checkComponentAttr,
@@ -5236,7 +5384,7 @@ function initMixin (Vue) {
 
     // fragment:
     // if this instance is compiled inside a Fragment, it
-    // needs to reigster itself as a child of that fragment
+    // needs to register itself as a child of that fragment
     // for attach/detach to work properly.
     this._frag = options._frag;
     if (this._frag) {
@@ -5541,7 +5689,7 @@ function parsePath(path) {
  */
 
 function getPath(obj, path) {
-  return parseExpression(path).get(obj);
+  return parseExpression$1(path).get(obj);
 }
 
 /**
@@ -5576,7 +5724,7 @@ function setPath(obj, path, val) {
     last = obj;
     key = path[i];
     if (key.charAt(0) === '*') {
-      key = parseExpression(key.slice(1)).get.call(original, original);
+      key = parseExpression$1(key.slice(1)).get.call(original, original);
     }
     if (i < l - 1) {
       obj = obj[key];
@@ -5620,7 +5768,7 @@ var improperKeywordsRE = new RegExp('^(' + improperKeywords.replace(/,/g, '\\b|'
 
 var wsRE = /\s/g;
 var newlineRE = /\n/g;
-var saveRE = /[\{,]\s*[\w\$_]+\s*:|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*\$\{|\}(?:[^`\\]|\\.)*`|`(?:[^`\\]|\\.)*`)|new |typeof |void /g;
+var saveRE = /[\{,]\s*[\w\$_]+\s*:|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*\$\{|\}(?:[^`\\"']|\\.)*`|`(?:[^`\\]|\\.)*`)|new |typeof |void /g;
 var restoreRE = /"(\d+)"/g;
 var pathTestRE = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\['.*?'\]|\[".*?"\]|\[\d+\]|\[[A-Za-z_$][\w$]*\])*$/;
 var identRE = /[^\w$\.](?:[A-Za-z_$][\w$]*)/g;
@@ -5767,7 +5915,7 @@ function compileSetter(exp) {
  * @return {Function}
  */
 
-function parseExpression(exp, needSet) {
+function parseExpression$1(exp, needSet) {
   exp = exp.trim();
   // try cache
   var hit = expressionCache.get(exp);
@@ -5806,7 +5954,7 @@ function isSimplePath(exp) {
 }
 
 var expression = Object.freeze({
-  parseExpression: parseExpression,
+  parseExpression: parseExpression$1,
   isSimplePath: isSimplePath
 });
 
@@ -5958,7 +6106,7 @@ function Watcher(vm, expOrFn, cb, options) {
     this.getter = expOrFn;
     this.setter = undefined;
   } else {
-    var res = parseExpression(expOrFn, this.twoWay);
+    var res = parseExpression$1(expOrFn, this.twoWay);
     this.getter = res.get;
     this.setter = res.set;
   }
@@ -6912,7 +7060,7 @@ var vFor = {
           });
         }
       } else {
-        // new isntance
+        // new instance
         frag = this.create(value, alias, i, key);
         frag.fresh = !init;
       }
@@ -7347,24 +7495,6 @@ function findPrevFrag(frag, anchor, id) {
 }
 
 /**
- * Find a vm from a fragment.
- *
- * @param {Fragment} frag
- * @return {Vue|undefined}
- */
-
-function findVmFromFrag(frag) {
-  var node = frag.node;
-  // handle multi-node frag
-  if (frag.end) {
-    while (!node.__vue__ && node !== frag.end && node.nextSibling) {
-      node = node.nextSibling;
-    }
-  }
-  return node.__vue__;
-}
-
-/**
  * Create a range array from given number.
  *
  * @param {Number} n
@@ -7427,8 +7557,10 @@ var vIf = {
     if (value) {
       if (!this.frag) {
         this.insert();
+        this.updateRef(value);
       }
     } else {
+      this.updateRef(value);
       this.remove();
     }
   },
@@ -7457,6 +7589,29 @@ var vIf = {
       }
       this.elseFrag = this.elseFactory.create(this._host, this._scope, this._frag);
       this.elseFrag.before(this.anchor);
+    }
+  },
+
+  updateRef: function updateRef(value) {
+    var ref = this.descriptor.ref;
+    if (!ref) return;
+    var hash = (this.vm || this._scope).$refs;
+    var refs = hash[ref];
+    var key = this._frag.scope.$key;
+    if (!refs) return;
+    if (value) {
+      if (Array.isArray(refs)) {
+        refs.push(findVmFromFrag(this._frag));
+      } else {
+        refs[key] = findVmFromFrag(this._frag);
+      }
+    } else {
+      if (Array.isArray(refs)) {
+        refs.$remove(findVmFromFrag(this._frag));
+      } else {
+        refs[key] = null;
+        delete refs[key];
+      }
     }
   },
 
@@ -7796,15 +7951,16 @@ var checkbox = {
     }
 
     this.listener = function () {
-      var model = self._watcher.value;
+      var model = self._watcher.get();
       if (isArray(model)) {
         var val = self.getValue();
+        var i = indexOf(model, val);
         if (el.checked) {
-          if (indexOf(model, val) < 0) {
-            model.push(val);
+          if (i < 0) {
+            self.set(model.concat(val));
           }
-        } else {
-          model.$remove(val);
+        } else if (i > -1) {
+          self.set(model.slice(0, i).concat(model.slice(i + 1)));
         }
       } else {
         self.set(getBooleanValue());
@@ -8321,6 +8477,12 @@ var cloak = {
   }
 };
 
+// logic control
+// two-way binding
+// event handling
+// attributes
+// ref & el
+// cloak
 // must export plain object
 var directives = {
   text: text$1,
@@ -8812,6 +8974,7 @@ var settablePathRE = /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*|\[[^\[\]]+\])*$/;
 
 function compileProps(el, propOptions, vm) {
   var props = [];
+  var propsData = vm.$options.propsData;
   var names = Object.keys(propOptions);
   var i = names.length;
   var options, name, attr, value, path, parsed, prop;
@@ -8879,13 +9042,16 @@ function compileProps(el, propOptions, vm) {
     } else if ((value = getAttr(el, attr)) !== null) {
       // has literal binding!
       prop.raw = value;
+    } else if (propsData && (value = propsData[name] || propsData[path]) !== null) {
+      // has propsData
+      prop.raw = value;
     } else if (process.env.NODE_ENV !== 'production') {
       // check possible camelCase prop usage
       var lowerCaseName = path.toLowerCase();
       value = /[A-Z\-]/.test(name) && (el.getAttribute(lowerCaseName) || el.getAttribute(':' + lowerCaseName) || el.getAttribute('v-bind:' + lowerCaseName) || el.getAttribute(':' + lowerCaseName + '.once') || el.getAttribute('v-bind:' + lowerCaseName + '.once') || el.getAttribute(':' + lowerCaseName + '.sync') || el.getAttribute('v-bind:' + lowerCaseName + '.sync'));
       if (value) {
         warn('Possible usage error for prop `' + lowerCaseName + '` - ' + 'did you mean `' + attr + '`? HTML is case-insensitive, remember to use ' + 'kebab-case for props in templates.', vm);
-      } else if (options.required) {
+      } else if (options.required && (!propsData || !(name in propsData) && !(path in propsData))) {
         // warn missing required
         warn('Missing required prop: ' + name, vm);
       }
@@ -9730,7 +9896,7 @@ function linkAndCapture(linker, vm) {
   var originalDirCount = vm._directives.length;
   linker();
   var dirs = vm._directives.slice(originalDirCount);
-  dirs.sort(directiveComparator);
+  sortDirectives(dirs);
   for (var i = 0, l = dirs.length; i < l; i++) {
     dirs[i]._bind();
   }
@@ -9738,16 +9904,35 @@ function linkAndCapture(linker, vm) {
 }
 
 /**
- * Directive priority sort comparator
+ * sort directives by priority (stable sort)
  *
- * @param {Object} a
- * @param {Object} b
+ * @param {Array} dirs
  */
+function sortDirectives(dirs) {
+  if (dirs.length === 0) return;
 
-function directiveComparator(a, b) {
-  a = a.descriptor.def.priority || DEFAULT_PRIORITY;
-  b = b.descriptor.def.priority || DEFAULT_PRIORITY;
-  return a > b ? -1 : a === b ? 0 : 1;
+  var groupedMap = {};
+  var i, j, k, l;
+  for (i = 0, j = dirs.length; i < j; i++) {
+    var dir = dirs[i];
+    var priority = dir.descriptor.def.priority || DEFAULT_PRIORITY;
+    var array = groupedMap[priority];
+    if (!array) {
+      array = groupedMap[priority] = [];
+    }
+    array.push(dir);
+  }
+
+  var index = 0;
+  var priorities = Object.keys(groupedMap).sort(function (a, b) {
+    return a > b ? -1 : a === b ? 0 : 1;
+  });
+  for (i = 0, j = priorities.length; i < j; i++) {
+    var group = groupedMap[priorities[i]];
+    for (k = 0, l = group.length; k < l; k++) {
+      dirs[index++] = group[k];
+    }
+  }
 }
 
 /**
@@ -9865,7 +10050,13 @@ function compileRoot(el, options, contextOptions) {
     });
     if (names.length) {
       var plural = names.length > 1;
-      warn('Attribute' + (plural ? 's ' : ' ') + names.join(', ') + (plural ? ' are' : ' is') + ' ignored on component ' + '<' + options.el.tagName.toLowerCase() + '> because ' + 'the component is a fragment instance: ' + 'http://vuejs.org/guide/components.html#Fragment-Instance');
+
+      var componentName = options.el.tagName.toLowerCase();
+      if (componentName === 'component' && options.name) {
+        componentName += ':' + options.name;
+      }
+
+      warn('Attribute' + (plural ? 's ' : ' ') + names.join(', ') + (plural ? ' are' : ' is') + ' ignored on component ' + '<' + componentName + '> because ' + 'the component is a fragment instance: ' + 'http://vuejs.org/guide/components.html#Fragment-Instance');
     }
   }
 
@@ -9924,6 +10115,10 @@ function compileElement(el, options) {
   // textarea treats its text content as the initial value.
   // just bind it as an attr directive for value.
   if (el.tagName === 'TEXTAREA') {
+    // a textarea which has v-pre attr should skip complie.
+    if (getAttr(el, 'v-pre') !== null) {
+      return skip;
+    }
     var tokens = parseText(el.value);
     if (tokens) {
       el.setAttribute(':value', tokensToExp(tokens));
@@ -10250,8 +10445,8 @@ function makeTerminalNodeLinkFn(el, dirName, value, options, def, rawName, arg, 
     modifiers: modifiers,
     def: def
   };
-  // check ref for v-for and router-view
-  if (dirName === 'for' || dirName === 'router-view') {
+  // check ref for v-for, v-if and router-view
+  if (dirName === 'for' || dirName === 'if' || dirName === 'router-view') {
     descriptor.ref = findRef(el);
   }
   var fn = function terminalNodeLinkFn(vm, el, host, scope, frag) {
@@ -10490,6 +10685,9 @@ function transcludeTemplate(el, options) {
   var frag = parseTemplate(template, true);
   if (frag) {
     var replacer = frag.firstChild;
+    if (!replacer) {
+      return frag;
+    }
     var tag = replacer.tagName && replacer.tagName.toLowerCase();
     if (options.replace) {
       /* istanbul ignore if */
@@ -11242,7 +11440,7 @@ Directive.prototype._setupParamWatcher = function (key, expression) {
 Directive.prototype._checkStatement = function () {
   var expression = this.expression;
   if (expression && this.acceptStatement && !isSimplePath(expression)) {
-    var fn = parseExpression(expression).get;
+    var fn = parseExpression$1(expression).get;
     var scope = this._scope || this.vm;
     var handler = function handler(e) {
       scope.$event = e;
@@ -11690,7 +11888,7 @@ function dataAPI (Vue) {
    */
 
   Vue.prototype.$get = function (exp, asStatement) {
-    var res = parseExpression(exp);
+    var res = parseExpression$1(exp);
     if (res) {
       if (asStatement) {
         var self = this;
@@ -11718,7 +11916,7 @@ function dataAPI (Vue) {
    */
 
   Vue.prototype.$set = function (exp, val) {
-    var res = parseExpression(exp, true);
+    var res = parseExpression$1(exp, true);
     if (res && res.set) {
       res.set.call(this, this, val);
     }
@@ -12481,7 +12679,7 @@ function filterBy(arr, search, delimiter) {
 }
 
 /**
- * Filter filter for arrays
+ * Order filter for arrays
  *
  * @param {String|Array<String>|Function} ...sortKeys
  * @param {Number} [order]
@@ -12864,7 +13062,7 @@ function installGlobalAPI (Vue) {
 
 installGlobalAPI(Vue);
 
-Vue.version = '1.0.26';
+Vue.version = '1.0.27';
 
 // devtools global hook
 /* istanbul ignore next */
@@ -12880,7 +13078,7 @@ setTimeout(function () {
 
 module.exports = Vue;
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":10}],13:[function(require,module,exports){
+},{"_process":12}],15:[function(require,module,exports){
 'use strict';
 
 var Vue = require('vue');
@@ -12944,7 +13142,7 @@ var app = new Vue({
     }
 });
 
-},{"./components/VideoPage":16,"./components/VideosList":18,"linkifyjs/string":9,"vue":12,"vue-resource":11}],14:[function(require,module,exports){
+},{"./components/VideoPage":18,"./components/VideosList":20,"linkifyjs/string":11,"vue":14,"vue-resource":13}],16:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -12954,32 +13152,22 @@ module.exports = {
 
     replace: true,
 
-    // data: function() {
-    //     return {
-    //         id: '',
-    //         url: '',
-    //         thumbnail: '',
-    //         title: '',
-    //         source: ''
-    //     };
-    // },
-
     methods: {
         saveForLater: function saveForLater(stuff) {
             var parameters = {
                 original_id: this.video.original_id
             };
 
-            this.$http.post('/api/user/watch-later', parameters, function (homeVideos) {
+            this.$http.post('/api/user/watch-later', parameters, function () {
                 alert('success');
             });
         }
     }
 };
 
-},{"./VideoCard.template.html":15}],15:[function(require,module,exports){
-module.exports = '<div class="col s6 m4 video {{ video.provider }}">\n    <div class="card hoverable">\n        <div class="card-image">\n            <a href="{{ video.custom_url }}">\n                <img :src="video.thumbnail" alt="{{ video.title }}" />\n            </a>\n            <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.custom_url }}"></span>\n\n            <span class="video-source {{ video.provider }}">\n                {{ video.provider }}\n            </span>\n        </div>\n        <div class="card-content">\n            <h1>\n                <a href="{{ video.custom_url }}" class="black-text">\n                    {{ video.title }}\n                </a>\n            </h1>\n        </div>\n        <!-- <div class="card-action">\n            <a href="{{ video.custom_url }}" title="{{ video.title }}">\n                Watch video\n            </a>\n            <a href="#" v-on:click="saveForLater()">\n                Watch later\n            </a>\n        </div> -->\n    </div>\n</div>\n';
-},{}],16:[function(require,module,exports){
+},{"./VideoCard.template.html":17}],17:[function(require,module,exports){
+module.exports = '<div class="col s6 m4 video {{ video.provider }}">\n    <div class="card hoverable">\n        <div class="card-image">\n            <a href="{{ video.custom_url }}">\n                <img :src="video.data.thumbnail" alt="{{ video.data.title }}" />\n            </a>\n            <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ video.custom_url }}"></span>\n\n            <span class="video-source {{ video.provider }}">\n                {{ video.provider }}\n            </span>\n        </div>\n        <div class="card-content">\n            <h1>\n                <a href="{{ video.custom_url }}" class="black-text">\n                    {{ video.data.title }}\n                </a>\n            </h1>\n        </div>\n    </div>\n</div>\n';
+},{}],18:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -13008,121 +13196,89 @@ module.exports = {
         ///////////////
         // Socialize //
         ///////////////
-        var title = encodeURIComponent(document.title),
-            url = encodeURI(window.location.href);
+        var title = encodeURIComponent(document.title);
+        var currentPage = encodeURI(window.location.href);
 
-        var facebookUrl = 'http://www.facebook.com/sharer.php?u=' + url + '&t=' + title,
-            tuentiUrl = 'http://www.tuenti.com/?m=Share&func=index&url=' + url + '&suggested-text=',
-            twitterUrl = 'https://twitter.com/intent/tweet?url=' + url + '&text=' + title + '&via=videouri';
+        var facebookUrl = 'http://www.facebook.com/sharer.php?u=' + currentPage + '&t=' + title;
+        var tuentiUrl = 'http://www.tuenti.com/?m=Share&func=index&url=' + currentPage + '&suggested-text=';
+        var twitterUrl = 'https://twitter.com/intent/tweet?url=' + currentPage + '&text=' + title + '&via=videouri';
 
         $('#facebook-share').attr('href', facebookUrl);
         $('#tuenti-share').attr('href', tuentiUrl);
         $('#twitter-share').attr('href', twitterUrl);
 
         $('.popup').click(function () {
-            var width = 575,
-                height = 400,
-                left = ($(window).width() - width) / 2,
-                top = ($(window).height() - height) / 2,
-                url = this.href,
-                title = $(this).attr('id'),
-                opts = 'status=1' + ',width=' + width + ',height=' + height + ',top=' + top + ',left=' + left;
+            var width = 575;
+            var height = 400;
+            var left = ($(window).width() - width) / 2;
+            var top = ($(window).height() - height) / 2;
+            var socialUrl = this.href;
+            var title = $(this).attr('id');
+            var opts = 'status=1,width=' + width + ',height=' + height + ',top=' + top + ',left=' + left;
 
-            window.open(url, title, opts);
+            window.open(socialUrl, title, opts);
 
             return false;
         });
 
+        /**
+         *
+         */
+        function resizeVideoJS() {
+            var aspectRatio = 264 / 640;
+            var player = document.getElementById('video-player');
+            var width = player.parentElement.offsetWidth;
+            var height = width * aspectRatio;
+
+            console.log(player);
+            console.log(width, height);
+
+            if (height > 530) {
+                height = 530;
+            }
+
+            // if (!height < 530) {
+            // }
+            // player.setAttribute('style', 'width:' + width + 'px;height:' + height + 'px');
+            // player.style.width = width;
+            // player.style.height = height;
+        }
+
+        resizeVideoJS();
+
         /////////////
         // VideoJS //
         /////////////
-        var videoContainer = $('#video-player'),
-            videoSource = videoContainer.data('src').toLowerCase(),
-            videoUrl = videoContainer.data('url');
+        var container = $('#video-player');
+        var source = container.data('src').toLowerCase();
+        var url = container.data('url');
 
         videojs.options.flash.swf = "/misc/video-js.swf";
 
         videojs('video-player', {
-            'techOrder': [videoSource],
+            'techOrder': [source],
             'sources': [{
-                'type': 'video/' + videoSource,
-                'src': videoUrl
-            }]
+                'type': 'video/' + source,
+                'src': url
+            }],
+            controlBar: {
+                muteToggle: false
+            },
+            'controls': true,
+            'autoplay': false,
+            'preload': 'auto'
         }).ready(function () {
-            // Store the video object
-            var myPlayer = this;
-
-            // Make up an aspect ratio
-            var aspectRatio = 264 / 640;
-
-            function resizeVideoJS() {
-                var width = document.getElementById('video-player').parentElement.offsetWidth,
-                    height = width * aspectRatio;
-
-                if (height > 530) {
-                    height = 530;
-                }
-
-                if (!height < 530) {
-                    myPlayer.width(width).height(height);
-                }
-            }
-
-            // Initialize resizeVideoJS()
-            resizeVideoJS();
-
-            // Then on resize call resizeVideoJS()
+            // Re-adjust aspect ration on window resize
             window.onresize = resizeVideoJS;
-
-            // You can use the video.js events even though we use the vimeo controls
-            // As you can see here, we change the background to red when the video is paused and set it back when unpaused
-            // this.on('pause', function() {
-            //     document.body.style.backgroundColor = 'red';
-            // });
-
-            // this.on('play', function() {
-            //     document.body.style.backgroundColor = '';
-            // });
-
-            // You can also change the video when you want
-            // Here we cue a second video once the first is done
-            // this.one('ended', function() {
-            //     this.src('http://vimeo.com/79380715');
-            //     this.play();
-            // });
         });
-
-        ////////////
-        // Disqus //
-        ////////////
-        // function initializeDisqus() {
-        //     /*
-        //     var disqus_config = function () {
-        //     this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
-        //     this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-        //     };
-        //     */
-        //     (function() { // DON'T EDIT BELOW THIS LINE
-        //         var d = document,
-        //             s = d.createElement('script');
-        //         s.src = '//videouri.disqus.com/embed.js';
-        //
-        //         s.setAttribute('data-timestamp', +new Date());
-        //         (d.head || d.body).appendChild(s);
-        //     })();
-        // }
-
-        // if (window.location.hostname !== 'local.videouri.com') {
-        //     initializeDisqus();
-        // }
     },
 
     methods: {
         toggleAction: function toggleAction(action, originalId) {
             jQuery('#loading-bar').removeClass('hide');
 
-            var endpoint = '/api/user',
-                parameters = {
+            var endpoint = '/api/user';
+            var parameters = {
                 'original_id': originalId
             };
 
@@ -13145,8 +13301,6 @@ module.exports = {
 
                 jQuery('#loading-bar').addClass('hide');
             });
-
-            // Materialize.toast(message.success, 3000, 'success');
         },
         checkIfUserIsLogged: function checkIfUserIsLogged() {
             if (_typeof(this.user) === undefined) {
@@ -13159,9 +13313,9 @@ module.exports = {
     }
 };
 
-},{"./VideoPage.template.html":17,"./VideosList":18}],17:[function(require,module,exports){
-module.exports = '<div class="vbg">\n    <video id="video-player" :src="video.original_url" class="video-js vjs-default-skin vjs-big-play-centered"\n           data-src="{{ video.provider.toLowerCase() }}" data-url="{{ video.original_url }}"\n           controls preload="auto" width="100%" height="530">\n        <p>Video Playback Not Supported</p>\n    </video>\n</div>\n\n<div id="video-info" class="container">\n    <div class="row">\n        <div class="col s12">\n            <h4 style="margin-bottom: 0">\n                {{ video.title }}\n            </h4>\n        </div>\n    </div>\n    <div class="row">\n        <div class="col s12">\n            <ul id="social-and-stats">\n                <li class="chip">\n                    <i class="fa fa-eye"></i>\n                    {{ video.views }}\n                </li>\n                <div class="right">\n                    <li>\n                        <a class="custom-dropdown-button btn white black-text" href="#" data-activates="social-share">\n                            <i class="fa fa-share-alt"></i>\n                            Share\n                        </a>\n                        <ul id="social-share" class="dropdown-content">\n                            <li>\n                                <a href="https://www.facebook.com/sharer.php" id="facebook-share"\n                                   class="popup facebook-color" title="Share to Facebook">\n                                    <i class="fa fa-facebook-official"></i>\n                                    Facebook\n                                </a>\n                            </li>\n                            <li>\n                                <a href="https://twitter.com/share" id="twitter-share" class="popup twitter-color"\n                                   title="Share to Twitter">\n                                    <i class="fa fa-twitter"></i>\n                                    Twitter\n                                </a>\n                            </li>\n                        </ul>\n                    </li>\n                    \n                    <li style="margin-left: 5px">\n                        <div v-if="user">\n                            <a class="custom-dropdown-button btn white black-text" href="#"\n                               data-activates="add-to-menu">\n                                <i class="fa fa-plus"></i>\n                                Add to\n                            </a>\n                            <ul id="add-to-menu" class="dropdown-content" v-if="user">\n                                <div id="loading-bar" class="progress hide">\n                                    <div class="indeterminate"></div>\n                                </div>\n                                <li>\n                                    <a class="video-action" v-on:click="toggleAction(\'favorite\', video.original_id)">\n                                        <i class="fa fa-check-square-o" v-if="video.favorited"></i>\n                                        <i class="fa fa-square-o" v-else></i>\n                                        Favorite\n                                    </a>\n                                </li>\n                                <li>\n                                    <a class="video-action" v-on:click="toggleAction(\'watch_later\', video.original_id)">\n                                        <i class="fa fa-check-square-o" v-if="video.saved_for_later"></i>\n                                        <i class="fa fa-square-o" v-else></i>\n                                        Watch later\n                                    </a>\n                                </li>\n                            </ul>\n                        </div>\n                        <div v-else>\n                            <a class="btn white black-text tooltipped"\n                               data-position="bottom"\n                               data-delay="50"\n                               data-tooltip="You need to login in order to save this video!">\n                                <i class="fa fa-plus"></i>\n                                Add to\n                            </a>\n                        </div>\n                    </li>\n                </div>\n            </ul>\n        </div>\n    </div>\n    \n    <hr style="border: 1px dotted #eee;"/>\n    \n    <div id="video-details">\n        <div class="row">\n            <div class="col s12">\n                <h4>Description</h4>\n                <p class="flow-text">\n                    {{{ video.description |linkify }}}\n                </p>\n            </div>\n        </div>\n        <div class="row">\n            <div class="col s12" v-if="video.tags">\n                <h4>Tags</h4>\n                <div class="chip" style="margin: 5px;" v-for="tag in video.tags">\n                    <a title="{{ tag }}" href="/search?query={{ tag }}">\n                        {{ tag }}\n                    </a>\n                </div>\n            </div>\n        </div>\n    </div>\n    \n    <hr style="border: 1px dotted #eee;"/>\n    \n    <div class="row">\n        <div class="col s12">\n            <h4>Recommended videos</h4>\n        </div>\n    </div>\n    <videos-list content="recommended" :custom_id="video.custom_id"></videos-list>\n    \n    <!-- <div class="row">\n        <div class="col s12">\n            <h4>Comments</h4>\n            <div id="disqus_thread"></div>\n            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>\n        </div>\n    </div> -->\n    \n    <!-- Related Videos -->\n    <div id="related-videos" v-if="relatedVideos">\n        <div class="row">\n            <div class="col-md-12 text-center">\n                <h4 style="margin-bottom: 0">\n                    Related videos\n                </h4>\n            </div>\n        </div>\n        <!-- <videos-list :videos="relatedVideos"></videos-list> -->\n    </div>\n</div>\n';
-},{}],18:[function(require,module,exports){
+},{"./VideoPage.template.html":19,"./VideosList":20}],19:[function(require,module,exports){
+module.exports = '<div style="width: 100%; height: 480px; background: black;">\n    <video id="video-player" class="video-js vjs-default-skin vjs-big-play-centered center-block"\n           data-src="{{ video.provider }}" data-url="{{ video.data.url }}"\n           width="640" height="480">\n        <p>Video Playback Not Supported</p>\n    </video>\n</div>\n\n<div id="video-info" class="container">\n    <div class="row">\n        <div class="col s12">\n            <h4 style="margin-bottom: 0">\n                {{ video.data.title }}\n            </h4>\n        </div>\n    </div>\n    <div class="row">\n        <div class="col s12">\n            <ul id="social-and-stats">\n                <li class="chip">\n                    <i class="fa fa-eye"></i>\n                    {{ video.views }}\n                </li>\n                <div class="right">\n                    <li>\n                        <a class="custom-dropdown-button btn white black-text" href="#" data-activates="social-share">\n                            <i class="fa fa-share-alt"></i>\n                            Share\n                        </a>\n                        <ul id="social-share" class="dropdown-content">\n                            <li>\n                                <a href="https://www.facebook.com/sharer.php" id="facebook-share"\n                                   class="popup facebook-color" title="Share to Facebook">\n                                    <i class="fa fa-facebook-official"></i>\n                                    Facebook\n                                </a>\n                            </li>\n                            <li>\n                                <a href="https://twitter.com/share" id="twitter-share" class="popup twitter-color"\n                                   title="Share to Twitter">\n                                    <i class="fa fa-twitter"></i>\n                                    Twitter\n                                </a>\n                            </li>\n                        </ul>\n                    </li>\n                    \n                    <li style="margin-left: 5px">\n                        <div v-if="user">\n                            <a class="custom-dropdown-button btn white black-text" href="#"\n                               data-activates="add-to-menu">\n                                <i class="fa fa-plus"></i>\n                                Add to\n                            </a>\n                            <ul id="add-to-menu" class="dropdown-content" v-if="user">\n                                <div id="loading-bar" class="progress hide">\n                                    <div class="indeterminate"></div>\n                                </div>\n                                <li>\n                                    <a class="video-action" v-on:click="toggleAction(\'favorite\', video.original_id)">\n                                        <i class="fa fa-check-square-o" v-if="video.favorite"></i>\n                                        <i class="fa fa-square-o" v-else></i>\n                                        Favorite\n                                    </a>\n                                </li>\n                                <li>\n                                    <a class="video-action" v-on:click="toggleAction(\'watch_later\', video.original_id)">\n                                        <i class="fa fa-check-square-o" v-if="video.saved_for_later"></i>\n                                        <i class="fa fa-square-o" v-else></i>\n                                        Watch later\n                                    </a>\n                                </li>\n                            </ul>\n                        </div>\n                        <div v-else>\n                            <a class="btn white black-text tooltipped"\n                               data-position="bottom"\n                               data-delay="50"\n                               data-tooltip="You need to login in order to save this video!">\n                                <i class="fa fa-plus"></i>\n                                Add to\n                            </a>\n                        </div>\n                    </li>\n                </div>\n            </ul>\n        </div>\n    </div>\n    \n    <hr style="border: 1px dotted #eee;"/>\n    \n    <div id="video-details">\n        <div class="row">\n            <div class="col s12">\n                <h4>Description</h4>\n                <p class="flow-text">\n                    {{{ video.data.description |linkify }}}\n                </p>\n            </div>\n        </div>\n        <div class="row" v-if="video.data.tags">\n            <div class="col s12">\n                <h4>Tags</h4>\n                <div class="chip" v-for="tag in video.data.tags">\n                    <a title="{{ tag }}" href="/search?query={{ tag }}">\n                        {{ tag }}\n                    </a>\n                </div>\n            </div>\n        </div>\n    </div>\n    \n    <hr style="border: 1px dotted #eee;"/>\n    \n    <div class="row">\n        <div class="col s12">\n            <h4>Recommended videos</h4>\n        </div>\n    </div>\n    <videos-list content="recommended" :custom_id="video.custom_id"></videos-list>\n</div>\n';
+},{}],20:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -13185,7 +13339,7 @@ module.exports = {
                 video: baseUri + '/recommendations/video'
             },
             content: {
-                home: baseUri + '/content/related'
+                home: baseUri + '/content/home'
             },
             user: {
                 favorites: baseUri + '/user/favorites',
@@ -13199,20 +13353,9 @@ module.exports = {
         };
 
         switch (this.content) {
-            /////////////
-            // Content //
-            /////////////
-            case 'homeVideos':
-                this.$http.get(uri.content.home, function (videos) {
-                    this.$set('videos', videos.data);
-                    this.initIsotope();
-                });
-                break;
-
             ////////////
             //  User  //
             ////////////
-
             case 'favorites':
                 this.$http.get(uri.user.favorites, function (videos) {
                     this.$set('videos', videos.data);
@@ -13234,9 +13377,9 @@ module.exports = {
                 });
                 break;
 
-            ////////////
-            // Search //
-            ////////////
+            /////////////
+            // Content //
+            /////////////
             case 'search':
                 this.$http.get(uri.search, {
                     params: {
@@ -13248,16 +13391,16 @@ module.exports = {
                 });
                 break;
 
-            ////////////////
-            // Video page //
-            ////////////////
             case 'recommended':
-                this.$http.get(uri.recommendations.video, {
-                    params: {
-                        'custom_id': this.custom_id
-                    }
-                }).then(function (results) {
-                    this.$set('videos', results);
+                this.$http.get(uri.recommendations.video + '/' + this.custom_id).then(function (results) {
+                    this.$set('videos', results.data);
+                    this.initIsotope();
+                });
+                break;
+
+            case 'homeVideos':
+                this.$http.get(uri.content.home, function (videos) {
+                    this.$set('videos', videos.data);
                     this.initIsotope();
                 });
                 break;
@@ -13274,13 +13417,13 @@ module.exports = {
     methods: {
         initIsotope: function initIsotope() {
             this.$nextTick(function () {
-                var $grid = $('#videos').isotope({
+                var grid = $('#videos').isotope({
                     itemSelector: '.video',
                     layoutMode: 'masonry'
                 });
 
-                $grid.imagesLoaded().progress(function () {
-                    $grid.isotope('layout');
+                grid.imagesLoaded().progress(function () {
+                    grid.isotope('layout');
                 });
 
                 if (this.filter_apis == 'enabled') {
@@ -13288,7 +13431,7 @@ module.exports = {
                         var filterValue = $(this).data('filter');
                         $('.choosen-source').html('Source: ' + $(this).text());
 
-                        $grid.isotope({
+                        grid.isotope({
                             filter: filterValue
                         });
                     });
@@ -13298,8 +13441,8 @@ module.exports = {
     }
 };
 
-},{"./VideoCard":14,"./VideosList.template.html":19}],19:[function(require,module,exports){
+},{"./VideoCard":16,"./VideosList.template.html":21}],21:[function(require,module,exports){
 module.exports = '<div id="preloader" class="row">\n    <br/>\n    <br/>\n    <div class="col s1 push-s5">\n        <div class="preloader-wrapper big active">\n            <div class="spinner-layer spinner-blue">\n                <div class="circle-clipper left">\n                    <div class="circle"></div>\n                </div>\n                <div class="gap-patch">\n                    <div class="circle"></div>\n                </div>\n                <div class="circle-clipper right">\n                    <div class="circle"></div>\n                </div>\n            </div>\n            <div class="spinner-layer spinner-red">\n                <div class="circle-clipper left">\n                    <div class="circle"></div>\n                </div>\n                <div class="gap-patch">\n                    <div class="circle"></div>\n                </div>\n                <div class="circle-clipper right">\n                    <div class="circle"></div>\n                </div>\n            </div>\n            <div class="spinner-layer spinner-yellow">\n                <div class="circle-clipper left">\n                    <div class="circle"></div>\n                </div>\n                <div class="gap-patch">\n                    <div class="circle"></div>\n                </div>\n                <div class="circle-clipper right">\n                    <div class="circle"></div>\n                </div>\n            </div>\n            <div class="spinner-layer spinner-green">\n                <div class="circle-clipper left">\n                    <div class="circle"></div>\n                </div>\n                <div class="gap-patch">\n                    <div class="circle"></div>\n                </div>\n                <div class="circle-clipper right">\n                    <div class="circle"></div>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n\n<div id="filter-apis" v-if="filter_apis == \'enabled\'" class="hide">\n    <div class="row">\n        <div class="col s3 left">\n            <a href="#" data-activates="api-sources-dropdown" class="dropdown-button btn choosen-source">\n                Source: All\n                <span class="caret"></span>\n            </a>\n\n            <ul id="api-sources-dropdown" class="dropdown-content">\n                <li>\n                    <a href="#" class="video-source" data-filter="*"> All </a>\n                </li>\n                <li>\n                    <a href="#" class="video-source" data-filter=".youtube"> Youtube </a>\n                </li>\n                <li>\n                    <a href="#" class="video-source" data-filter=".vimeo"> Vimeo </a>\n                </li>\n                <li>\n                    <a href="#" class="video-source" data-filter=".dailymotion"> Dailymotion </a>\n                </li>\n            </ul>\n        </div>\n    </div>\n</div>\n\n<div id="videos" class="row">\n    <video-card :video="video" v-for="video in videos"></video-card>\n</div>\n';
-},{}]},{},[13]);
+},{}]},{},[15]);
 
 //# sourceMappingURL=app.js.map
