@@ -1,7 +1,7 @@
-<div class="vbg">
-    <video id="video-player" :src="video.original_url" class="video-js vjs-default-skin vjs-big-play-centered"
-           data-src="{{ video.provider.toLowerCase() }}" data-url="{{ video.original_url }}"
-           controls preload="auto" width="100%" height="530">
+<div style="width: 100%; height: 480px; background: black;">
+    <video id="video-player" class="video-js vjs-default-skin vjs-big-play-centered center-block"
+           data-src="{{ video.provider }}" data-url="{{ video.data.url }}"
+           width="640" height="480">
         <p>Video Playback Not Supported</p>
     </video>
 </div>
@@ -10,7 +10,7 @@
     <div class="row">
         <div class="col s12">
             <h4 style="margin-bottom: 0">
-                {{ video.title }}
+                {{ video.data.title }}
             </h4>
         </div>
     </div>
@@ -29,23 +29,26 @@
                         </a>
                         <ul id="social-share" class="dropdown-content">
                             <li>
-                                <a href="https://www.facebook.com/sharer.php" id="facebook-share" class="popup facebook-color" title="Share to Facebook">
+                                <a href="https://www.facebook.com/sharer.php" id="facebook-share"
+                                   class="popup facebook-color" title="Share to Facebook">
                                     <i class="fa fa-facebook-official"></i>
                                     Facebook
                                 </a>
                             </li>
                             <li>
-                                <a href="https://twitter.com/share" id="twitter-share" class="popup twitter-color" title="Share to Twitter">
+                                <a href="https://twitter.com/share" id="twitter-share" class="popup twitter-color"
+                                   title="Share to Twitter">
                                     <i class="fa fa-twitter"></i>
                                     Twitter
                                 </a>
                             </li>
                         </ul>
                     </li>
-
+                    
                     <li style="margin-left: 5px">
                         <div v-if="user">
-                            <a class="custom-dropdown-button btn white black-text" href="#" data-activates="add-to-menu" >
+                            <a class="custom-dropdown-button btn white black-text" href="#"
+                               data-activates="add-to-menu">
                                 <i class="fa fa-plus"></i>
                                 Add to
                             </a>
@@ -55,7 +58,7 @@
                                 </div>
                                 <li>
                                     <a class="video-action" v-on:click="toggleAction('favorite', video.original_id)">
-                                        <i class="fa fa-check-square-o" v-if="video.favorited"></i>
+                                        <i class="fa fa-check-square-o" v-if="video.favorite"></i>
                                         <i class="fa fa-square-o" v-else></i>
                                         Favorite
                                     </a>
@@ -71,9 +74,9 @@
                         </div>
                         <div v-else>
                             <a class="btn white black-text tooltipped"
-                                data-position="bottom"
-                                data-delay="50"
-                                data-tooltip="You need to login in order to save this video!">
+                               data-position="bottom"
+                               data-delay="50"
+                               data-tooltip="You need to login in order to save this video!">
                                 <i class="fa fa-plus"></i>
                                 Add to
                             </a>
@@ -83,22 +86,22 @@
             </ul>
         </div>
     </div>
-
+    
     <hr style="border: 1px dotted #eee;"/>
-
+    
     <div id="video-details">
         <div class="row">
             <div class="col s12">
                 <h4>Description</h4>
                 <p class="flow-text">
-                    {{{ video.description |linkify }}}
+                    {{{ video.data.description |linkify }}}
                 </p>
             </div>
         </div>
-        <div class="row">
-            <div class="col s12" v-if="video.tags">
+        <div class="row" v-if="video.data.tags">
+            <div class="col s12">
                 <h4>Tags</h4>
-                <div class="chip" style="margin: 5px;" v-for="tag in video.tags">
+                <div class="chip" v-for="tag in video.data.tags">
                     <a title="{{ tag }}" href="/search?query={{ tag }}">
                         {{ tag }}
                     </a>
@@ -106,59 +109,13 @@
             </div>
         </div>
     </div>
-
+    
     <hr style="border: 1px dotted #eee;"/>
-
+    
     <div class="row">
         <div class="col s12">
             <h4>Recommended videos</h4>
         </div>
     </div>
-    <videos-list content="recommended" :api="video.provider" :original_id="video.original_id"></videos-list>
-
-    <!-- <div class="row">
-        <div class="col s12">
-            <h4>Comments</h4>
-            <div id="disqus_thread"></div>
-            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
-        </div>
-    </div> -->
-
-    <!-- Related Videos -->
-    <div id="related-videos" v-if="relatedVideos">
-        <div class="row">
-            <div class="col-md-12 text-center">
-                <h4 style="margin-bottom: 0">
-                    Related videos
-                </h4>
-            </div>
-        </div>
-        <!-- <videos-list :videos="relatedVideos"></videos-list> -->
-        <div id="related-videos" class="row">
-            <div class="col s4 video {{ relatedVideo.provider }}" v-for="relatedVideo in relatedVideos">
-                <div class="card hoverable">
-                    <div class="card-image">
-                        <a href="{{ relatedVideo.custom_url }}" title="{{ relatedVideo.title }}">
-                            <img :src="{{ relatedVideo.thumbnail }}" alt="{{ relatedVideo.title }}">
-                        </a>
-                        <span class="fui-play" style="position: absolute; top: 35%; left: 45%; color: #fff; font-size: 30px; text-shadow: 0px 0px 20px #000, 1px -3px 0px #45c8a9" data-url="{{ relatedVideo.custom_url }}"></span>
-
-                        <span class="video-source {{ relatedVideo.provider }}">
-                            {{ relatedVideo.provider }}
-                        </span>
-                    </div>
-                    <div class="card-content">
-                        <p>
-                            {{ relatedVideo.title }}
-                        </p>
-                    </div>
-                    <div class="card-action">
-                        <a href="{{ relatedVideo.custom_url }}" title="{{ relatedVideo.title }}">
-                            Watch video
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <videos-list content="recommended" :custom_id="video.custom_id"></videos-list>
 </div>
