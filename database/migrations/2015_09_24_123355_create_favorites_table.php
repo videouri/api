@@ -12,11 +12,11 @@ class CreateFavoritesTable extends Migration
      */
     public function up()
     {
-        Schema::create('favorites', function ($table) {
-            $table->integer('video_id')->unsigned();
+        Schema::create('favorites', function (Blueprint $table) {
+            $table->integer('video_id', false, true);
             $table->foreign('video_id')->references('id')->on('videos');
 
-            $table->integer('user_id')->unsigned();
+            $table->integer('user_id', false, true);
             $table->foreign('user_id')->references('id')->on('users');
 
             $table->timestamp('registered_at')->useCurrent();
