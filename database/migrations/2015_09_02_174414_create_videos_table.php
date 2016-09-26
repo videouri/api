@@ -17,13 +17,15 @@ class CreateVideosTable extends Migration
 
             $table->string('provider');
             $table->string('original_id');
-            $table->string('original_url');
-
             $table->string('custom_id');
-            $table->string('slug')->nullable();
 
-            // json encoded video data as returned from API
-            $table->json('data');
+            $table->string('author');
+            $table->integer('duration')->default(0);
+            $table->integer('views')->default(0);
+            $table->integer('likes')->default(0);
+            $table->integer('dislikes')->default(0);
+
+            $table->text('data');
 
             // Determine whether a video has a DMCA claim
             $table->boolean('dmca_claim')->default(false);
@@ -31,8 +33,8 @@ class CreateVideosTable extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            $table->unique(['original_id', 'original_url', 'custom_id']);
-            $table->index(['original_id', 'custom_id']);
+            $table->index(['original_id', 'author', 'duration', 'views', 'likes', 'dislikes']);
+            $table->unique(['original_id']);
         });
     }
 
