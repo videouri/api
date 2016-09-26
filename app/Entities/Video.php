@@ -2,6 +2,7 @@
 
 namespace Videouri\Entities;
 
+use Cocur\Slugify\Slugify;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -32,17 +33,43 @@ class Video extends Model
         'provider',
         'original_id',
         'custom_id',
-        'original_url',
-        'slug', // @TODO add slug for video
+
         'author',
-        'title',
-        'description',
-        'thumbnail',
-        'views',
         'duration',
-        'categories',
-        'tags',
+        'views',
+        'likes',
+        'dislikes',
+
+        'data',
         'dmca_claim'
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'custom_url'
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'dmca_claim'
+    ];
+
+    /**
+     * The attributes that should be casted to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'data' => 'array',
+        'dmca_claim' => 'boolean'
     ];
 
     //////////////
@@ -50,25 +77,14 @@ class Video extends Model
     //////////////
 
     /**
-     * @return array
-     */
-    public function getTagsAttribute()
-    {
-        $tags = $this->attributes['tags'];
-
-        if (!is_array($this->attributes['tags'])) {
-            $tags = json_decode($this->attributes['tags']);
-        }
-
-        return $tags;
-    }
-
-    /**
      * @return string
      */
     public function getCustomUrlAttribute()
     {
-        return videouri_url('/video/' . $this->custom_id);
+        $slugify = new Slugify();
+        $slug = $slugify->slugify($this->getAttribute('data')['title']);
+
+        return videouri_url('/video/' . $slug . '/' . $this->getAttribute('custom_id'));
     }
 
     /////////////
@@ -76,7 +92,7 @@ class Video extends Model
     /////////////
 
     /**
-     * @param $userId
+     * @param integer $userId
      *
      * @return bool
      */
@@ -94,9 +110,9 @@ class Video extends Model
      *
      * @return bool
      */
-    public function isFavorited($userId)
+    public function isFavorite($userId)
     {
-        if ($this->favorited()->where('user_id', '=', $userId)->first()) {
+        if ($this->favorite()->where('user_id', '=', $userId)->first()) {
             return true;
         }
 
@@ -118,7 +134,7 @@ class Video extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function favorited()
+    public function favorite()
     {
         return $this->belongsToMany(User::class, 'favorites');
     }
