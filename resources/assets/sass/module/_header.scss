@@ -1,14 +1,8 @@
-nav .nav-wrapper i {
-    line-height: 100px;
-}
-
-nav#top-nav {
+    nav#top-nav {
     height: 100px;
     box-shadow: none;
     background-color: white;
     border-bottom: 1px solid #efefef;
-    // position: fixed;
-    // z-index: 50;
 
     div#login-signup {
         line-height: 97px;
@@ -27,27 +21,15 @@ nav#top-nav {
         i.mdi-navigation-menu {
             line-height: 100px;
         }
-
-        // position: absolute;
-        // text-align: center;
-        // height: 48px;
-        // width: 48px;
-        // left: 7.5%;
-        // top: 0;
-        // float: none;
-        // margin-left: 1.5rem;
-        // color: #fff;
-        // font-size: 32px;
-        // z-index: 2;
     }
 
     form#navbar-search {
         line-height: 100px;
 
         /* label color */
-        // .input-field .material-icons {
-        //     color: #000;
-        // }
+         .input-field .material-icons {
+             line-height: 45px;
+         }
 
         /* label focus color */
         .input-field input[type=text]:focus + label {
