@@ -10,8 +10,8 @@ Route::group(['middleware' => ['web']], function () {
     // Auth routes //
     /////////////////
     // Authentication Routes...
-    Route::get('login', 'Auth\AuthController@showLoginForm');
-    Route::post('login', 'Auth\AuthController@login');
+    Route::get('login', 'Auth\AuthController@showLoginForm')->name('login.get');
+    Route::post('login', 'Auth\AuthController@login')->name('login.post');
     Route::get('login/{provider}', 'Auth\AuthController@redirectToProvider');
     Route::get('login/{provider}/callback', 'Auth\AuthController@handleProviderCallback');
     Route::get('logout', 'Auth\AuthController@logout');
@@ -42,37 +42,7 @@ Route::group(['middleware' => ['web']], function () {
     // Video page //
     ////////////////
     Route::get('video', 'VideoController@index');
-    Route::get('video/{id}/{videoSlug?}', 'VideoController@show');
-
-    ////////////
-    // Topics //
-    ////////////
-    Route::group(['prefix' => 'topic'], function () {
-        Route::get('music', [
-            'as'   => 'topic.music',
-            'uses' => 'TopicsController@music',
-        ]);
-
-        Route::get('sports', [
-            'as'   => 'topic.sports',
-            'uses' => 'TopicsController@sports',
-        ]);
-
-        Route::get('trailers', [
-            'as'   => 'topic.trailers',
-            'uses' => 'TopicsController@trailers',
-        ]);
-
-        Route::get('news', [
-            'as'   => 'topic.news',
-            'uses' => 'TopicsController@news',
-        ]);
-
-        Route::get('best-of-week', [
-            'as'   => 'topic.best-of-week',
-            'uses' => 'TopicsController@bestOfWeek',
-        ]);
-    });
+    Route::get('video/{slug}/{custom_id}', 'VideoController@show');
 
     // User panel
     Route::group([
@@ -80,18 +50,6 @@ Route::group(['middleware' => ['web']], function () {
         'middleware' => 'auth',
         'namespace' => 'User',
     ], function () {
-        // Route::resource('profile', 'ProfileController', [
-        //     'only' => [
-        //         'index',
-        //     ],
-        // ]);
-        //
-        // Route::resource('settings', 'SettingsController', [
-        //     'only' => [
-        //         'index',
-        //     ],
-        // ]);
-
         Route::resource('history', 'HistoryController', [
             'only' => [
                 'index',
