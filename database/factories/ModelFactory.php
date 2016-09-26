@@ -43,7 +43,8 @@ $factory->define(Videouri\Entities\Video::class, function (Faker\Generator $fake
         'author' => $faker->userName(),
         'duration' => rand(5, 130),
         'views' => rand(5, 1500),
-        'ratings' => rand(5, 130),
+        'likes' => rand(5, 130),
+        'dislikes' => rand(5, 130),
 
         'data' => json_encode($data)
     ];
