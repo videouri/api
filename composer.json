@@ -20,7 +20,8 @@
     "nesbot/carbon": "^1.21",
     "league/fractal": "^0.13.0",
     "pda/pheanstalk": "^3.1",
-    "cocur/slugify": "^2.0"
+    "cocur/slugify": "^2.0",
+    "predis/predis": "^1.1"
   },
   "require-dev": {
     "fzaninotto/faker": "~1.6",
@@ -28,8 +29,8 @@
     "phpunit/phpunit": "~4.0",
     "symfony/css-selector": "2.8.*|3.0.*",
     "symfony/dom-crawler": "2.8.*|3.0.*",
-    "barryvdh/laravel-debugbar": "~2.0",
-    "barryvdh/laravel-ide-helper": "^2.1"
+    "barryvdh/laravel-ide-helper": "^2.2",
+    "doctrine/dbal": "^2.5"
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -49,7 +50,8 @@
   },
   "autoload-dev": {
     "classmap": [
-      "tests/AbstractTestCase.php"
+      "tests/AbstractTestCase.php",
+      "tests/Providers/Scout/ScoutTestCase.php"
     ]
   },
   "scripts": {
@@ -64,7 +66,8 @@
     ],
     "post-autoload-dump": [
       "if [ -f ./vendor/barryvdh/laravel-ide-helper ]; then php ./artisan ide-helper:generate; fi",
-      "if [ -f ./vendor/barryvdh/laravel-ide-helper ]; then php ./artisan ide-helper:models; fi"
+      "if [ -f ./vendor/barryvdh/laravel-ide-helper ]; then php ./artisan ide-helper:models; fi",
+      "if [ -f ./vendor/barryvdh/laravel-ide-helper ]; then php ./artisan ide-helper:meta; fi"
     ]
   },
   "config": {
