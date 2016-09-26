@@ -1,12 +1,5 @@
 <header>
     <ul id="user-menu" class="dropdown-content">
-        {{-- <li>
-            <a href="{{ route('user.{name}.profile.index', ['name' => $currentUser]) }}">Profile</a>
-        </li> --}}
-        {{-- <li>
-            <a href="{{ route('user.{name}.settings.index', ['name' => $currentUser]) }}">Settings</a>
-        </li>
-        <li class="divider"></li> --}}
         <li>
             <a href="{{ url('/logout') }}">Logout</a>
         </li>
@@ -15,10 +8,10 @@
         <div class="container">
             <div class="nav-wrapper">
                 <div class="row">
-                    <div class="col s1">
+                    <div class="col s1 hide-on-large-only">
                         <a href="#" data-activates="nav-mobile"
-                           class="button-collapse top-nav full hide-on-large-only black-text">
-                            <i class="mdi-navigation-menu"></i>
+                           class="button-collapse top-nav full black-text">
+                            <i class="material-icons">menu</i>
                         </a>
                     </div>
                     <form action="/search" method="get" id="navbar-search" class="col s5 m7 offset-s2"
@@ -30,13 +23,13 @@
                             </div>
                             <div class="input-field col s2">
                                 <button id="submit-search" class="btn waves-effect waves-light" type="submit">
-                                    <i class="mdi-action-search"></i>
+                                    <i class="material-icons">search</i>
                                 </button>
                             </div>
                         </div>
                     </form>
-                    <div class="col s4 m4 right">
-                        <div id="login-signup" class="right-nav hide-on-med-and-down right-align">
+                    <div class="col s4 m4 right hide-on-med-and-down">
+                        <div id="login-signup" class="right-nav right-align">
                             @if (Auth::guest())
                                 <div class="row">
                                     <div class="col s6 right-align">
