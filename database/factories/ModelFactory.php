@@ -5,9 +5,9 @@
  */
 $factory->define(Videouri\Entities\User::class, function (Faker\Generator $faker) {
     return [
-        'username'       => $faker->name,
-        'email'          => $faker->email,
-        'password'       => bcrypt(str_random(10)),
+        'username' => $faker->name,
+        'email' => $faker->email,
+        'password' => bcrypt(str_random(10)),
         'remember_token' => str_random(10),
     ];
 });
@@ -19,27 +19,33 @@ $factory->define(Videouri\Entities\Video::class, function (Faker\Generator $fake
     $faker->addProvider(new Faker\Provider\Internet($faker));
 
     $providers = [
-        'Youtube',
-        'Vimeo',
-        'Dailymotion',
+        \Videouri\Entities\Source::YOUTUBE,
+        \Videouri\Entities\Source::DAILYMOTION,
+        \Videouri\Entities\Source::VIMEO,
     ];
 
     $original_id = $custom_id = str_random(5);
     $provider = $providers[array_rand($providers)];
 
+    $data = [
+        'url' => $faker->url(),
+        'title' => $faker->sentence(),
+        'description' => str_random(100),
+        'thumbnail' => $faker->imageUrl(),
+        'tags' => '',
+    ];
+
     return [
-        'provider'     => $provider,
-        'original_id'  => $original_id,
-        'custom_id'    => $custom_id,
-        'original_url' => $faker->url(),
-        'author'       => $faker->userName(),
-        'title'        => $faker->sentence(),
-        'description'  => str_random(100),
-        'thumbnail'    => $faker->imageUrl(),
-        'views'        => rand(5, 1500),
-        'duration'     => rand(5, 130),
-        'categories'   => '',
-        'tags'         => '',
+        'provider' => $provider,
+        'original_id' => $original_id,
+        'custom_id' => $custom_id,
+
+        'author' => $faker->userName(),
+        'duration' => rand(5, 130),
+        'views' => rand(5, 1500),
+        'ratings' => rand(5, 130),
+
+        'data' => json_encode($data)
     ];
 });
 
