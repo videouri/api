@@ -26,7 +26,7 @@ module.exports = {
                 video: baseUri + '/recommendations/video'
             },
             content: {
-                home:  baseUri +'/content/related'
+                home:  baseUri + '/content/home'
             },
             user: {
                 favorites: baseUri + '/user/favorites',
@@ -40,20 +40,9 @@ module.exports = {
         };
 
         switch (this.content) {
-            /////////////
-            // Content //
-            /////////////
-            case 'homeVideos':
-                this.$http.get(uri.content.home, function (videos) {
-                    this.$set('videos', videos.data);
-                    this.initIsotope();
-                });
-                break;
-
             ////////////
             //  User  //
             ////////////
-
             case 'favorites':
                 this.$http.get(uri.user.favorites, function (videos) {
                     this.$set('videos', videos.data);
@@ -75,9 +64,9 @@ module.exports = {
                 });
                 break;
 
-            ////////////
-            // Search //
-            ////////////
+            /////////////
+            // Content //
+            /////////////
             case 'search':
                 this.$http.get(uri.search, {
                     params: {
@@ -89,16 +78,16 @@ module.exports = {
                 });
                 break;
 
-            ////////////////
-            // Video page //
-            ////////////////
             case 'recommended':
-                this.$http.get(uri.recommendations.video, {
-                    params: {
-                        'custom_id': this.custom_id
-                    }
-                }).then(function (results) {
-                    this.$set('videos', results);
+                this.$http.get(uri.recommendations.video + '/' + this.custom_id).then(function (results) {
+                    this.$set('videos', results.data);
+                    this.initIsotope();
+                });
+                break;
+
+            case 'homeVideos':
+                this.$http.get(uri.content.home, function (videos) {
+                    this.$set('videos', videos.data);
                     this.initIsotope();
                 });
                 break;
@@ -115,13 +104,13 @@ module.exports = {
     methods: {
         initIsotope: function () {
             this.$nextTick(function () {
-                var $grid = $('#videos').isotope({
+                var grid = $('#videos').isotope({
                     itemSelector: '.video',
                     layoutMode: 'masonry'
                 });
 
-                $grid.imagesLoaded().progress(function () {
-                    $grid.isotope('layout');
+                grid.imagesLoaded().progress(function () {
+                    grid.isotope('layout');
                 });
 
 
@@ -130,7 +119,7 @@ module.exports = {
                         var filterValue = $(this).data('filter');
                         $('.choosen-source').html('Source: ' + $(this).text());
 
-                        $grid.isotope({
+                        grid.isotope({
                             filter: filterValue
                         });
                     });
