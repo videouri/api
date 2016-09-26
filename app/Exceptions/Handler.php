@@ -2,13 +2,15 @@
 
 namespace Videouri\Exceptions;
 
-use Videouri\Exceptions\SocialAuthException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
+/**
+ * @package Videouri\Exceptions
+ */
 class Handler extends ExceptionHandler
 {
     /**
@@ -28,37 +30,27 @@ class Handler extends ExceptionHandler
      *
      * This is a great spot to send exceptions to Sentry, Bugsnag, etc.
      *
-     * @param  \Exception  $e
+     * @param  \Exception $exception
+     *
      * @return void
      */
-    public function report(\Exception $e)
+    public function report(\Exception $exception)
     {
-        return parent::report($e);
+        parent::report($exception);
     }
 
     /**
      * Render an exception into an HTTP response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $e
-     * @return \Illuminate\Http\Response
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Exception $e
+     *
+     * @return $this|\Illuminate\Http\Response|\Symfony\Component\HttpFoundation\Response
      */
     public function render($request, \Exception $e)
     {
         if ($e instanceof SocialAuthException) {
-            return redirect('login')->withErrors([
-                'There was an error registering your account. Please try again',
-            ]);
-        }
-
-        if ($this->isHttpException($e)) {
-            return $this->toIlluminateResponse($this->renderHttpException($e), $e);
-        } else {
-            // return $this->toIlluminateResponse($this->convertExceptionToResponse($e), $e);
-
-            if (app()->environment() === 'production') {
-                $e = new \Symfony\Component\HttpKernel\Exception\HttpException(500);
-            }
+            return response()->redirectToRoute('login.get')->withErrors($e->getMessage());
         }
 
         return parent::render($request, $e);
