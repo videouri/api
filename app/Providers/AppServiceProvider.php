@@ -4,7 +4,7 @@ namespace Videouri\Providers;
 
 use Auth;
 use Illuminate\Support\ServiceProvider;
-use Videouri\Services\ApiFetcher;
+use Videouri\Services\Scout\Scout;
 use View;
 
 /**
@@ -40,13 +40,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('ApiFetcher', function () {
-            return new ApiFetcher();
-        });
-
-        if (in_array(env('APP_ENV'), ['local', 'development'])) {
+        if (class_exists('Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider')) {
             $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
         }
+
+        $this->app->singleton('videouri.scout', function () {
+            return new Scout();
+        });
     }
 
     /**
