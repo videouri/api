@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @param $path
+ *
+ * @return string
+ */
 function videouri_asset($path)
 {
     if (env('APP_SECURE') === true) {
@@ -11,6 +16,11 @@ function videouri_asset($path)
     return $path;
 }
 
+/**
+ * @param $url
+ *
+ * @return string
+ */
 function videouri_url($url)
 {
     if (env('APP_SECURE') === true) {
@@ -27,12 +37,13 @@ function videouri_url($url)
  *
  * @param  array $needle
  * @param  array $haystack
+ *
  * @return boolean
  */
 function in_array_r($needle, $haystack)
 {
     if (!is_array($needle)) {
-        return in_array_r(array($needle), $haystack);
+        return in_array_r([$needle], $haystack);
     }
     foreach ($needle as $item) {
         if (in_array($item, $haystack)) {
@@ -43,22 +54,21 @@ function in_array_r($needle, $haystack)
 }
 
 /**
- * Try and get the acurrate IP
+ * Try and get the accurate IP
  * @return string IP
  */
-function getUserIPAdress()
+function getUserIPAddress()
 {
-    // check ip from share internet
+    # Default ip for tests case
+    $ip = '127.0.0.1';
+
+    # check ip from share internet
     if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
         $ip = $_SERVER['HTTP_CLIENT_IP'];
-    }
-
-    // to check ip is pass from proxy
+    } # to check ip is pass from proxy
     elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    }
-
-    else {
+    } elseif (isset($_SERVER['REMOTE_ADDR'])) {
         $ip = $_SERVER['REMOTE_ADDR'];
     }
 
@@ -71,15 +81,10 @@ function getUserIPAdress()
  */
 function getUserCountry($ip)
 {
-    if ($ip !== '127.0.0.1') {
-        try {
-            return geoip_country_code_by_name($ip);
-        } catch (\Exception $e) {
-            return 'GB';
-        }
-    }
+    $lookup = geoip_country_code_by_name($ip);
+    $country = $lookup ? $lookup : 'GB';
 
-    return 'GB';
+    return $country;
 }
 
 /**
@@ -87,6 +92,8 @@ function getUserCountry($ip)
  * to a total value of seconds.
  *
  * @param string $ISO8601
+ *
+ * @return integer
  */
 function ISO8601ToSeconds($ISO8601)
 {
@@ -95,7 +102,7 @@ function ISO8601ToSeconds($ISO8601)
     preg_match('/\d{1,2}[S]/', $ISO8601, $seconds);
 
     $duration = [
-        'hours'   => $hours ? $hours[0] : 0,
+        'hours' => $hours ? $hours[0] : 0,
         'minutes' => $minutes ? $minutes[0] : 0,
         'seconds' => $seconds ? $seconds[0] : 0,
     ];
@@ -104,9 +111,9 @@ function ISO8601ToSeconds($ISO8601)
     $minutes = substr($duration['minutes'], 0, -1);
     $seconds = substr($duration['seconds'], 0, -1);
 
-    $toltalSeconds = ($hours * 60 * 60) + ($minutes * 60) + $seconds;
+    $totalSeconds = ($hours * 60 * 60) + ($minutes * 60) + $seconds;
 
-    return $toltalSeconds;
+    return $totalSeconds;
 }
 
 /**
@@ -114,21 +121,32 @@ function ISO8601ToSeconds($ISO8601)
  * For example: 5000 would become 5K
  *
  * @param  int $number
- * @return return string
+ *
+ * @return string
  */
 function humanizeNumber($number)
 {
-    $abbrevs = array(12 => "T", 9 => "B", 6 => "M", 3 => "K", 0 => "");
+    $abbrevs = [12 => "T", 9 => "B", 6 => "M", 3 => "K", 0 => ""];
+
+    $humanizedNumber = '0';
 
     foreach ($abbrevs as $exponent => $abbrev) {
         if ($number >= pow(10, $exponent)) {
             $display_num = $number / pow(10, $exponent);
             $decimals = ($exponent >= 3 && round($display_num) < 100) ? 1 : 0;
-            return number_format($display_num, $decimals) . $abbrev;
+
+            $humanizedNumber = number_format($display_num, $decimals) . $abbrev;
         }
     }
+
+    return $humanizedNumber;
 }
 
+/**
+ * @param integer $seconds
+ *
+ * @return string
+ */
 function humanizeSeconds($seconds)
 {
     if ($seconds > 86400) {
@@ -136,35 +154,4 @@ function humanizeSeconds($seconds)
     }
 
     return gmdate('H:i:s', $seconds);
-}
-
-/**
- * Generate url containing a new page query value
- *
- * @param  Int $page
- * @param  String $direction
- * @return String
- */
-function urlToPage($page, $direction)
-{
-    switch ($direction) {
-        case 'next':
-            $page = $page + 1;
-            break;
-
-        case 'previous':
-            $page = $page - 1;
-            break;
-    }
-
-    $pageQuery = array('page' => $page);
-    $currentQuery = Input::query();
-
-    // Merge our new query parameters into the current query string
-    $query = array_merge($currentQuery, $pageQuery);
-
-    // dd(URL::route('results', $query));
-
-    // Redirect to our route with the new query string
-    return URL::route('search', $query);
 }
