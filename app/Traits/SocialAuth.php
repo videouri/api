@@ -92,8 +92,7 @@ trait SocialAuth
             Auth::login($user, true);
             return redirect('/');
         } else {
-            Log::error('Social auth: Creating user failure. User data: ' . serialize($userData));
-            throw new SocialAuthException('Internal error, couldn\'t create the user');
+            throw new SocialAuthException('Error occurred trying to register your account. Please try again.');
         }
     }
 
