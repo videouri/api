@@ -4,6 +4,7 @@ namespace Videouri\Services\Scout\Agents;
 
 use Alaouy\Youtube\Youtube;
 use Session;
+use Videouri\Maps\Content;
 use Videouri\Maps\Source;
 use Videouri\Entities\Video;
 
@@ -29,16 +30,19 @@ class YoutubeAgent implements AgentInterface
      * @param $content
      * @param $parameters
      *
-     * @return array|mixed
+     * @return array
+     * @throws \Exception
      */
     public function getContent($content, array $parameters)
     {
-        $country = Session::get('country');
-        if (isset($parameters['country'])) {
-            $country = $parameters['country'];
+        switch ($content) {
+            case Content::POPULAR_VIDEOS:
+                return $this->youtube->getPopularVideos($parameters['country']);
+                break;
+            default:
+                throw new \Exception('Provided content is not supported.');
+                break;
         }
-
-        return $this->youtube->getPopularVideos($country);
     }
 
     /**
@@ -95,7 +99,9 @@ class YoutubeAgent implements AgentInterface
         if (isset($video->contentDetails)) {
             $seconds = $video->contentDetails->duration;
             $duration = ISO8601ToSeconds($seconds);
+        }
 
+        if (isset($video->statistics)) {
             $views = $video->statistics->viewCount;
             $likes = $video->statistics->likeCount;
             $dislikes = $video->statistics->dislikeCount;
