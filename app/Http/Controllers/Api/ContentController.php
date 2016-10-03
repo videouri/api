@@ -2,6 +2,7 @@
 
 namespace Videouri\Http\Controllers\Api;
 
+use Videouri\Maps\Content;
 use Videouri\Maps\Source;
 
 /**
@@ -14,19 +15,8 @@ class ContentController extends ApiController
      */
     public function home()
     {
-        /**
-         * Default parameters for homepage
-         */
-        // $this->apiFetcher->apis = ['Youtube'];
-        // $this->apiFetcher->period = 'today';
-        // $this->apiFetcher->maxResults = 8;
-        //
-        // $content = ['most_viewed'];
-
         $apis = [Source::DAILYMOTION, Source::VIMEO, Source::YOUTUBE];
-        $videos = $this->scout->getContent($apis, ['most_viewed']);
-
-
+        return $this->scout->getContent($apis, Content::POPULAR_VIDEOS);
 
         // try {
         //     $apiResults = $this->apiFetcher->mixedCalls($content);
