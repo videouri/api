@@ -2,6 +2,7 @@
 
 namespace Videouri\Services\Scout\Actions;
 
+use Videouri\Services\Scout\Actions\Traits\Filtered;
 use Videouri\Services\Scout\Actions\Traits\Paginated;
 use Cache;
 
@@ -10,17 +11,12 @@ use Cache;
  */
 class GetContent extends AbstractAction
 {
-    use Paginated;
+    use Paginated, Filtered;
 
     /**
      * @var string
      */
     private $content;
-
-    /**
-     * @var string
-     */
-    private $country;
 
     /**
      * @param string $content
@@ -34,29 +30,15 @@ class GetContent extends AbstractAction
     }
 
     /**
-     * @param string $country
-     *
-     * @return $this
-     */
-    public function setCountry($country)
-    {
-        $this->country = $country;
-        return $this;
-    }
-
-    /**
      * @return array
      */
     public function process()
     {
         $parameters = [
-            'period' => $this->period,
-            'maxResults' => $this->maxResults,
+            'period' => $this->getPage(),
+            'maxResults' => $this->getMaxResults(),
+            'country' => $this->getCountry()
         ];
-
-        if ($this->country !== null) {
-            $parameters['country'] = $this->country;
-        }
 
         $parametersHash = md5(serialize($parameters));
         $cachedContent = Cache::get($parametersHash);
@@ -66,7 +48,7 @@ class GetContent extends AbstractAction
             foreach ($this->getSources() as $api) {
                 try {
                     $apiAgent = $this->getAgent($api);
-                    $videos = $apiAgent->getContent($this->content, $api);
+                    $videos = $apiAgent->getContent($this->content, $parameters);
                     $videos = $apiAgent->parseVideos($videos);
 
                     $apiResponse[$this->content][$api] = $videos;
