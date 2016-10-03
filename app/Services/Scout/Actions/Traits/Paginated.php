@@ -10,7 +10,7 @@ trait Paginated
     /**
      * @var integer
      */
-    public $page;
+    public $page = 1;
 
     /**
      * @var integer
