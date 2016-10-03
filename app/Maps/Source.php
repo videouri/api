@@ -1,9 +1,9 @@
 <?php
 
-namespace Videouri\Entities;
+namespace Videouri\Maps;
 
 /**
- * @package Videouri\Entities
+ * @package Videouri\Maps
  */
 class Source
 {
