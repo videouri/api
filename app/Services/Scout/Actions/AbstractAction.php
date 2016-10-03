@@ -20,24 +20,12 @@ abstract class AbstractAction
     /**
      * @var array
      */
-    protected $instances = [];
+    private $instances = [];
 
     /**
      * @var array
      */
     protected $sources = [];
-
-    /**
-     * @var string
-     */
-    protected $sort = 'newest';
-
-    /**
-     * Sort period
-     *
-     * @var string
-     */
-    protected $period = 'ever';
 
     /**
      * @return mixed
