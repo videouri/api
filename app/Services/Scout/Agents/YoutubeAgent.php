@@ -33,24 +33,12 @@ class YoutubeAgent implements AgentInterface
      */
     public function getContent($content, array $parameters)
     {
-        if ((isset($parameters['sort'])) && ($parameters['sort'] === 'views')) {
-            $parameters['sort'] = 'viewCount';
-        }
-
         $country = Session::get('country');
         if (isset($parameters['country'])) {
             $country = $parameters['country'];
         }
 
-        $results = [];
-
-        switch ($content) {
-            case 'most_viewed':
-                $results = $this->youtube->getPopularVideos($country);
-                break;
-        }
-
-        return $results;
+        return $this->youtube->getPopularVideos($country);
     }
 
     /**
