@@ -2,7 +2,7 @@
 
 namespace Videouri\Http\Controllers\Api;
 
-use Videouri\Entities\Source;
+use Videouri\Maps\Source;
 
 /**
  * @package Videouri\Http\Controllers\Api

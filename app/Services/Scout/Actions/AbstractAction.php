@@ -3,7 +3,7 @@
 namespace Videouri\Services\Scout\Actions;
 
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Videouri\Entities\Source;
+use Videouri\Maps\Source;
 use Videouri\Services\Scout\Agents\AgentInterface;
 use Videouri\Services\Scout\Agents\DailymotionAgent;
 use Videouri\Services\Scout\Agents\VimeoAgent;

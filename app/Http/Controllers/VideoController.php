@@ -5,7 +5,7 @@ namespace Videouri\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Redirector;
 use Illuminate\View\View;
-use Videouri\Entities\Source;
+use Videouri\Maps\Source;
 use Videouri\Services\Scout\Scout;
 use Videouri\Services\Transformer\Transform;
 use Videouri\Services\Transformer\VideoTransformer;

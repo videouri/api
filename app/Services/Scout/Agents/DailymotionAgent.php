@@ -4,7 +4,7 @@ namespace Videouri\Services\Scout\Agents;
 
 use Dailymotion;
 use Session;
-use Videouri\Entities\Source;
+use Videouri\Maps\Source;
 use Videouri\Entities\Video;
 
 /**

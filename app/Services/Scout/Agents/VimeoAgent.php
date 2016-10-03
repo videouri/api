@@ -2,7 +2,7 @@
 
 namespace Videouri\Services\Scout\Agents;
 
-use Videouri\Entities\Source;
+use Videouri\Maps\Source;
 use Videouri\Entities\Video;
 use Vimeo;
 

@@ -4,7 +4,7 @@ namespace Videouri\Http\Controllers\Api;
 
 use Auth;
 use Illuminate\Http\Request;
-use Videouri\Entities\Source;
+use Videouri\Maps\Source;
 use Videouri\Jobs\RegisterSearch;
 
 /**
