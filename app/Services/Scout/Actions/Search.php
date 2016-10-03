@@ -2,6 +2,7 @@
 
 namespace Videouri\Services\Scout\Actions;
 
+use Videouri\Services\Scout\Actions\Traits\Filtered;
 use Videouri\Services\Scout\Actions\Traits\Paginated;
 use Cache;
 
@@ -10,7 +11,7 @@ use Cache;
  */
 final class Search extends AbstractAction
 {
-    use Paginated;
+    use Paginated, Filtered;
 
     /**
      * @var string
@@ -51,6 +52,7 @@ final class Search extends AbstractAction
             'query' => $this->getQuery(),
             'page' => $this->getPage(),
             'maxResults' => $this->getMaxResults(),
+            'country' => $this->getCountry()
         ];
 
         $results = [];
