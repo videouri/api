@@ -1,0 +1,17 @@
+version '3'
+
+services:
+    nginx:
+        image: nginx:latest
+        ports:
+            - "8080:80"
+        depends_on:
+            - db
+            - redis
+            - beanstalkd
+    redis:
+        image: redis
+    db:
+        image: postgres
+    beanstalkd:
+        image: schickling/beanstalkd
